@@ -1,0 +1,59 @@
+.filtered-json-viewer-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 65vh;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.filtered-json-viewer-controls {
+  display: flex;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.filtered-json-viewer-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-mode-toggle,
+.filter-toggle {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  outline: none;
+}
+
+.view-mode-toggle:hover,
+.filter-toggle:hover {
+  background: #f0f0f0;
+}
+
+.view-mode-toggle.active,
+.filter-toggle.active {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.tree-view-container {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+}

@@ -1,0 +1,27 @@
+.diff-filtered-json-view {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  position: relative;
+}
+
+.filtered-json-content {
+  margin: 0;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.no-differences-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  font-style: italic;
+}

@@ -1,0 +1,10 @@
+
+let expand the synchronized scrolling to synchronize most actions:
+toggle tree/text mode
+expand/collpas certain node the same time.
+Show difference only 
+
+By default, synchronize
+
+can you add a toggle to fully collpase the tree view, set it as default. 
+set "show colored diff view" as default. please move all toggle together. 

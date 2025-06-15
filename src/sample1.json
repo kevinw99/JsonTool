@@ -1,0 +1,4917 @@
+{
+  "optOutputs" : {
+    "externalRequestUID" : null,
+    "initialPortCharacteristics" : {
+      "risk" : 0.3173833596,
+      "expectedReturnGrossOfFeesAftertaxRealPct" : 0.295383689400,
+      "expenseRatioPct" : 0.0,
+      "expectedReturnPretaxNominalPct" : 3.001343278700,
+      "expectedReturnAftertaxNominalPct" : 2.603035180200,
+      "expectedReturnPretaxNominalNetOfFeesPct" : 3.001343278700000,
+      "expectedReturnAftertaxNominalNetOfFeesPct" : 2.603035180200000,
+      "style" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 1.0,
+          "INTERMEDIATE_BOND" : 0.0,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 1.0,
+          "BONDS" : 0.0,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 299999.7,
+          "INTERMEDIATE_BOND" : 0.3,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 299999.7,
+          "BONDS" : 0.3,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "riskCategory" : "VERY_CONSERVATIVE",
+      "taxableInvestmentStyle" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 33.000,
+          "INTERMEDIATE_BOND" : 0.000,
+          "LONG_BOND" : 0,
+          "CORPORATE_BOND" : 0,
+          "MORTGAGE_BOND" : 0,
+          "INTERNATIONAL_BOND" : 0,
+          "LARGE_VALUE" : 0,
+          "LARGE_GROWTH" : 0,
+          "MID_VALUE" : 0,
+          "MID_GROWTH" : 0,
+          "SMALL_VALUE" : 0,
+          "SMALL_GROWTH" : 0,
+          "EUROPE" : 0,
+          "PACIFIC" : 0,
+          "EMERGING" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0,
+          "EXPONENTIAL_TECHNOLOGY" : 0,
+          "REAL_ESTATE" : 0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 33.000,
+          "BONDS" : 0.000,
+          "LARGE_CAP" : 0,
+          "SMALL_CAP" : 0,
+          "INTERNATIONAL" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 99999.9,
+          "INTERMEDIATE_BOND" : 0.1,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 99999.9,
+          "BONDS" : 0.1,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "taxFavoredInvestmentStyle" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 67.000,
+          "INTERMEDIATE_BOND" : 0.000,
+          "LONG_BOND" : 0,
+          "CORPORATE_BOND" : 0,
+          "MORTGAGE_BOND" : 0,
+          "INTERNATIONAL_BOND" : 0,
+          "LARGE_VALUE" : 0,
+          "LARGE_GROWTH" : 0,
+          "MID_VALUE" : 0,
+          "MID_GROWTH" : 0,
+          "SMALL_VALUE" : 0,
+          "SMALL_GROWTH" : 0,
+          "EUROPE" : 0,
+          "PACIFIC" : 0,
+          "EMERGING" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0,
+          "EXPONENTIAL_TECHNOLOGY" : 0,
+          "REAL_ESTATE" : 0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 67.000,
+          "BONDS" : 0.000,
+          "LARGE_CAP" : 0,
+          "SMALL_CAP" : 0,
+          "INTERNATIONAL" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 199999.8,
+          "INTERMEDIATE_BOND" : 0.2,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 199999.8,
+          "BONDS" : 0.2,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "maFeeEstimatePct" : 0E-15,
+      "accountCharacteristics" : [ {
+        "accountDomainId" : "45596359::3",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      }, {
+        "accountDomainId" : "45596359::2",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      }, {
+        "accountDomainId" : "45596359::1",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      } ],
+      "oneYearLoss" : {
+        "oneYearLossPct" : 0E-10,
+        "oneYearLossDollars" : 0.0
+      }
+    },
+    "isDiversified" : false,
+    "riskPreference" : null,
+    "investmentObjective" : null,
+    "initialAdvisablePortCharacteristics" : null,
+    "efficientAdvisablePortCharacteristics" : null,
+    "targetRisk" : null,
+    "targetTau" : null,
+    "diversifiedObjectiveValue" : null,
+    "undiversifiedObjectiveValue" : null,
+    "optimizationHorizon" : null,
+    "globalRiskTargetsVersion" : null,
+    "tauRiskRangeMin" : null,
+    "tauRiskRangeMax" : null,
+    "advisableFractionPct" : null,
+    "estarExpectedReturnEfficientPct" : null,
+    "estarRiskEfficient" : null,
+    "palatabilityBudgetTotalPct" : null,
+    "palatabilityBudgetBoostPct" : null,
+    "effActiveFundPct" : null,
+    "totalPortfolioBalance" : 300000.0,
+    "maxRisk" : null,
+    "minRisk" : null,
+    "goalName" : null,
+    "goalCategory" : null,
+    "unrestrictedCoStockPctCapInitial" : null,
+    "unrestrictedCostockPctCapUsedByEngines" : null,
+    "retirementAge" : null,
+    "drawdownDate" : null,
+    "isDrawdownPhase" : null,
+    "manageableFractionPct" : null,
+    "retGoalHasSizablePension" : null,
+    "totalAccruedBenefitPresentValue" : null,
+    "numNonzeroDefinedBenefitsIncome" : null,
+    "portfolioAttributes" : [ ],
+    "debugOutput" : null,
+    "engRiskToleranceForRetirementGoal" : null,
+    "eoptimizationMethodologyType" : null,
+    "etaxFilingStatus" : null,
+    "accounts" : [ {
+      "entityId" : "45596359::1",
+      "externalId" : "2E2A3445-7EED-49A1-89FB-F16122FCCC72",
+      "accountPlanId" : null,
+      "isLocked" : null,
+      "efficientUnrestrictedBalanceDollars" : null,
+      "effectiveCapGainsTaxRatePct" : null,
+      "averageTaxRatePct" : null,
+      "turnoverCalculatedByEnginesPct" : null,
+      "adviceQdiaCompliance" : null,
+      "fedMarginalTaxRatePct" : null,
+      "stateMarginalTaxRatePct" : null,
+      "taxState" : null,
+      "accountPlanVersion" : null,
+      "effectiveMarginalTaxRatePct" : null,
+      "taxableRealizedGainOrLossDollars" : null,
+      "taxableUnrealizedGainOrLossDollars" : null,
+      "accountType" : "TAXABLE",
+      "rebalanceInstructionType" : null,
+      "accountPlanSnapshotId" : null,
+      "modelId" : null,
+      "modelName" : null,
+      "modelProgramId" : null,
+      "modelProgramName" : null,
+      "custodian" : null,
+      "accountAttributes" : [ ],
+      "effActiveFundPct" : null,
+      "eactionAlgorithm" : null,
+      "stylePenaltyEtaDecimal" : null,
+      "styleVolatilityDecimal" : null,
+      "positions" : [ {
+        "fundAttributes" : [ ],
+        "entityId" : "45596359::1::1",
+        "instrumentId" : "G::99",
+        "isAdvisable" : false,
+        "efficientUnrestrictedAllocationPct" : 100,
+        "efficientUnrestrictedBalanceDollars" : 100000.0,
+        "isAdviceEligibleCompanyStock" : null,
+        "initialUnrestrictedAllocationPct" : 100,
+        "initialActionableAllocationPct" : null,
+        "initialUnrestrictedBalanceDollars" : 100000.0,
+        "initialRestrictedBalanceDollars" : null,
+        "isLocked" : true,
+        "lifecycleMaturityYear" : null,
+        "styleDateAsOf" : null,
+        "adviceControl" : null,
+        "isCash" : null,
+        "isDead" : null,
+        "isActiveFund" : null,
+        "costBasisDollars" : 100000.0,
+        "taxableRealizedGainOrLossDollars" : null,
+        "taxableRealizedLongTermGainOrLossDollars" : null,
+        "taxableRealizedShortTermGainOrLossDollars" : null,
+        "taxableGrossLossDollars" : null,
+        "taxableAmountSoldAtLossDollars" : null,
+        "taxableTotalTaxPaymentDollars" : null,
+        "taxableTaxCreditFromLossDollars" : null,
+        "taxableSharesSoldAtLoss" : null,
+        "taxableUnrealizedGainOrLossDollars" : null,
+        "taxableLotMethod" : null,
+        "taxableBuyAdjustmentPct" : null,
+        "taxableSellAdjustmentPct" : null,
+        "taxableOpportunityCostPct" : null,
+        "isMuni" : false,
+        "adviceInstructions" : null,
+        "hasRedemptionFee" : null,
+        "redemptionFeeHoldingPeriod" : null,
+        "balanceSubjectToRedemptionFeeDollars" : null,
+        "balanceSubjectToRedemptionFeeResolvedDollars" : null,
+        "stableValueEquityWashType" : null,
+        "stableValueEquityWashBalanceDollars" : null,
+        "stableValueEquityWashBalanceUsedByEnginesDollars" : null,
+        "estimatedIntegerRebalanceAllocation" : null,
+        "estimatedIntegerInitialAllocation" : null,
+        "name" : "Cash",
+        "isInNtfUniverse" : null,
+        "isInFeiSubset" : null,
+        "isInHyperactiveSet" : null,
+        "taxState" : null,
+        "fundStatus" : null
+      } ],
+      "receivingAdvice" : false,
+      "smallAccount" : null
+    }, {
+      "entityId" : "45596359::2",
+      "externalId" : "4D57BF19-3079-4DD7-91F1-4F06301F1BA4",
+      "accountPlanId" : null,
+      "isLocked" : null,
+      "efficientUnrestrictedBalanceDollars" : null,
+      "effectiveCapGainsTaxRatePct" : null,
+      "averageTaxRatePct" : null,
+      "turnoverCalculatedByEnginesPct" : null,
+      "adviceQdiaCompliance" : null,
+      "fedMarginalTaxRatePct" : null,
+      "stateMarginalTaxRatePct" : null,
+      "taxState" : null,
+      "accountPlanVersion" : null,
+      "effectiveMarginalTaxRatePct" : null,
+      "taxableRealizedGainOrLossDollars" : null,
+      "taxableUnrealizedGainOrLossDollars" : null,
+      "accountType" : "FOUR01K",
+      "rebalanceInstructionType" : null,
+      "accountPlanSnapshotId" : null,
+      "modelId" : null,
+      "modelName" : null,
+      "modelProgramId" : null,
+      "modelProgramName" : null,
+      "custodian" : null,
+      "accountAttributes" : [ ],
+      "effActiveFundPct" : null,
+      "eactionAlgorithm" : null,
+      "stylePenaltyEtaDecimal" : null,
+      "styleVolatilityDecimal" : null,
+      "positions" : [ {
+        "fundAttributes" : [ ],
+        "entityId" : "45596359::2::1",
+        "instrumentId" : "G::99",
+        "isAdvisable" : false,
+        "efficientUnrestrictedAllocationPct" : 100,
+        "efficientUnrestrictedBalanceDollars" : 100000.0,
+        "isAdviceEligibleCompanyStock" : null,
+        "initialUnrestrictedAllocationPct" : 100,
+        "initialActionableAllocationPct" : null,
+        "initialUnrestrictedBalanceDollars" : 100000.0,
+        "initialRestrictedBalanceDollars" : null,
+        "isLocked" : true,
+        "lifecycleMaturityYear" : null,
+        "styleDateAsOf" : null,
+        "adviceControl" : null,
+        "isCash" : null,
+        "isDead" : null,
+        "isActiveFund" : null,
+        "costBasisDollars" : 100000.0,
+        "taxableRealizedGainOrLossDollars" : null,
+        "taxableRealizedLongTermGainOrLossDollars" : null,
+        "taxableRealizedShortTermGainOrLossDollars" : null,
+        "taxableGrossLossDollars" : null,
+        "taxableAmountSoldAtLossDollars" : null,
+        "taxableTotalTaxPaymentDollars" : null,
+        "taxableTaxCreditFromLossDollars" : null,
+        "taxableSharesSoldAtLoss" : null,
+        "taxableUnrealizedGainOrLossDollars" : null,
+        "taxableLotMethod" : null,
+        "taxableBuyAdjustmentPct" : null,
+        "taxableSellAdjustmentPct" : null,
+        "taxableOpportunityCostPct" : null,
+        "isMuni" : false,
+        "adviceInstructions" : null,
+        "hasRedemptionFee" : null,
+        "redemptionFeeHoldingPeriod" : null,
+        "balanceSubjectToRedemptionFeeDollars" : null,
+        "balanceSubjectToRedemptionFeeResolvedDollars" : null,
+        "stableValueEquityWashType" : null,
+        "stableValueEquityWashBalanceDollars" : null,
+        "stableValueEquityWashBalanceUsedByEnginesDollars" : null,
+        "estimatedIntegerRebalanceAllocation" : null,
+        "estimatedIntegerInitialAllocation" : null,
+        "name" : "Cash",
+        "isInNtfUniverse" : null,
+        "isInFeiSubset" : null,
+        "isInHyperactiveSet" : null,
+        "taxState" : null,
+        "fundStatus" : null
+      } ],
+      "receivingAdvice" : false,
+      "smallAccount" : null
+    }, {
+      "entityId" : "45596359::3",
+      "externalId" : "AF8653C9-3C42-4229-8042-FBD711059217",
+      "accountPlanId" : null,
+      "isLocked" : null,
+      "efficientUnrestrictedBalanceDollars" : null,
+      "effectiveCapGainsTaxRatePct" : null,
+      "averageTaxRatePct" : null,
+      "turnoverCalculatedByEnginesPct" : null,
+      "adviceQdiaCompliance" : null,
+      "fedMarginalTaxRatePct" : null,
+      "stateMarginalTaxRatePct" : null,
+      "taxState" : null,
+      "accountPlanVersion" : null,
+      "effectiveMarginalTaxRatePct" : null,
+      "taxableRealizedGainOrLossDollars" : null,
+      "taxableUnrealizedGainOrLossDollars" : null,
+      "accountType" : "ROTH_IRA",
+      "rebalanceInstructionType" : null,
+      "accountPlanSnapshotId" : null,
+      "modelId" : null,
+      "modelName" : null,
+      "modelProgramId" : null,
+      "modelProgramName" : null,
+      "custodian" : null,
+      "accountAttributes" : [ ],
+      "effActiveFundPct" : null,
+      "eactionAlgorithm" : null,
+      "stylePenaltyEtaDecimal" : null,
+      "styleVolatilityDecimal" : null,
+      "positions" : [ {
+        "fundAttributes" : [ ],
+        "entityId" : "45596359::3::1",
+        "instrumentId" : "G::99",
+        "isAdvisable" : false,
+        "efficientUnrestrictedAllocationPct" : 100,
+        "efficientUnrestrictedBalanceDollars" : 100000.0,
+        "isAdviceEligibleCompanyStock" : null,
+        "initialUnrestrictedAllocationPct" : 100,
+        "initialActionableAllocationPct" : null,
+        "initialUnrestrictedBalanceDollars" : 100000.0,
+        "initialRestrictedBalanceDollars" : null,
+        "isLocked" : true,
+        "lifecycleMaturityYear" : null,
+        "styleDateAsOf" : null,
+        "adviceControl" : null,
+        "isCash" : null,
+        "isDead" : null,
+        "isActiveFund" : null,
+        "costBasisDollars" : 100000.0,
+        "taxableRealizedGainOrLossDollars" : null,
+        "taxableRealizedLongTermGainOrLossDollars" : null,
+        "taxableRealizedShortTermGainOrLossDollars" : null,
+        "taxableGrossLossDollars" : null,
+        "taxableAmountSoldAtLossDollars" : null,
+        "taxableTotalTaxPaymentDollars" : null,
+        "taxableTaxCreditFromLossDollars" : null,
+        "taxableSharesSoldAtLoss" : null,
+        "taxableUnrealizedGainOrLossDollars" : null,
+        "taxableLotMethod" : null,
+        "taxableBuyAdjustmentPct" : null,
+        "taxableSellAdjustmentPct" : null,
+        "taxableOpportunityCostPct" : null,
+        "isMuni" : false,
+        "adviceInstructions" : null,
+        "hasRedemptionFee" : null,
+        "redemptionFeeHoldingPeriod" : null,
+        "balanceSubjectToRedemptionFeeDollars" : null,
+        "balanceSubjectToRedemptionFeeResolvedDollars" : null,
+        "stableValueEquityWashType" : null,
+        "stableValueEquityWashBalanceDollars" : null,
+        "stableValueEquityWashBalanceUsedByEnginesDollars" : null,
+        "estimatedIntegerRebalanceAllocation" : null,
+        "estimatedIntegerInitialAllocation" : null,
+        "name" : "Cash",
+        "isInNtfUniverse" : null,
+        "isInFeiSubset" : null,
+        "isInHyperactiveSet" : null,
+        "taxState" : null,
+        "fundStatus" : null
+      } ],
+      "receivingAdvice" : false,
+      "smallAccount" : null
+    } ],
+    "efficientPortfolioCharacteristics" : {
+      "risk" : 0.3173833596,
+      "expectedReturnGrossOfFeesAftertaxRealPct" : 0.295383689400,
+      "expenseRatioPct" : 0.0,
+      "expectedReturnPretaxNominalPct" : 3.001343278700,
+      "expectedReturnAftertaxNominalPct" : 2.603035180200,
+      "expectedReturnPretaxNominalNetOfFeesPct" : 3.001343278700000,
+      "expectedReturnAftertaxNominalNetOfFeesPct" : 2.603035180200000,
+      "style" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 1.0,
+          "INTERMEDIATE_BOND" : 0.0,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 1.0,
+          "BONDS" : 0.0,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 299999.7,
+          "INTERMEDIATE_BOND" : 0.3,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 299999.7,
+          "BONDS" : 0.3,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "riskCategory" : "VERY_CONSERVATIVE",
+      "taxableInvestmentStyle" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 33.000,
+          "INTERMEDIATE_BOND" : 0.000,
+          "LONG_BOND" : 0,
+          "CORPORATE_BOND" : 0,
+          "MORTGAGE_BOND" : 0,
+          "INTERNATIONAL_BOND" : 0,
+          "LARGE_VALUE" : 0,
+          "LARGE_GROWTH" : 0,
+          "MID_VALUE" : 0,
+          "MID_GROWTH" : 0,
+          "SMALL_VALUE" : 0,
+          "SMALL_GROWTH" : 0,
+          "EUROPE" : 0,
+          "PACIFIC" : 0,
+          "EMERGING" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0,
+          "EXPONENTIAL_TECHNOLOGY" : 0,
+          "REAL_ESTATE" : 0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 33.000,
+          "BONDS" : 0.000,
+          "LARGE_CAP" : 0,
+          "SMALL_CAP" : 0,
+          "INTERNATIONAL" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 99999.9,
+          "INTERMEDIATE_BOND" : 0.1,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 99999.9,
+          "BONDS" : 0.1,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "taxFavoredInvestmentStyle" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 67.000,
+          "INTERMEDIATE_BOND" : 0.000,
+          "LONG_BOND" : 0,
+          "CORPORATE_BOND" : 0,
+          "MORTGAGE_BOND" : 0,
+          "INTERNATIONAL_BOND" : 0,
+          "LARGE_VALUE" : 0,
+          "LARGE_GROWTH" : 0,
+          "MID_VALUE" : 0,
+          "MID_GROWTH" : 0,
+          "SMALL_VALUE" : 0,
+          "SMALL_GROWTH" : 0,
+          "EUROPE" : 0,
+          "PACIFIC" : 0,
+          "EMERGING" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0,
+          "EXPONENTIAL_TECHNOLOGY" : 0,
+          "REAL_ESTATE" : 0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 67.000,
+          "BONDS" : 0.000,
+          "LARGE_CAP" : 0,
+          "SMALL_CAP" : 0,
+          "INTERNATIONAL" : 0,
+          "STOCK" : 0,
+          "OTHER" : 0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 199999.8,
+          "INTERMEDIATE_BOND" : 0.2,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 199999.8,
+          "BONDS" : 0.2,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "maFeeEstimatePct" : 0E-15,
+      "accountCharacteristics" : [ {
+        "accountDomainId" : "45596359::3",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      }, {
+        "accountDomainId" : "45596359::2",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      }, {
+        "accountDomainId" : "45596359::1",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "feeEstimatePct" : null
+      } ],
+      "oneYearLoss" : {
+        "oneYearLossPct" : 0E-10,
+        "oneYearLossDollars" : 0.0
+      }
+    },
+    "userRiskToleranceForRetirementGoal" : null
+  },
+  "simOutputs" : {
+    "externalRequestUIDForecast" : "RETGOAL_BOOMER_FORECAST::2823333::2025-06-06T00:42:59.606088::94f847a6-cb3b-4abe-978c-978a3c18465a",
+    "initialSuccessProbabilityPct" : null,
+    "efficientSuccessProbabilityPct" : 5.413832200,
+    "medianPortfolioWealthAtTargetHorizonInTodaysDollar" : null,
+    "medianPortfolioWealthAtTargetHorizonInFutureDollar" : null,
+    "upsidePortfolioWealthAtTargetHorizonInTodaysDollar" : null,
+    "upsidePortfolioWealthAtTargetHorizonInFutureDollar" : null,
+    "downsidePortfolioWealthAtTargetHorizonInTodaysDollar" : null,
+    "downsidePortfolioWealthAtTargetHorizonInFutureDollar" : null
+  },
+  "watchdogResults" : {
+    "violations" : [ ],
+    "warnings" : [ ],
+    "info" : [ ],
+    "notEmpty" : false
+  },
+  "debugOutputs" : {
+    "outputType" : "ADVICE_FORECAST",
+    "userGUID" : "155DD095-48B8-428E-BE60-C90B566BF123",
+    "planningGoalId" : "2823333",
+    "userEnrollmentType" : "RETAIL2",
+    "financialPlanType" : "INITIAL",
+    "participantRetirementDate" : "2029-03-03",
+    "spouseOrPartnerRetirementDate" : null,
+    "engineDecliningRiskMixesRequest" : {
+      "household" : {
+        "id" : "2823333",
+        "taxFilingStatus" : "SINGLE",
+        "taxRates" : [ {
+          "ownerId" : "45596359::1",
+          "taxState" : "CALIFORNIA",
+          "startDate" : "2025-06-06",
+          "averageTaxRate" : 0.2507,
+          "federalMarginalTaxRate" : 0.24,
+          "stateMarginalTaxRate" : 0.093,
+          "effectiveCapitalGainsTaxRate" : 0.243,
+          "isSetTaxRatesToZero" : false
+        } ],
+        "accounts" : [ {
+          "id" : "45596359::1",
+          "accountType" : "TAXABLE",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::1::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99"
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "investmentUniverseIds" : [ ],
+          "lottedPositions" : [ ]
+        }, {
+          "id" : "45596359::2",
+          "accountType" : "FOUR01K",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::2::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99"
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "investmentUniverseIds" : [ ],
+          "lottedPositions" : [ ]
+        }, {
+          "id" : "45596359::3",
+          "accountType" : "ROTH_IRA",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::3::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99"
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "investmentUniverseIds" : [ ],
+          "lottedPositions" : [ ]
+        } ]
+      },
+      "parameters" : {
+        "effectiveDate" : "2025-06-06",
+        "engineOptimizationConstraints" : [ "COMPANY_STOCK", "CASH_BUFFER" ],
+        "enableStableAdvice" : true,
+        "capitalGainsSensitivityFactor" : 1,
+        "assetClassControlParameters" : null,
+        "accountParams" : [ {
+          "id" : "45596359::2",
+          "managementFee" : 0E-15,
+          "advisable" : false,
+          "shouldNotImpactAdvice" : false,
+          "investmentAlternatives" : [ ],
+          "smallAccount" : false
+        }, {
+          "id" : "45596359::1",
+          "managementFee" : 0E-15,
+          "advisable" : false,
+          "shouldNotImpactAdvice" : false,
+          "investmentAlternatives" : [ ],
+          "smallAccount" : false
+        }, {
+          "id" : "45596359::3",
+          "managementFee" : 0E-15,
+          "advisable" : false,
+          "shouldNotImpactAdvice" : false,
+          "investmentAlternatives" : [ ],
+          "smallAccount" : false
+        } ],
+        "datFilesCaptured" : false,
+        "shouldScaledownInadvisableWeights" : true,
+        "styleAlgorithm" : "SHOW_STOCK",
+        "alternativeStyleAlgorithm" : null,
+        "simulationHorizon" : 50.0,
+        "glidepathType" : "RETIREMENT_GOAL_GLIDEPATH",
+        "glidepathName" : "FIFTIETH_PERCENTILE",
+        "targetHorizon" : 3.737704918032787
+      },
+      "metadata" : {
+        "externalRequestUID" : "DECLINING_RISK_SIM_MIXES::2823333::2025-06-06T00:42:59.243839::94f847a6-cb3b-4abe-978c-978a3c18465a",
+        "externalRequestDateTime" : "2025-06-06T00:42:59.243894"
+      }
+    },
+    "engineDecliningRiskMixesResponse" : {
+      "mixes" : [ {
+        "id" : "45596359::1",
+        "simulationMixes" : [ {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        } ]
+      }, {
+        "id" : "45596359::2",
+        "simulationMixes" : [ {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        } ]
+      }, {
+        "id" : "45596359::3",
+        "simulationMixes" : [ {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        }, {
+          "oldMoneyMixes" : [ {
+            "assetId" : "G::99",
+            "allocation" : 1
+          } ]
+        } ]
+      } ],
+      "simulationMixRiskReturns" : [ ],
+      "glidepathVersion" : null
+    },
+    "contributionFlowsByAccountId" : null,
+    "boomerForecastRequest" : {
+      "household" : {
+        "participant" : {
+          "id" : "45596359::1",
+          "gender" : "MALE",
+          "birthDate" : "1964-03-03",
+          "retirementAge" : null
+        },
+        "spouse" : null,
+        "partner" : null,
+        "socialSecurityBenefits" : {
+          "people" : [ {
+            "id" : "45596359::1",
+            "gender" : "MALE",
+            "birthDate" : "1964-03-03",
+            "longevityPreferenceType" : null,
+            "knownBenefits" : [ {
+              "benefitType" : "EARNED",
+              "benefitStartDate" : "2031-03-03",
+              "benefitSourceType" : "OWN_EARNINGS",
+              "benefitAmount" : 49152.0,
+              "benefitAmountType" : "ACTUAL_AMOUNT"
+            } ]
+          } ],
+          "effectiveDate" : "2025-06-06"
+        },
+        "jobs" : [ {
+          "id" : "45596359::1",
+          "name" : null,
+          "ownerId" : "45596359::1",
+          "annualAmount" : {
+            "amount" : 175000.0,
+            "todaysDollar" : true
+          },
+          "annualGrowthRate" : {
+            "rate" : 0.0375,
+            "real" : false
+          },
+          "startDate" : "2025-05-20",
+          "endDate" : "2029-03-03"
+        } ],
+        "id" : "2823333",
+        "taxFilingStatus" : "SINGLE",
+        "accounts" : [ {
+          "id" : "45596359::1",
+          "accountType" : "TAXABLE",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::1::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        }, {
+          "id" : "45596359::2",
+          "accountType" : "FOUR01K",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::2::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        }, {
+          "id" : "45596359::3",
+          "accountType" : "ROTH_IRA",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::3::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        } ],
+        "taxRates" : [ {
+          "ownerId" : "45596359::1",
+          "taxState" : "CALIFORNIA",
+          "startDate" : "2029-03-03",
+          "averageTaxRate" : null,
+          "federalMarginalTaxRate" : null,
+          "stateMarginalTaxRate" : null,
+          "effectiveCapitalGainsTaxRate" : null
+        }, {
+          "ownerId" : "45596359::1",
+          "taxState" : "CALIFORNIA",
+          "startDate" : "2025-06-06",
+          "averageTaxRate" : 0.2507,
+          "federalMarginalTaxRate" : 0.24,
+          "stateMarginalTaxRate" : 0.093,
+          "effectiveCapitalGainsTaxRate" : 0.243
+        } ]
+      },
+      "parameters" : {
+        "effectiveDate" : "2025-06-06",
+        "simulationHorizon" : 3.737704918032787,
+        "accountParams" : [ {
+          "id" : "45596359::2",
+          "managementFee" : 0E-15,
+          "contributions" : [ {
+            "id" : "45596359::2_prtcpnt-roth-tax-def-cu-50-sep_0",
+            "contributionType" : "ROTH_TAX_DEF_ACCT_CATCH_UP_50",
+            "contributions" : [ 562.0, 562.0, 562.0, 276.42 ]
+          }, {
+            "id" : "45596359::2_prtcpnt-roth-tax-def_0",
+            "contributionType" : "ROTH_TAX_DEF_ACCT",
+            "contributions" : [ 1175.0, 1175.0, 1175.0, 866.8 ]
+          }, {
+            "id" : "45596359::2_match_1310975",
+            "contributionType" : "UNRESTRICTED_MATCH",
+            "contributions" : [ 7875.0, 7972.21, 8070.62, 6027.23 ]
+          }, {
+            "id" : "45596359::2_nonmatch_1310976",
+            "contributionType" : "UNRESTRICTED_NON_MATCH",
+            "contributions" : [ 1750.0, 1771.6, 1793.47, 1339.38 ]
+          }, {
+            "id" : "45596359::2_prtcpnt-pre_0",
+            "contributionType" : "PARTICIPANT_PRE_TAX",
+            "contributions" : [ 22325.0, 22325.0, 22325.0, 16469.26 ]
+          }, {
+            "id" : "45596359::2_prtcpnt-catchup-50-separate_0",
+            "contributionType" : "CATCH_UP_50_SEPARATE_PRE_TAX",
+            "contributions" : [ 10687.0, 10687.0, 10687.0, 5256.37 ]
+          } ],
+          "simulationMixes" : [ {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          } ]
+        }, {
+          "id" : "45596359::3",
+          "managementFee" : 0E-15,
+          "contributions" : [ {
+            "id" : "45596359::3_prtcpnt-after_0",
+            "contributionType" : "PARTICIPANT_AFTER_TAX",
+            "contributions" : [ 7000.0, 7000.0, 7000.0, 5163.93 ]
+          }, {
+            "id" : "45596359::3_prtcpnt-pre_0",
+            "contributionType" : "PARTICIPANT_PRE_TAX",
+            "contributions" : [ 0.0, 0.0, 0.0, 0.0 ]
+          }, {
+            "id" : "45596359::3_prtcpnt-catchup-50-separate_0",
+            "contributionType" : "CATCH_UP_50_SEPARATE_AFTER_TAX",
+            "contributions" : [ 1000.0, 1000.0, 1000.0, 737.7 ]
+          } ],
+          "simulationMixes" : [ {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          } ]
+        }, {
+          "id" : "45596359::1",
+          "managementFee" : 0E-15,
+          "contributions" : [ {
+            "id" : "45596359::1_prtcpnt-pre_0",
+            "contributionType" : "PARTICIPANT_PRE_TAX",
+            "contributions" : [ 0.0, 0.0, 0.0, 0.0 ]
+          }, {
+            "id" : "45596359::1_prtcpnt-after_0",
+            "contributionType" : "PARTICIPANT_AFTER_TAX",
+            "contributions" : [ 5000.0, 5000.0, 5000.0, 3688.52 ]
+          } ],
+          "simulationMixes" : [ {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          }, {
+            "oldMoneyMixes" : [ {
+              "assetId" : "G::99",
+              "allocation" : 1
+            } ]
+          } ]
+        } ],
+        "portfolioWealthType" : "UNLIQUIDATED",
+        "decumulationPhaseStartDate" : "2029-03-03",
+        "drawdownOrderDuringDecumulationPhase" : "TAX_TAXDEF_NONTAX",
+        "participant" : {
+          "lifeExpectancyCategory" : "SAME_AS_PEERS",
+          "rothConversionSchedules" : [ ]
+        },
+        "spouseOrPartner" : null,
+        "annualRecurringExpenses" : [ {
+          "id" : "7575483",
+          "owner" : "HOUSEHOLD",
+          "name" : "BasicCostOfLiving",
+          "regular" : false,
+          "costOfLivingAdjusted" : true,
+          "participantSurvivorFactor" : 1,
+          "spouseOrPartnerSurvivorFactor" : 0,
+          "annualAmount" : {
+            "amount" : 128503.0,
+            "todaysDollar" : true
+          },
+          "annualGrowthRate" : {
+            "rate" : 0,
+            "real" : true
+          },
+          "startAt" : {
+            "type" : "SPECIFIC_DATE",
+            "date" : "2029-03-03",
+            "deathOf" : null
+          },
+          "endAt" : {
+            "type" : "DEATH_TIME",
+            "date" : null,
+            "deathOf" : "HOUSEHOLD"
+          }
+        } ],
+        "generalizedExpenses" : [ {
+          "id" : "7575484",
+          "owner" : "PARTICIPANT",
+          "name" : null,
+          "regular" : true,
+          "costOfLivingAdjusted" : false,
+          "participantSurvivorFactor" : 1,
+          "spouseOrPartnerSurvivorFactor" : 0,
+          "cashFlows" : [ {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2029-03-03",
+              "max" : "2030-03-03"
+            },
+            "amount" : 11068
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2030-03-03",
+              "max" : "2031-03-03"
+            },
+            "amount" : 11731
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2031-03-03",
+              "max" : "2032-03-03"
+            },
+            "amount" : 12441
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2032-03-03",
+              "max" : "2033-03-03"
+            },
+            "amount" : 13233
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2033-03-03",
+              "max" : "2034-03-03"
+            },
+            "amount" : 14079
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2034-03-03",
+              "max" : "2035-03-03"
+            },
+            "amount" : 14802
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2035-03-03",
+              "max" : "2036-03-03"
+            },
+            "amount" : 15572
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2036-03-03",
+              "max" : "2037-03-03"
+            },
+            "amount" : 16386
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2037-03-03",
+              "max" : "2038-03-03"
+            },
+            "amount" : 17246
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2038-03-03",
+              "max" : "2039-03-03"
+            },
+            "amount" : 18162
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2039-03-03",
+              "max" : "2040-03-03"
+            },
+            "amount" : 19137
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2040-03-03",
+              "max" : "2041-03-03"
+            },
+            "amount" : 20172
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2041-03-03",
+              "max" : "2042-03-03"
+            },
+            "amount" : 21316
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2042-03-03",
+              "max" : "2043-03-03"
+            },
+            "amount" : 22528
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2043-03-03",
+              "max" : "2044-03-03"
+            },
+            "amount" : 23814
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2044-03-03",
+              "max" : "2045-03-03"
+            },
+            "amount" : 25176
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2045-03-03",
+              "max" : "2046-03-03"
+            },
+            "amount" : 22209
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2046-03-03",
+              "max" : "2047-03-03"
+            },
+            "amount" : 23471
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2047-03-03",
+              "max" : "2048-03-03"
+            },
+            "amount" : 24887
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2048-03-03",
+              "max" : "2049-03-03"
+            },
+            "amount" : 26368
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2049-03-03",
+              "max" : "2050-03-03"
+            },
+            "amount" : 27975
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2050-03-03",
+              "max" : "2051-03-03"
+            },
+            "amount" : 29664
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2051-03-03",
+              "max" : "2052-03-03"
+            },
+            "amount" : 31432
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2052-03-03",
+              "max" : "2053-03-03"
+            },
+            "amount" : 33101
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2053-03-03",
+              "max" : "2054-03-03"
+            },
+            "amount" : 34752
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2054-03-03",
+              "max" : "2055-03-03"
+            },
+            "amount" : 36425
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2055-03-03",
+              "max" : "2056-03-03"
+            },
+            "amount" : 38194
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2056-03-03",
+              "max" : "2057-03-03"
+            },
+            "amount" : 40026
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2057-03-03",
+              "max" : "2058-03-03"
+            },
+            "amount" : 41933
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2058-03-03",
+              "max" : "2059-03-03"
+            },
+            "amount" : 43924
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2059-03-03",
+              "max" : "2060-03-03"
+            },
+            "amount" : 46049
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2060-03-03",
+              "max" : "2061-03-03"
+            },
+            "amount" : 48267
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2061-03-03",
+              "max" : "2062-03-03"
+            },
+            "amount" : 50577
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2062-03-03",
+              "max" : "2063-03-03"
+            },
+            "amount" : 52988
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2063-03-03",
+              "max" : "2064-03-03"
+            },
+            "amount" : 55556
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2064-03-03",
+              "max" : "2065-03-03"
+            },
+            "amount" : 58231
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2065-03-03",
+              "max" : "2066-03-03"
+            },
+            "amount" : 61024
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2066-03-03",
+              "max" : "2067-03-03"
+            },
+            "amount" : 63986
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2067-03-03",
+              "max" : "2068-03-03"
+            },
+            "amount" : 67077
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2068-03-03",
+              "max" : "2069-03-03"
+            },
+            "amount" : 70302
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2069-03-03",
+              "max" : "2070-03-03"
+            },
+            "amount" : 73719
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2070-03-03",
+              "max" : "2071-03-03"
+            },
+            "amount" : 77282
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2071-03-03",
+              "max" : "2072-03-03"
+            },
+            "amount" : 81002
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2072-03-03",
+              "max" : "2073-03-03"
+            },
+            "amount" : 84936
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2073-03-03",
+              "max" : "2074-03-03"
+            },
+            "amount" : 89041
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2074-03-03",
+              "max" : "2075-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2075-03-03",
+              "max" : "2076-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2076-03-03",
+              "max" : "2077-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2077-03-03",
+              "max" : "2078-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2078-03-03",
+              "max" : "2079-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2079-03-03",
+              "max" : "2080-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2080-03-03",
+              "max" : "2081-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2081-03-03",
+              "max" : "2082-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2082-03-03",
+              "max" : "2083-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "min" : "2083-03-03",
+              "max" : "2084-03-03"
+            },
+            "amount" : 93376
+          }, {
+            "dateRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_UNBOUNDED",
+              "min" : "2084-03-03",
+              "max" : null
+            },
+            "amount" : 93376
+          } ],
+          "cashFlowsInTodaysDollar" : false
+        } ],
+        "lumpSumExpenses" : [ ],
+        "annualRecurringIncomes" : [ ],
+        "generalizedIncomes" : [ ],
+        "lumpSumIncomes" : [ ],
+        "ignoreEarlyWithdrawalPenaltyForTaxDeferredSuperAccount" : false,
+        "ignoreEarlyWithdrawalPenaltyForNonTaxedSuperAccount" : false,
+        "calculateBequest" : false
+      },
+      "metadata" : {
+        "externalRequestUID" : "RETGOAL_BOOMER_FORECAST::2823333::2025-06-06T00:42:59.606088::94f847a6-cb3b-4abe-978c-978a3c18465a",
+        "externalRequestDateTime" : "2025-06-06T00:42:59.606133"
+      }
+    },
+    "engineBoomerForecastResponse" : {
+      "forecast" : {
+        "portfolioWealthInTodaysDollarAtDecumulationPhaseStartDate" : {
+          "upside" : 557420.49,
+          "aboveMedian" : null,
+          "median" : 498910.76,
+          "belowMedian" : null,
+          "downside" : 453241.06
+        },
+        "bequestInTodaysDollar" : null,
+        "probabilityOfSuccess" : 0.054138322,
+        "realMarketSigma" : 0.1294917694
+      },
+      "debugOutput" : {
+        "fixedOwnershipRatiosCalculatorOutput" : [ {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 0.5,
+              "min" : 0.0
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 1.0,
+              "min" : 0.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.2433395698,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 1.5,
+              "min" : 0.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 2.0,
+              "min" : 1.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.2336721871,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 2.5,
+              "min" : 1.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 3.0,
+              "min" : 2.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.2351586052,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 3.3689093807,
+              "min" : 2.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 3.7378187614,
+              "min" : 3.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.2417693911,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 3.8689093807,
+              "min" : 3.3689093807
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 4.0,
+              "min" : 3.7378187614
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.2175566159,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 4.5,
+              "min" : 3.8689093807
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 5.0,
+              "min" : 4.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 5.5,
+              "min" : 4.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 6.0,
+              "min" : 5.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 0.0,
+            "nonTaxableSocialSecurityAmount" : 0.0
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 6.5,
+              "min" : 5.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 7.0,
+              "min" : 6.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0687394391,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 31733.75741195253,
+            "nonTaxableSocialSecurityAmount" : 5600.275374932718
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 7.5,
+              "min" : 6.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 8.0,
+              "min" : 7.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914161564,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.958223556205,
+            "nonTaxableSocialSecurityAmount" : 7373.041776443799
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 8.5,
+              "min" : 7.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 9.0,
+              "min" : 8.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914164982,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.11939719934,
+            "nonTaxableSocialSecurityAmount" : 7372.880602800652
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 9.5,
+              "min" : 8.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 10.0,
+              "min" : 9.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914157448,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.76406623963,
+            "nonTaxableSocialSecurityAmount" : 7373.235933760373
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 10.5,
+              "min" : 9.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 11.0,
+              "min" : 10.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914160301,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.8986515388,
+            "nonTaxableSocialSecurityAmount" : 7373.101348461199
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 11.5,
+              "min" : 10.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 12.0,
+              "min" : 11.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914160172,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.89258077006,
+            "nonTaxableSocialSecurityAmount" : 7373.107419229945
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 12.5,
+              "min" : 11.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 13.0,
+              "min" : 12.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0914160439,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.90515890316,
+            "nonTaxableSocialSecurityAmount" : 7373.094841096839
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 13.5,
+              "min" : 12.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 14.0,
+              "min" : 13.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1086519711,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.066288391215,
+            "nonTaxableSocialSecurityAmount" : 7372.933711608794
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 14.5,
+              "min" : 13.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 15.0,
+              "min" : 14.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1085950864,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.76958235334,
+            "nonTaxableSocialSecurityAmount" : 7373.230417646654
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 15.5,
+              "min" : 14.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 16.0,
+              "min" : 15.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1085367017,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.83647872285,
+            "nonTaxableSocialSecurityAmount" : 7373.163521277145
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 16.5,
+              "min" : 15.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 17.0,
+              "min" : 16.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1084156059,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.64549068344,
+            "nonTaxableSocialSecurityAmount" : 7373.3545093165585
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 17.5,
+              "min" : 16.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 18.0,
+              "min" : 17.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1083535124,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.9373790733,
+            "nonTaxableSocialSecurityAmount" : 7373.062620926706
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 18.5,
+              "min" : 17.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 19.0,
+              "min" : 18.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1082887303,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.0817978232,
+            "nonTaxableSocialSecurityAmount" : 7372.9182021768
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 19.5,
+              "min" : 18.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 20.0,
+              "min" : 19.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1082211034,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.12068015646,
+            "nonTaxableSocialSecurityAmount" : 7372.879319843541
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 20.5,
+              "min" : 19.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 21.0,
+              "min" : 20.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1080803902,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.07795548281,
+            "nonTaxableSocialSecurityAmount" : 7372.922044517192
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 21.5,
+              "min" : 20.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 22.0,
+              "min" : 21.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1080070212,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.96115593371,
+            "nonTaxableSocialSecurityAmount" : 7373.038844066275
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 22.5,
+              "min" : 21.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 23.0,
+              "min" : 22.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1078540627,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.76292825159,
+            "nonTaxableSocialSecurityAmount" : 7373.2370717484055
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 23.5,
+              "min" : 22.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 24.0,
+              "min" : 23.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1077746626,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.03107115558,
+            "nonTaxableSocialSecurityAmount" : 7372.968928844424
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 24.5,
+              "min" : 23.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 25.0,
+              "min" : 24.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.107607707,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.136450213824,
+            "nonTaxableSocialSecurityAmount" : 7372.863549786173
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 25.5,
+              "min" : 24.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 26.0,
+              "min" : 25.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1074330425,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.03625049664,
+            "nonTaxableSocialSecurityAmount" : 7372.963749503355
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 26.5,
+              "min" : 25.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 27.0,
+              "min" : 26.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1072498386,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.67792803881,
+            "nonTaxableSocialSecurityAmount" : 7373.3220719611945
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 27.5,
+              "min" : 26.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 28.0,
+              "min" : 27.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1069644711,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.031194687406,
+            "nonTaxableSocialSecurityAmount" : 7372.968805312588
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 28.5,
+              "min" : 27.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 29.0,
+              "min" : 28.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1067650593,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.94641725788,
+            "nonTaxableSocialSecurityAmount" : 7373.053582742116
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 29.5,
+              "min" : 28.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 30.0,
+              "min" : 29.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1064515348,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.840776176374,
+            "nonTaxableSocialSecurityAmount" : 7373.159223823633
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 30.5,
+              "min" : 29.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 31.0,
+              "min" : 30.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1061247776,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.0780752338,
+            "nonTaxableSocialSecurityAmount" : 7372.921924766194
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 31.5,
+              "min" : 30.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 32.0,
+              "min" : 31.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1057824114,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.03799532177,
+            "nonTaxableSocialSecurityAmount" : 7372.962004678227
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 32.5,
+              "min" : 31.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 33.0,
+              "min" : 32.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1054231961,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.05655465587,
+            "nonTaxableSocialSecurityAmount" : 7372.94344534413
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 33.5,
+              "min" : 32.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 34.0,
+              "min" : 33.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1049232416,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.978851603046,
+            "nonTaxableSocialSecurityAmount" : 7373.021148396955
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 34.5,
+              "min" : 33.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 35.0,
+              "min" : 34.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1044053592,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.08443139146,
+            "nonTaxableSocialSecurityAmount" : 7372.915568608547
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 35.5,
+              "min" : 34.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 36.0,
+              "min" : 35.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1037399284,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.188081246684,
+            "nonTaxableSocialSecurityAmount" : 7372.811918753319
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 36.5,
+              "min" : 35.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 37.0,
+              "min" : 36.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1031918431,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.107469125236,
+            "nonTaxableSocialSecurityAmount" : 7372.892530874765
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 37.5,
+              "min" : 36.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 38.0,
+              "min" : 37.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1024860311,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.06676061092,
+            "nonTaxableSocialSecurityAmount" : 7372.933239389081
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 38.5,
+              "min" : 37.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 39.0,
+              "min" : 38.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1017668542,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.861107826444,
+            "nonTaxableSocialSecurityAmount" : 7373.13889217356
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 39.5,
+              "min" : 38.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 40.0,
+              "min" : 39.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1009006885,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.05882423935,
+            "nonTaxableSocialSecurityAmount" : 7372.941175760654
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 40.5,
+              "min" : 39.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 41.0,
+              "min" : 40.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.1000445958,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.035369770536,
+            "nonTaxableSocialSecurityAmount" : 7372.964630229469
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 41.5,
+              "min" : 40.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 42.0,
+              "min" : 41.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0992012178,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.94201016904,
+            "nonTaxableSocialSecurityAmount" : 7373.0579898309625
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 42.5,
+              "min" : 41.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 43.0,
+              "min" : 42.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0983734157,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.901668751685,
+            "nonTaxableSocialSecurityAmount" : 7373.098331248318
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 43.5,
+              "min" : 42.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 44.0,
+              "min" : 43.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0974473753,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.01115422347,
+            "nonTaxableSocialSecurityAmount" : 7372.988845776524
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 44.5,
+              "min" : 43.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 45.0,
+              "min" : 44.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0965831157,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.00367170366,
+            "nonTaxableSocialSecurityAmount" : 7372.996328296337
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 45.5,
+              "min" : 44.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 46.0,
+              "min" : 45.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.095783372,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.95469351427,
+            "nonTaxableSocialSecurityAmount" : 7373.045306485729
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 46.5,
+              "min" : 45.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 47.0,
+              "min" : 46.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.094965302,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.91833800761,
+            "nonTaxableSocialSecurityAmount" : 7373.081661992391
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 47.5,
+              "min" : 46.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 48.0,
+              "min" : 47.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.094260655,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.92918104064,
+            "nonTaxableSocialSecurityAmount" : 7373.070818959359
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 48.5,
+              "min" : 47.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 49.0,
+              "min" : 48.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0936613534,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.00396282144,
+            "nonTaxableSocialSecurityAmount" : 7372.996037178565
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 49.5,
+              "min" : 48.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 50.0,
+              "min" : 49.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.093158563,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.14319507681,
+            "nonTaxableSocialSecurityAmount" : 7372.856804923187
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 50.5,
+              "min" : 49.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 51.0,
+              "min" : 50.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0927039308,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.039585765015,
+            "nonTaxableSocialSecurityAmount" : 7372.960414234984
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 51.5,
+              "min" : 50.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 52.0,
+              "min" : 51.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0923563553,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41778.97293638806,
+            "nonTaxableSocialSecurityAmount" : 7373.027063611935
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 52.5,
+              "min" : 51.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 53.0,
+              "min" : 52.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0921160841,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.18231937744,
+            "nonTaxableSocialSecurityAmount" : 7372.817680622558
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 53.5,
+              "min" : 52.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 54.0,
+              "min" : 53.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0919071381,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.05221244079,
+            "nonTaxableSocialSecurityAmount" : 7372.947787559216
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 54.5,
+              "min" : 53.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 55.0,
+              "min" : 54.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0917554553,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 41779.07409659326,
+            "nonTaxableSocialSecurityAmount" : 7372.925903406741
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "MIN_INCLUSIVE_MAX_EXCLUSIVE",
+              "max" : 55.1362865882,
+              "min" : 54.5
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "INCLUDE_ENDPOINTS",
+              "max" : 55.2725731763,
+              "min" : 55.0
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0916914147,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 26596.942730308667,
+            "nonTaxableSocialSecurityAmount" : 4693.811368051986
+          },
+          "spouseOrPartner" : null
+        }, {
+          "simPeriod" : {
+            "cashFlowTimeRange" : {
+              "rangeType" : "INCLUDE_ENDPOINTS",
+              "max" : 55.2725731763,
+              "min" : 55.1362865882
+            },
+            "wealthEvolutionTimeRange" : {
+              "rangeType" : "EMPTY_RANGE_UNDEFINED_ENDPOINTS",
+              "max" : null,
+              "min" : null
+            }
+          },
+          "participant" : {
+            "taxDeferredAccountOwnershipRatio" : 1.0,
+            "taxableAccountOwnershipRatio" : 1.0,
+            "nonTaxedAccountOwnershipRatio" : 1.0,
+            "inheritedTaxDeferredAccountOwnershipRatio" : null,
+            "inheritedNonTaxedAccountOwnershipRatio" : null,
+            "taxRates" : {
+              "averageOrdinaryIncomeTaxRate" : 0.0861269662,
+              "effectiveCapitalGainsTaxRate" : 0.0
+            },
+            "taxableSocialSecurityAmount" : 5330.939033733806,
+            "nonTaxableSocialSecurityAmount" : 1383.815064626849
+          },
+          "spouseOrPartner" : null
+        } ]
+      },
+      "metadata" : {
+        "externalRequestUID" : "RETGOAL_BOOMER_FORECAST::2823333::2025-06-06T00:42:59.606088::94f847a6-cb3b-4abe-978c-978a3c18465a",
+        "externalRequestDateTime" : "2025-06-06T00:42:59.606133",
+        "buildVersion" : "20250604.202506.246e7109"
+      }
+    },
+    "engineAdviceRequest" : null,
+    "engineAdviceResponse" : null,
+    "investmentHorizon" : 3.737704918032787,
+    "simulationHorizonUntilMortality" : 50.0,
+    "requestContext" : "INITIAL_ASSET_ALLOCATIONS_AND_FORECAST_FOR_UI",
+    "enginePortfolioCharacteristicsRequest" : {
+      "household" : {
+        "id" : "2823333",
+        "taxFilingStatus" : "SINGLE",
+        "accounts" : [ {
+          "id" : "45596359::1",
+          "accountType" : "TAXABLE",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::1::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        }, {
+          "id" : "45596359::2",
+          "accountType" : "FOUR01K",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::2::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        }, {
+          "id" : "45596359::3",
+          "accountType" : "ROTH_IRA",
+          "ownerId" : "45596359::1",
+          "accountPlanId" : null,
+          "modeledPositions" : [ {
+            "id" : "45596359::3::1",
+            "name" : "Cash",
+            "unrestrictedBalance" : 100000.0,
+            "restrictedBalance" : 0.0,
+            "basis" : 100000.0,
+            "assetId" : "G::99",
+            "esopDividendReinvestmentRate" : null
+          } ],
+          "userDefinedAssetPositions" : [ ],
+          "rothAccountBalance" : 0,
+          "afterTaxBasis" : 0,
+          "inheritedAccount" : null
+        } ],
+        "taxRates" : [ {
+          "ownerId" : "45596359::1",
+          "taxState" : "CALIFORNIA",
+          "startDate" : "2025-06-06",
+          "averageTaxRate" : 0.2507,
+          "federalMarginalTaxRate" : 0.24,
+          "stateMarginalTaxRate" : 0.093,
+          "effectiveCapitalGainsTaxRate" : 0.243,
+          "isSetTaxRatesToZero" : false
+        } ]
+      },
+      "parameters" : {
+        "accountParams" : [ {
+          "id" : "45596359::1",
+          "managementFee" : 0E-15
+        }, {
+          "id" : "45596359::2",
+          "managementFee" : 0E-15
+        }, {
+          "id" : "45596359::3",
+          "managementFee" : 0E-15
+        } ],
+        "styleAlgorithm" : "XT_RE",
+        "alternativeStyleAlgorithm" : null
+      },
+      "metadata" : {
+        "externalRequestUID" : "PORTFOLIO_CHARACTERISTICS::2823333::2025-06-06T00:42:59.607126::94f847a6-cb3b-4abe-978c-978a3c18465a",
+        "externalRequestDateTime" : "2025-06-06T00:42:59.607162"
+      }
+    },
+    "enginePortfolioCharacteristicsResponse" : {
+      "risk" : 0.3173833596,
+      "expectedReturnAftertaxReal" : 0.002953836894,
+      "expectedReturnPretaxNominal" : 0.030013432787,
+      "expectedReturnAftertaxNominal" : 0.026030351802,
+      "style" : {
+        "styleWeightsByGacTypes" : {
+          "CASH" : 1.0,
+          "INTERMEDIATE_BOND" : 0.0,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleWeightsBySuperGacTypes" : {
+          "CASH" : 1.0,
+          "BONDS" : 0.0,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        },
+        "styleBalancesByGacTypes" : {
+          "CASH" : 299999.7,
+          "INTERMEDIATE_BOND" : 0.3,
+          "LONG_BOND" : 0.0,
+          "CORPORATE_BOND" : 0.0,
+          "MORTGAGE_BOND" : 0.0,
+          "INTERNATIONAL_BOND" : 0.0,
+          "LARGE_VALUE" : 0.0,
+          "LARGE_GROWTH" : 0.0,
+          "MID_VALUE" : 0.0,
+          "MID_GROWTH" : 0.0,
+          "SMALL_VALUE" : 0.0,
+          "SMALL_GROWTH" : 0.0,
+          "EUROPE" : 0.0,
+          "PACIFIC" : 0.0,
+          "EMERGING" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0,
+          "EXPONENTIAL_TECHNOLOGY" : 0.0,
+          "REAL_ESTATE" : 0.0
+        },
+        "styleBalancesBySuperGacTypes" : {
+          "CASH" : 299999.7,
+          "BONDS" : 0.3,
+          "LARGE_CAP" : 0.0,
+          "SMALL_CAP" : 0.0,
+          "INTERNATIONAL" : 0.0,
+          "STOCK" : 0.0,
+          "OTHER" : 0.0
+        }
+      },
+      "alternativeStyle" : null,
+      "accountCharacteristics" : [ {
+        "accountId" : "45596359::3",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "alternativeStyle" : null,
+        "risk" : 0.3181875158,
+        "expectedReturnAftertaxReal" : 0.006847334148,
+        "expectedReturnPretaxNominal" : 0.030013432787,
+        "expectedReturnAftertaxNominal" : 0.030013432787,
+        "expectedDistribution" : {
+          "qualifiedDividendAmount" : 0.0,
+          "nonQualifiedDividendAmount" : 3552.0389999999998,
+          "shortTermCapitalGainDistributionAmount" : 0.0,
+          "longTermCapitalGainDistributionAmount" : 0.0,
+          "totalDistributionAmount" : 3552.0389999999998,
+          "qualifiedDividendRate" : 0.0,
+          "nonQualifiedDividendRate" : 0.03552039,
+          "shortTermCapitalGainDistributionRate" : 0.0,
+          "longTermCapitalGainDistributionRate" : 0.0,
+          "totalDistributionRate" : 0.03552039
+        }
+      }, {
+        "accountId" : "45596359::2",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "alternativeStyle" : null,
+        "risk" : 0.3181875158,
+        "expectedReturnAftertaxReal" : 0.006847334148,
+        "expectedReturnPretaxNominal" : 0.030013432787,
+        "expectedReturnAftertaxNominal" : 0.030013432787,
+        "expectedDistribution" : {
+          "qualifiedDividendAmount" : 0.0,
+          "nonQualifiedDividendAmount" : 3552.0389999999998,
+          "shortTermCapitalGainDistributionAmount" : 0.0,
+          "longTermCapitalGainDistributionAmount" : 0.0,
+          "totalDistributionAmount" : 3552.0389999999998,
+          "qualifiedDividendRate" : 0.0,
+          "nonQualifiedDividendRate" : 0.03552039,
+          "shortTermCapitalGainDistributionRate" : 0.0,
+          "longTermCapitalGainDistributionRate" : 0.0,
+          "totalDistributionRate" : 0.03552039
+        }
+      }, {
+        "accountId" : "45596359::1",
+        "style" : {
+          "styleWeightsByGacTypes" : {
+            "CASH" : 1.0,
+            "INTERMEDIATE_BOND" : 0.0,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleWeightsBySuperGacTypes" : {
+            "CASH" : 1.0,
+            "BONDS" : 0.0,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          },
+          "styleBalancesByGacTypes" : {
+            "CASH" : 99999.9,
+            "INTERMEDIATE_BOND" : 0.1,
+            "LONG_BOND" : 0.0,
+            "CORPORATE_BOND" : 0.0,
+            "MORTGAGE_BOND" : 0.0,
+            "INTERNATIONAL_BOND" : 0.0,
+            "LARGE_VALUE" : 0.0,
+            "LARGE_GROWTH" : 0.0,
+            "MID_VALUE" : 0.0,
+            "MID_GROWTH" : 0.0,
+            "SMALL_VALUE" : 0.0,
+            "SMALL_GROWTH" : 0.0,
+            "EUROPE" : 0.0,
+            "PACIFIC" : 0.0,
+            "EMERGING" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0,
+            "EXPONENTIAL_TECHNOLOGY" : 0.0,
+            "REAL_ESTATE" : 0.0
+          },
+          "styleBalancesBySuperGacTypes" : {
+            "CASH" : 99999.9,
+            "BONDS" : 0.1,
+            "LARGE_CAP" : 0.0,
+            "SMALL_CAP" : 0.0,
+            "INTERNATIONAL" : 0.0,
+            "STOCK" : 0.0,
+            "OTHER" : 0.0
+          }
+        },
+        "alternativeStyle" : null,
+        "risk" : 0.3181875158,
+        "expectedReturnAftertaxReal" : -0.003857057852,
+        "expectedReturnPretaxNominal" : 0.030013432787,
+        "expectedReturnAftertaxNominal" : 0.019062748234,
+        "expectedDistribution" : {
+          "qualifiedDividendAmount" : 0.0,
+          "nonQualifiedDividendAmount" : 3552.0389999999998,
+          "shortTermCapitalGainDistributionAmount" : 0.0,
+          "longTermCapitalGainDistributionAmount" : 0.0,
+          "totalDistributionAmount" : 3552.0389999999998,
+          "qualifiedDividendRate" : 0.0,
+          "nonQualifiedDividendRate" : 0.03552039,
+          "shortTermCapitalGainDistributionRate" : 0.0,
+          "longTermCapitalGainDistributionRate" : 0.0,
+          "totalDistributionRate" : 0.03552039
+        }
+      } ],
+      "oneYearLossDollarAmount" : 0.0,
+      "oneYearLossPortfolioWealthFraction" : 0.0,
+      "expenseRatio" : 0.0,
+      "portfolioAmount" : 300000.0
+    },
+    "modelDebugOutputDto" : null,
+    "decliningRiskMixes" : { },
+    "staticRiskMixes" : { },
+    "modelGlidepathRequestList" : [ ],
+    "engAppEnvestnetFeeDebugOutput" : null,
+    "contributionsCalculatorContributionsFlowsRequestsResponses" : [ ],
+    "legacyContributionsFlowsRequestsResponses" : [ {
+      "response" : [ {
+        "accountId" : "45596359::1",
+        "contribSeries" : [ {
+          "id" : "45596359::1_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 0.0, 0.0, 0.0, 0.0 ]
+        }, {
+          "id" : "45596359::1_prtcpnt-after_0",
+          "contributionType" : "PARTICIPANT_AFTER_TAX",
+          "contributions" : [ 5000.0, 5000.0, 5000.0, 3688.52 ]
+        } ],
+        "contributionId" : null
+      }, {
+        "accountId" : "45596359::2",
+        "contribSeries" : [ {
+          "id" : "45596359::2_prtcpnt-roth-tax-def-cu-50-sep_0",
+          "contributionType" : "ROTH_TAX_DEF_ACCT_CATCH_UP_50",
+          "contributions" : [ 562.0, 562.0, 562.0, 276.42 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-roth-tax-def_0",
+          "contributionType" : "ROTH_TAX_DEF_ACCT",
+          "contributions" : [ 1175.0, 1175.0, 1175.0, 866.8 ]
+        }, {
+          "id" : "45596359::2_match_1310975",
+          "contributionType" : "UNRESTRICTED_MATCH",
+          "contributions" : [ 7875.0, 7972.21, 8070.62, 6027.23 ]
+        }, {
+          "id" : "45596359::2_nonmatch_1310976",
+          "contributionType" : "UNRESTRICTED_NON_MATCH",
+          "contributions" : [ 1750.0, 1771.6, 1793.47, 1339.38 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 22325.0, 22325.0, 22325.0, 16469.26 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-catchup-50-separate_0",
+          "contributionType" : "CATCH_UP_50_SEPARATE_PRE_TAX",
+          "contributions" : [ 10687.0, 10687.0, 10687.0, 5256.37 ]
+        } ],
+        "contributionId" : null
+      }, {
+        "accountId" : "45596359::3",
+        "contribSeries" : [ {
+          "id" : "45596359::3_prtcpnt-after_0",
+          "contributionType" : "PARTICIPANT_AFTER_TAX",
+          "contributions" : [ 7000.0, 7000.0, 7000.0, 5163.93 ]
+        }, {
+          "id" : "45596359::3_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 0.0, 0.0, 0.0, 0.0 ]
+        }, {
+          "id" : "45596359::3_prtcpnt-catchup-50-separate_0",
+          "contributionType" : "CATCH_UP_50_SEPARATE_AFTER_TAX",
+          "contributions" : [ 1000.0, 1000.0, 1000.0, 737.7 ]
+        } ],
+        "contributionId" : null
+      } ],
+      "request" : [ {
+        "accountId" : "45596359::1",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 3.737704918032787,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 5000,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      }, {
+        "accountId" : "45596359::2",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 3.737704918032787,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 34749,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      }, {
+        "accountId" : "45596359::3",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 3.737704918032787,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 8000,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      } ]
+    }, {
+      "response" : [ {
+        "accountId" : "45596359::3",
+        "contribSeries" : [ {
+          "id" : "45596359::3_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 0.0 ]
+        }, {
+          "id" : "45596359::3_prtcpnt-after_0",
+          "contributionType" : "PARTICIPANT_AFTER_TAX",
+          "contributions" : [ 7000.0 ]
+        }, {
+          "id" : "45596359::3_prtcpnt-catchup-50-separate_0",
+          "contributionType" : "CATCH_UP_50_SEPARATE_AFTER_TAX",
+          "contributions" : [ 1000.0 ]
+        } ],
+        "contributionId" : null
+      }, {
+        "accountId" : "45596359::1",
+        "contribSeries" : [ {
+          "id" : "45596359::1_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 0.0 ]
+        }, {
+          "id" : "45596359::1_prtcpnt-after_0",
+          "contributionType" : "PARTICIPANT_AFTER_TAX",
+          "contributions" : [ 5000.0 ]
+        } ],
+        "contributionId" : null
+      }, {
+        "accountId" : "45596359::2",
+        "contribSeries" : [ {
+          "id" : "45596359::2_prtcpnt-roth-tax-def-cu-50-sep_0",
+          "contributionType" : "ROTH_TAX_DEF_ACCT_CATCH_UP_50",
+          "contributions" : [ 562.0 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-pre_0",
+          "contributionType" : "PARTICIPANT_PRE_TAX",
+          "contributions" : [ 22325.0 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-catchup-50-separate_0",
+          "contributionType" : "CATCH_UP_50_SEPARATE_PRE_TAX",
+          "contributions" : [ 10687.0 ]
+        }, {
+          "id" : "45596359::2_prtcpnt-roth-tax-def_0",
+          "contributionType" : "ROTH_TAX_DEF_ACCT",
+          "contributions" : [ 1175.0 ]
+        }, {
+          "id" : "45596359::2_match_1310975",
+          "contributionType" : "UNRESTRICTED_MATCH",
+          "contributions" : [ 7875.0 ]
+        }, {
+          "id" : "45596359::2_nonmatch_1310976",
+          "contributionType" : "UNRESTRICTED_NON_MATCH",
+          "contributions" : [ 1750.0 ]
+        } ],
+        "contributionId" : null
+      } ],
+      "request" : [ {
+        "accountId" : "45596359::3",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 1,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 8000,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      }, {
+        "accountId" : "45596359::1",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 1,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 5000,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      }, {
+        "accountId" : "45596359::2",
+        "employeeCurrentContributionOverride" : null,
+        "employeeFutureContribution" : null,
+        "horizon" : 1,
+        "employeeCurrentContributionOverrideResource" : {
+          "totalAmount" : 34749,
+          "preTax" : null,
+          "afterTax" : null,
+          "roth" : null,
+          "catchup50PreTax" : null,
+          "catchup50Roth" : null,
+          "isRegularMethodDollar" : null,
+          "is50PlusMethodDollar" : null
+        },
+        "contributionId" : ""
+      } ]
+    } ]
+  },
+  "guardRails" : {
+    "upperBound" : null,
+    "lowerBound" : null
+  }
+}

@@ -1,0 +1,50 @@
+.json-comparison-container {
+  display: flex;
+  width: 100%;
+  gap: 20px; /* Increased spacing between columns */
+  min-height: 70vh; /* Use at least 70% of viewport height */
+  margin: 0 auto 1.5rem;
+  box-sizing: border-box;
+}
+
+.json-viewer-column {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Critical - prevents content from breaking layout */
+  /* Removed width constraints - we'll handle this inline */
+}
+
+/* Make sure the layout doesn't break on small screens */
+@media (max-width: 900px) {
+  .json-comparison-container {
+    flex-direction: column;
+  }
+  
+  .json-viewer-column {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Fix the height of the viewers and make them scrollable */
+.tree-view-container {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* This ensures the tree view container fills the available height */
+}
+
+.json-tree-view {
+  overflow: auto;
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Ensure long values don't break the layout */
+.json-value {
+  word-break: break-word; /* Break long words */
+  max-width: 100%; /* Ensure content doesn't exceed container */
+  overflow-wrap: break-word; /* Modern browsers */
+}

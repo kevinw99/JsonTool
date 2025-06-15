@@ -1,0 +1,38 @@
+.view-controls {
+  margin: 0 auto 10px;
+  width: 100%;
+}
+
+.controls-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.view-mode-toggle,
+.filter-toggle,
+.diff-mode-toggle {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+}
+
+.view-mode-toggle:hover,
+.filter-toggle:hover,
+.diff-mode-toggle:hover {
+  background: #444;
+}
+
+.view-mode-toggle.active,
+.filter-toggle.active,
+.diff-mode-toggle.active {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
