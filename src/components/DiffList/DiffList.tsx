@@ -147,6 +147,7 @@ export const DiffList: React.FC<DiffListProps> = ({
               >
                 <div className="diff-path">
                   <span className="path-label">
+                    <span className="diff-number">{index + 1}.</span>
                     {diff.path}
                     {ignoredDiffs.has(diff.path) && <span className="ignored-badge">Ignored</span>}
                   </span>

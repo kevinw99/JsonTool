@@ -179,8 +179,18 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
   // Navigate to and highlight a specific diff
   const goToDiff = useCallback((diffPath: string) => {
-    // Extract the path parts
-    const pathParts = diffPath.split(/\.|\[|\]/g).filter(Boolean);
+    // First, let's normalize the path to properly handle complex path scenarios
+    // This ensures we're using a format that matches the internal representation
+    
+    // Handle paths with array index patterns like [id=45596359::2]
+    // Replace them with direct indices for path expansion purposes
+    // We'll still use the original path for highlighting
+    const pathForExpansion = diffPath.replace(/\[id=[^\]]+::(\d+)\]/g, (_match, index) => {
+      return `[${index}]`;
+    });
+    
+    // Extract the path parts for expansion
+    const pathParts = pathForExpansion.split(/\.|\[|\]/g).filter(Boolean);
     let currentPath = '';
     
     // Expand all parent paths to ensure the path is visible
@@ -203,8 +213,17 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       });
     });
     
+    // Also create a simplified version of the path for the highlight system
+    const simplifiedPath = diffPath.replace(/\[id=[^\]]+::(\d+)\]/g, '[$1]');
+    
+    // Log paths for debugging
+    console.log('Original path:', diffPath);
+    console.log('Path for expansion:', pathForExpansion);
+    console.log('Simplified path for highlight:', simplifiedPath);
+    
     // Set the highlight path (will be used by the tree view to flash this node)
-    setHighlightPath(diffPath);
+    // Try both the original and simplified paths
+    setHighlightPath(simplifiedPath);
     
     // Clear the highlight after a delay
     setTimeout(() => {

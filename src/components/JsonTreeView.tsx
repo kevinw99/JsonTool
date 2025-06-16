@@ -68,7 +68,23 @@ const JsonNode: React.FC<JsonNodeProps> = ({
   }
   
   // Check if this node should be highlighted from navigation
-  const isHighlighted = highlightPath === normalizedDotPath || highlightPath === normalizedPath;
+  // Handle complex array paths with patterns like [id=45596359::2]
+  const isHighlighted = (() => {
+    // Direct match
+    if (highlightPath === normalizedDotPath || highlightPath === normalizedPath) {
+      return true;
+    }
+    
+    // For paths with array indices with special id patterns
+    if (highlightPath && highlightPath.includes('[id=')) {
+      // Create a simplified version of the highlight path for comparison
+      // Replace patterns like [id=45596359::2] with [2]
+      const simplifiedHighlightPath = highlightPath.replace(/\[id=[^\]]+::(\d+)\]/g, '[$1]');
+      return simplifiedHighlightPath === normalizedDotPath || simplifiedHighlightPath === normalizedPath;
+    }
+    
+    return false;
+  })();
   
   // Scroll into view if this node is highlighted
   useEffect(() => {
