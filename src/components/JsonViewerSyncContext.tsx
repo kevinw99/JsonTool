@@ -179,57 +179,58 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
   // Navigate to and highlight a specific diff
   const goToDiff = useCallback((diffPath: string) => {
-    // First, let's normalize the path to properly handle complex path scenarios
-    // This ensures we're using a format that matches the internal representation
+    console.log('[GoToDiff] Triggered for path:', diffPath);
     
+    // First, let's normalize the path to properly handle complex path scenarios
     // Handle paths with array index patterns like [id=45596359::2]
-    // Replace them with direct indices for path expansion purposes
-    // We'll still use the original path for highlighting
     const pathForExpansion = diffPath.replace(/\[id=[^\]]+::(\d+)\]/g, (_match, index) => {
       return `[${index}]`;
     });
     
-    // Extract the path parts for expansion
-    const pathParts = pathForExpansion.split(/\.|\[|\]/g).filter(Boolean);
-    let currentPath = '';
+    console.log('[GoToDiff] Path for expansion (normalized):', pathForExpansion);
     
-    // Expand all parent paths to ensure the path is visible
+    // Collect all paths that need to be expanded (including parent paths)
+    const pathsToExpand = new Set<string>();
+    
+    // Add the complete path to ensure the final node is expanded
+    pathsToExpand.add(`root_viewer1_${pathForExpansion}`);
+    pathsToExpand.add(`root_viewer2_${pathForExpansion}`);
+    pathsToExpand.add(`root_viewer1_${diffPath}`); // Also add original for safety, might be redundant
+    pathsToExpand.add(`root_viewer2_${diffPath}`); // Also add original for safety, might be redundant
+    
+    // Add all parent paths to ensure the full path to the diff is expanded
+    const pathParts = pathForExpansion.split(/\.|\[|\]/g).filter(Boolean);
+    let currentPathSegment = '';
+    
     pathParts.forEach(part => {
-      if (currentPath) {
-        currentPath = isNaN(Number(part)) ? `${currentPath}.${part}` : `${currentPath}[${part}]`;
+      if (currentPathSegment) {
+        currentPathSegment = isNaN(Number(part)) ? `${currentPathSegment}.${part}` : `${currentPathSegment}[${part}]`;
       } else {
-        currentPath = part;
+        currentPathSegment = part;
       }
-      
-      // Add to expanded paths for each viewer
-      const viewer1Path = `root_viewer1_${currentPath}`;
-      const viewer2Path = `root_viewer2_${currentPath}`;
-      
-      setExpandedPaths(prev => {
-        const newPaths = new Set(prev);
-        newPaths.add(viewer1Path);
-        newPaths.add(viewer2Path);
-        return newPaths;
-      });
+      pathsToExpand.add(`root_viewer1_${currentPathSegment}`);
+      pathsToExpand.add(`root_viewer2_${currentPathSegment}`);
     });
     
-    // Also create a simplified version of the path for the highlight system
-    const simplifiedPath = diffPath.replace(/\[id=[^\]]+::(\d+)\]/g, '[$1]');
+    console.log('[GoToDiff] Paths to expand:', pathsToExpand);
     
-    // Log paths for debugging
-    console.log('Original path:', diffPath);
-    console.log('Path for expansion:', pathForExpansion);
-    console.log('Simplified path for highlight:', simplifiedPath);
+    setExpandedPaths(prev => {
+      const newPaths = new Set(prev);
+      pathsToExpand.forEach(p => newPaths.add(p));
+      console.log('[GoToDiff] Updating expandedPaths. New set:', newPaths);
+      return newPaths;
+    });
     
-    // Set the highlight path (will be used by the tree view to flash this node)
-    // Try both the original and simplified paths
-    setHighlightPath(simplifiedPath);
+    // Set the highlight path (use the original diffPath for precise matching in JsonNode)
+    console.log('[GoToDiff] Setting highlightPath:', diffPath);
+    setHighlightPath(diffPath);
     
-    // Clear the highlight after a delay
+    // Clear highlight after a delay
     setTimeout(() => {
+      console.log('[GoToDiff] Clearing highlightPath after timeout.');
       setHighlightPath(null);
-    }, 2000); // Flash for 2 seconds
-  }, []);
+    }, 3500); // Slightly longer than animation
+  }, [setExpandedPaths, setHighlightPath]);
 
   return (
     <JsonViewerSyncContext.Provider

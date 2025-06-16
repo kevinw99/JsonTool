@@ -148,17 +148,50 @@
 
 /* Highlight animation for GoTo functionality */
 .highlighted-node {
-  border: 1px dashed #1890ff;
-  box-shadow: 0 0 8px rgba(24, 144, 255, 0.5);
-  border-radius: 4px;
+  background-color: rgba(255, 255, 0, 0.3);
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.5);
+  position: relative;
+  z-index: 10;
+}
+
+/* Flash animation for highlighting when navigating to a node */
+@keyframes flash-highlight {
+  0% {
+    background-color: rgba(255, 255, 0, 0.1);
+  }
+  50% {
+    background-color: rgba(255, 255, 0, 0.5);
+  }
+  100% {
+    background-color: rgba(255, 255, 0, 0.1);
+  }
 }
 
 .flash-highlight {
-  animation: highlightFlash 2s ease-in-out;
+  animation: flash-highlight 0.7s ease-in-out 3;
+  border-radius: 3px;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.7);
+  outline: 1px solid rgba(255, 215, 0, 0.7);
+  position: relative;
 }
 
-@keyframes highlightFlash {
-  0% { background-color: rgba(24, 144, 255, 0.3); box-shadow: 0 0 5px rgba(24, 144, 255, 0.5); }
-  50% { background-color: rgba(24, 144, 255, 0.5); box-shadow: 0 0 15px rgba(24, 144, 255, 0.8); }
-  100% { background-color: rgba(24, 144, 255, 0); box-shadow: 0 0 0 rgba(24, 144, 255, 0); }
+.flash-highlight::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -8px;
+  right: -8px;
+  bottom: -2px;
+  background-color: transparent;
+  border: 2px solid #FFD700;
+  border-radius: 4px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* When a node is highlighted, make its key more visible too */
+.highlighted-node .json-key,
+.highlighted-node .json-value {
+  font-weight: bold;
 }

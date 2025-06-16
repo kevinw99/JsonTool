@@ -70,43 +70,95 @@ const JsonNode: React.FC<JsonNodeProps> = ({
   // Check if this node should be highlighted from navigation
   // Handle complex array paths with patterns like [id=45596359::2]
   const isHighlighted = (() => {
+    if (!highlightPath) return false;
+    
+    // Enhanced debug logging for path matching
+    console.log(`[JsonNode] Comparing highlight path: \"${highlightPath}\" with node path: \"${normalizedPath}\" (dot: \"${normalizedDotPath}\")`);
+    
     // Direct match
     if (highlightPath === normalizedDotPath || highlightPath === normalizedPath) {
+      console.log('[JsonNode] DIRECT MATCH! Highlight:', highlightPath, 'Node:', normalizedPath);
       return true;
     }
     
-    // For paths with array indices with special id patterns
-    if (highlightPath && highlightPath.includes('[id=')) {
-      // Create a simplified version of the highlight path for comparison
-      // Replace patterns like [id=45596359::2] with [2]
-      const simplifiedHighlightPath = highlightPath.replace(/\[id=[^\]]+::(\d+)\]/g, '[$1]');
-      return simplifiedHighlightPath === normalizedDotPath || simplifiedHighlightPath === normalizedPath;
+    // Handle complex array paths with special identifiers
+    let simplifiedHighlightPath = highlightPath;
+    let processedNodePath = normalizedPath;
+    let processedDotPath = normalizedDotPath;
+    
+    // If either path contains the special id pattern, normalize both for comparison
+    if (highlightPath.includes('[id=') || normalizedPath.includes('[id=')) {
+      simplifiedHighlightPath = highlightPath.replace(/\\[id=[^\\]]+::(\\d+)\\]/g, '[$1]');
+      processedNodePath = normalizedPath.replace(/\\[id=[^\\]]+::(\\d+)\\]/g, '[$1]');
+      processedDotPath = normalizedDotPath.replace(/\\[id=[^\\]]+::(\\d+)\\]/g, '.$1'); // For dot path
+      
+      console.log('[JsonNode] Simplified paths for comparison:');
+      console.log('- Highlight path (simplified):', simplifiedHighlightPath);
+      console.log('- Node path (processed):', processedNodePath);
+      console.log('- Dot path (processed):', processedDotPath);
+      
+      if (simplifiedHighlightPath === processedNodePath || simplifiedHighlightPath === processedDotPath) {
+        console.log('[JsonNode] SIMPLIFIED MATCH! Highlight (simplified):', simplifiedHighlightPath, 'Node (processed):', processedNodePath);
+        return true;
+      }
+    }
+    
+    // Additional case: check the end of long paths - if the current node is the final part
+    // of a complex highlighted path. This is a fallback and might need refinement.
+    const highlightParts = simplifiedHighlightPath.split('.');
+    const nodePathParts = processedNodePath.split('.'); // Use processedNodePath for consistency
+    
+    if (highlightParts.length > 0 && nodePathParts.length > 0) {
+      const lastHighlightPart = highlightParts[highlightParts.length - 1];
+      const lastNodePathPart = nodePathParts[nodePathParts.length - 1];
+      
+      // Check if the node path ends with the last part of the highlight path
+      // and if the last parts themselves match.
+      if (lastHighlightPart === lastNodePathPart && processedNodePath.endsWith(lastHighlightPart)) {
+        console.log('[JsonNode] ENDING PART MATCH! Last Highlight Part:', lastHighlightPart, 'Node Path:', processedNodePath);
+        return true;
+      }
     }
     
     return false;
   })();
   
+  // Handle auto-expansion of highlighted nodes
+  useEffect(() => {
+    if (isHighlighted && hasChildren && !isExpanded) {
+      console.log('[JsonNode] Auto-expanding highlighted node:', nodePath, 'Is Expanded:', isExpanded);
+      toggleExpand(nodePath); // toggleExpand will handle adding it to expandedPaths
+    }
+  }, [isHighlighted, nodePath, hasChildren, isExpanded, toggleExpand]);
+  
   // Scroll into view if this node is highlighted
   useEffect(() => {
     if (isHighlighted && nodeRef.current) {
-      nodeRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-      
-      // Add a flash animation class
-      nodeRef.current.classList.add('flash-highlight');
-      
-      // Remove the animation class after it completes
-      const timer = setTimeout(() => {
+      const scrollTimer = setTimeout(() => {
         if (nodeRef.current) {
-          nodeRef.current.classList.remove('flash-highlight');
+          console.log('[JsonNode] Scrolling to highlighted node:', nodePath);
+          nodeRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          nodeRef.current.classList.add('flash-highlight');
+          nodeRef.current.style.backgroundColor = 'rgba(255, 255, 0, 0.3)'; // More prominent highlight
+          
+          const highlightTimer = setTimeout(() => {
+            if (nodeRef.current) {
+              nodeRef.current.classList.remove('flash-highlight');
+              nodeRef.current.style.backgroundColor = ''; // Reset background
+            }
+          }, 3000); // Duration of the visual highlight
+          
+          return () => clearTimeout(highlightTimer);
         }
-      }, 2000);
+      }, 150); // Slightly reduced delay, ensure DOM is ready
       
-      return () => clearTimeout(timer);
+      return () => clearTimeout(scrollTimer);
     }
-  }, [isHighlighted]);
+  }, [isHighlighted, nodePath]);
   
   // Determine if this is an array element with a key identifier in its path
   const isIdentifiedArrayElement = normalizedDotPath.includes('=');
