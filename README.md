@@ -48,6 +48,6 @@ This project was bootstrapped with Vite and uses React + TypeScript.
 
 #### Improved User Interface
 - Clean, consistent styling throughout the application
-- Better organization of controls and options
-- Responsive design that works across various screen sizes
+- Resizable layout with draggable divider between JSON viewers and diff list
+- Responsive design adapts to different screen sizes and user preferences
 - Synchronized actions between JSON viewers
