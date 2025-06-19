@@ -77,7 +77,7 @@
 /* Expander positioned within indentation space, after diff marker */
 .expander {
   position: absolute !important;
-  left: 6px !important;
+  left: 8px !important; /* Moved slightly right for better visibility */
   top: 0 !important;
   width: 16px !important;
   height: 20px !important;
@@ -85,7 +85,7 @@
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  font-size: 11px !important;
+  font-size: 12px !important; /* Slightly larger for better visibility */
   color: #666 !important;
   z-index: 10 !important;
   user-select: none !important;
@@ -104,7 +104,7 @@
 /* Key styling with left margin to avoid overlap with controls */
 .json-key {
   margin-left: 24px !important;
-  margin-right: 4px !important; /* Reduced for tighter spacing with brackets */
+  margin-right: 6px !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   font-weight: 500 !important;
@@ -286,13 +286,4 @@
 
 .json-value-null {
   color: #0000ff;
-}
-
-/* Brackets and braces alignment */
-.json-bracket,
-.json-brace {
-  margin-left: 0 !important;
-  margin-right: 2px !important;
-  color: #333 !important;
-  font-weight: normal !important;
 }
