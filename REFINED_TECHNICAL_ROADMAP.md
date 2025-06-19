@@ -72,26 +72,35 @@ const convertDisplayPathToNumeric = (displayPath: string) => {
 ---
 
 ### **🎨 Visual Alignment & Rendering**
-*Pixel-perfect indentation system we struggled to perfect*
+*Character-based indentation with controlled font system*
 
-#### **5. Consistent Tree Indentation**
-- [ ] 📏 **Pixel-based spacing** - avoid font-dependent units (`ch`, `em`)
-- [ ] 📏 **Level-based padding** - `calc(var(--level) * 20px)` approach
+#### **5. Consistent Tree Indentation** *(REVISED APPROACH)*
+- [ ] � **Apple-style smooth fonts** - SF Mono primary, JetBrains Mono fallback
+- [ ] 📏 **Character-based spacing** - `2ch` indentation (editor standard)
+- [ ] 📏 **Zero-cumulative-spacing** - only parent controls indentation
 - [ ] 📏 **Expander positioning** - absolute positioning within indent space
+- [ ] 📏 **Cross-browser normalization** - consistent font rendering settings
 - [ ] 📏 **Closing bracket alignment** - match parent container level
 - [ ] 📏 **Cross-browser consistency** - works across all major browsers
 
 **Key Insight From Our Development:**
 ```css
-/* The solution we finally discovered */
+/* REVISED: Character-based with controlled font */
+.json-tree-view {
+  font-family: 'SF Mono', 'JetBrains Mono', 'Consolas', monospace;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'tnum'; /* Tabular numbers */
+}
+
 .json-node {
-  padding-left: calc(var(--level) * var(--indent-size));
+  padding-left: calc(var(--level) * 2ch); /* Editor standard */
   position: relative; /* For absolute expander positioning */
+  /* Zero cumulative spacing - no additional margins/padding */
 }
 
 .expander {
   position: absolute;
-  left: 8px; /* Fixed position within indent space */
+  left: calc(var(--level) * 2ch + 0.25ch); /* Within indent space */
 }
 ```
 
