@@ -1,46 +1,32 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { DiffResult } from '../jsonCompare';
+import type { DiffResult } from '../utils/jsonCompare'; 
 
-interface JsonViewerSyncContextProps {
+export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
   showDiffsOnly: boolean;
   showColoredDiff: boolean;
-  expandedPaths: Set<string>;
-  ignoredDiffs: Set<string>; // New: Tracks paths of diffs that should be ignored
+  expandedPaths: Set<string>; // Stores generic numeric paths (e.g., "root.some.array[0]")
+  ignoredDiffs: Set<string>; 
   setViewMode: (mode: 'text' | 'tree') => void;
   setShowDiffsOnly: (show: boolean) => void;
   setShowColoredDiff: (show: boolean) => void;
-  toggleExpand: (path: string) => void;
+  toggleExpand: (genericPath: string) => void; // Path is generic numeric path
   setExpandAll: (expand: boolean) => void;
   syncEnabled: boolean;
   setSyncEnabled: (enabled: boolean) => void;
-  toggleIgnoreDiff: (diffPath: string) => void; // New: Toggle ignoring a specific diff
-  goToDiff: (diffPath: string) => void; // New: Navigate to a specific diff
-  highlightPath: string | null; // New: Path to temporarily highlight
-  setHighlightPath: (path: string | null) => void; // New: Set the highlighted path
-  clearAllIgnoredDiffs: () => void; // New: Clear all ignored differences
+  toggleIgnoreDiff: (diffPath: string) => void; 
+  goToDiff: (diffPath: string) => void; 
+  highlightPath: string | null;
+  setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
+  clearAllIgnoredDiffs: () => void;
+  diffResults: DiffResult[]; 
+  viewerId1: string; // Still needed for root path construction if JsonNode needs it initially, though generic paths are preferred
+  viewerId2: string; 
+  toggleShowDiffsOnly: () => void; 
 }
 
-const JsonViewerSyncContext = createContext<JsonViewerSyncContextProps>({
-  viewMode: 'tree',
-  showDiffsOnly: true,
-  showColoredDiff: true,
-  expandedPaths: new Set<string>(),
-  ignoredDiffs: new Set<string>(),
-  setViewMode: () => {},
-  setShowDiffsOnly: () => {},
-  setShowColoredDiff: () => {},
-  toggleExpand: () => {},
-  setExpandAll: () => {},
-  syncEnabled: true,
-  setSyncEnabled: () => {},
-  toggleIgnoreDiff: () => {},
-  goToDiff: () => {},
-  highlightPath: null,
-  setHighlightPath: () => {},
-  clearAllIgnoredDiffs: () => {}
-});
+export const JsonViewerSyncContext = createContext<JsonViewerSyncContextProps | undefined>(undefined);
 
 interface JsonViewerSyncProviderProps {
   children: ReactNode;
@@ -48,215 +34,224 @@ interface JsonViewerSyncProviderProps {
   initialShowDiffsOnly?: boolean;
   initialSyncEnabled?: boolean;
   diffResults?: DiffResult[];
+  viewerId1?: string; 
+  viewerId2?: string; 
 }
 
 export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
   children,
   initialViewMode = 'tree',
-  initialShowDiffsOnly = true,
-  initialSyncEnabled = true,
-  diffResults = []
+  initialShowDiffsOnly = false, 
+  initialSyncEnabled = true, 
+  diffResults = [], 
+  viewerId1 = "viewer1", // Default viewer IDs
+  viewerId2 = "viewer2"
 }) => {
-  const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
-  const [showDiffsOnly, _setShowDiffsOnly] = useState<boolean>(initialShowDiffsOnly);
-  const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); // Default to show diff highlighting
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set<string>());
-  const [syncEnabled, setSyncEnabled] = useState<boolean>(initialSyncEnabled);
-  const [ignoredDiffs, setIgnoredDiffs] = useState<Set<string>>(new Set<string>());
-  const [highlightPath, setHighlightPath] = useState<string | null>(null);
-  
-  // Wrap the state setters to respect the sync toggle
-  const setViewMode = useCallback((mode: 'text' | 'tree') => {
-    // Always apply the change regardless of sync status
-    _setViewMode(mode);
-  }, []);
-  
-  const setShowDiffsOnly = useCallback((show: boolean) => {
-    // Always apply the change regardless of sync status
-    _setShowDiffsOnly(show);
-  }, []);
-  
-  const setShowColoredDiff = useCallback((show: boolean) => {
-    // Always apply the change regardless of sync status
-    _setShowColoredDiff(show);
-  }, []);
+    const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
+    const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
+    const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); 
+    // Initialize with a Set including the generic root path
+    const [expandedPaths, setExpandedPathsState] = useState<Set<string>>(
+      new Set(['root']) // Generic root path
+    );
+    const [syncEnabled, setSyncEnabled] = useState<boolean>(initialSyncEnabled);
+    const [ignoredDiffs, setIgnoredDiffsState] = useState<Set<string>>(new Set());
+    const [highlightPath, setHighlightPathState] = useState<string | null>(null);
 
-  // Expand all paths mentioned in diffResults by default
-  useEffect(() => {
-    if (diffResults.length > 0) {
-      const pathsToExpand = new Set<string>();
-      
-      diffResults.forEach(diff => {
-        const pathParts = diff.path.split(/\.|\[|\]/g).filter(Boolean);
-        let currentPath = '';
-        
-        // Add all parent paths to ensure the full path to the diff is expanded
-        pathParts.forEach(part => {
-          if (currentPath) {
-            currentPath = isNaN(Number(part)) ? `${currentPath}.${part}` : `${currentPath}[${part}]`;
-          } else {
-            currentPath = part;
-          }
-          pathsToExpand.add(currentPath);
-        });
-      });
-      
-      setExpandedPaths(pathsToExpand);
-    }
-  }, [diffResults]);
+    const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
+      _setViewMode(mode);
+    }, []);
+    
+    const memoizedSetShowColoredDiff = useCallback((show: boolean) => {
+      _setShowColoredDiff(show);
+    }, []);
 
-  const toggleExpand = useCallback((path: string) => {
-    // Get the actual path without the viewerId prefix
-    // We use the id from the path to map between viewers
-    let normalizedPath = path;
-    const prefixMatch = /^root_(.+?)_(.+)$/.exec(path);
-    
-    if (prefixMatch) {
-      // We have a prefixed path, extract the real path part
-      // Extract the actual path part (without the viewer ID)
-      const actualPath = prefixMatch[2];
-      
-      // This maintains the specific path for this node but makes it work
-      // with other viewers when actions are synchronized
-      normalizedPath = actualPath;
-    }
-    
-    setExpandedPaths(prev => {
-      const newPaths = new Set(prev);
-      
-      // Handle the specific path for this viewer
-      if (newPaths.has(path)) {
-        newPaths.delete(path);
-      } else {
-        newPaths.add(path);
-      }
-      
-      // Also handle other viewers with the same structure
-      // For each viewer ID (viewer1, viewer2, etc) update their version of this path
-      const viewerPrefixes = ['viewer1', 'viewer2'];
-      viewerPrefixes.forEach(viewerId => {
-        const correspondingPath = `root_${viewerId}_${normalizedPath}`;
-        if (path !== correspondingPath) { // Don't duplicate the action on the same path
-          if (newPaths.has(correspondingPath)) {
-            newPaths.delete(correspondingPath);
-          } else {
-            newPaths.add(correspondingPath);
-          }
+    const memoizedSetHighlightPath = useCallback((path: string | null | ((prevState: string | null) => string | null)) => {
+        setHighlightPathState(path);
+    }, []);
+
+    useEffect(() => {
+      // Ensure "root" is expanded on initial load or changes to initialShowDiffsOnly
+      setExpandedPathsState(prev => new Set(prev).add('root')); 
+      setShowDiffsOnlyState(initialShowDiffsOnly); 
+    }, [initialShowDiffsOnly]); // Dependencies simplified
+
+    const toggleExpand = useCallback((genericPath: string) => {
+      // genericPath is the generic numeric path, e.g., "root.some.path" or "root.array[0]"
+      setExpandedPathsState(prev => {
+        const newPathsSet = new Set(prev);
+        if (newPathsSet.has(genericPath)) {
+          newPathsSet.delete(genericPath);
+        } else {
+          newPathsSet.add(genericPath);
         }
+        // console.log(`[JsonViewerSyncContext toggleExpand] Path: \"${genericPath}\". New expandedPaths:`, Array.from(newPathsSet));
+        return newPathsSet;
       });
+    }, []); // Dependencies simplified, sync logic removed as expansion is per-viewer based on generic path
+
+    const setExpandAll = useCallback((expand: boolean) => {
+      if (expand) {
+        // Placeholder for full expansion logic
+        // console.log("[JsonViewerSyncContext] setExpandAll(true) - full expansion not yet implemented");
+        // For now, can iterate diffResults and add all unique numericPaths and their ancestors
+        const allPathsToExpand = new Set<string>(['root']);
+        diffResults.forEach(diff => {
+          if (diff.numericPath) {
+            // Add the diff path itself
+            allPathsToExpand.add(diff.numericPath);
+            // Add all its ancestors
+            let currentPath = diff.numericPath;
+            while (currentPath.includes('.') || currentPath.includes('[')) {
+              const lastDot = currentPath.lastIndexOf('.');
+              const lastBracket = currentPath.lastIndexOf('[');
+              const parentEndIndex = Math.max(lastDot, lastBracket);
+              if (parentEndIndex > -1) {
+                currentPath = currentPath.substring(0, parentEndIndex);
+                if (currentPath && currentPath !== 'root') { // Avoid adding empty string or re-adding root if path was like "root.foo"
+                    allPathsToExpand.add(currentPath);
+                } else if (currentPath === 'root') {
+                    allPathsToExpand.add('root'); // Ensure root is there
+                    break; // Reached root
+                }
+              } else {
+                break; // No more parents
+              }
+            }
+          }
+        });
+        setExpandedPathsState(allPathsToExpand);
+
+      } else {
+        setExpandedPathsState(new Set(['root'])); // Collapse to root
+      }
+    }, [diffResults]); // Dependency on diffResults for expansion logic
+
+    const toggleIgnoreDiff = useCallback((numericDiffPath: string) => {
+      setIgnoredDiffsState(prevIgnoredPaths => {
+        const newIgnoredPathsSet = new Set(prevIgnoredPaths);
+        if (newIgnoredPathsSet.has(numericDiffPath)) {
+          newIgnoredPathsSet.delete(numericDiffPath);
+        } else {
+          newIgnoredPathsSet.add(numericDiffPath);
+        }
+        return newIgnoredPathsSet;
+      });
+    }, []);
+
+    const clearAllIgnoredDiffs = useCallback(() => {
+      setIgnoredDiffsState(new Set());
+    }, []);
+
+    const goToDiff = useCallback((numericPathToExpand: string) => {
+      // console.log(`[JsonViewerSyncContext goToDiff] CALLED with NUMERIC path: \"${numericPathToExpand}\"`);
       
-      return newPaths;
-    });
-  }, []);
+      // Reset highlight to re-trigger the effect in JsonNode, even for the same path.
+      setHighlightPathState(null);
 
-  const setExpandAll = useCallback((expand: boolean) => {
-    if (expand) {
-      // Expand everything - this would require knowledge of all possible paths
-      // Just keeping current expanded paths for now
-    } else {
-      // Collapse everything except root level
-      setExpandedPaths(new Set());
-    }
-  }, []);
+      // Use a timeout to allow the null state to propagate before setting the new path.
+      // This ensures the `isHighlighted && !prevIsHighlighted` condition in JsonNode's useEffect fires correctly.
+      setTimeout(() => {
+        setHighlightPathState(numericPathToExpand); // highlightPath is generic numeric
 
-  // Toggle ignoring a diff at a specific path
-  const toggleIgnoreDiff = useCallback((diffPath: string) => {
-    setIgnoredDiffs(prev => {
-      const newIgnoredDiffs = new Set(prev);
-      if (newIgnoredDiffs.has(diffPath)) {
-        newIgnoredDiffs.delete(diffPath);
-      } else {
-        newIgnoredDiffs.add(diffPath);
-      }
-      return newIgnoredDiffs;
-    });
-  }, []);
+        setExpandedPathsState(currentExpandedPaths => {
+          const newExpandedPaths = new Set<string>(currentExpandedPaths);
+          newExpandedPaths.add('root'); // Ensure root is always expanded
 
-  // Clear all ignored diffs
-  const clearAllIgnoredDiffs = useCallback(() => {
-    setIgnoredDiffs(new Set<string>());
-  }, []);
+          const segments: string[] = [];
+          let remainingPath = numericPathToExpand;
+          let baseIsRoot = false;
 
-  // Navigate to and highlight a specific diff
-  const goToDiff = useCallback((diffPath: string) => {
-    console.log('[GoToDiff] Triggered for path:', diffPath);
-    
-    // First, let's normalize the path to properly handle complex path scenarios
-    // Handle paths with array index patterns like [id=45596359::2]
-    const pathForExpansion = diffPath.replace(/\[id=[^\]]+::(\d+)\]/g, (_match, index) => {
-      return `[${index}]`;
-    });
-    
-    console.log('[GoToDiff] Path for expansion (normalized):', pathForExpansion);
-    
-    // Collect all paths that need to be expanded (including parent paths)
-    const pathsToExpand = new Set<string>();
-    
-    // Add the complete path to ensure the final node is expanded
-    pathsToExpand.add(`root_viewer1_${pathForExpansion}`);
-    pathsToExpand.add(`root_viewer2_${pathForExpansion}`);
-    pathsToExpand.add(`root_viewer1_${diffPath}`); // Also add original for safety, might be redundant
-    pathsToExpand.add(`root_viewer2_${diffPath}`); // Also add original for safety, might be redundant
-    
-    // Add all parent paths to ensure the full path to the diff is expanded
-    const pathParts = pathForExpansion.split(/\.|\[|\]/g).filter(Boolean);
-    let currentPathSegment = '';
-    
-    pathParts.forEach(part => {
-      if (currentPathSegment) {
-        currentPathSegment = isNaN(Number(part)) ? `${currentPathSegment}.${part}` : `${currentPathSegment}[${part}]`;
-      } else {
-        currentPathSegment = part;
-      }
-      pathsToExpand.add(`root_viewer1_${currentPathSegment}`);
-      pathsToExpand.add(`root_viewer2_${currentPathSegment}`);
-    });
-    
-    console.log('[GoToDiff] Paths to expand:', pathsToExpand);
-    
-    setExpandedPaths(prev => {
-      const newPaths = new Set(prev);
-      pathsToExpand.forEach(p => newPaths.add(p));
-      console.log('[GoToDiff] Updating expandedPaths. New set:', newPaths);
-      return newPaths;
-    });
-    
-    // Set the highlight path (use the original diffPath for precise matching in JsonNode)
-    console.log('[GoToDiff] Setting highlightPath:', diffPath);
-    setHighlightPath(diffPath);
-    
-    // Clear highlight after a delay
-    setTimeout(() => {
-      console.log('[GoToDiff] Clearing highlightPath after timeout.');
-      setHighlightPath(null);
-    }, 3500); // Slightly longer than animation
-  }, [setExpandedPaths, setHighlightPath]);
+          if (remainingPath.startsWith('root')) {
+              baseIsRoot = true;
+              if (remainingPath.startsWith('root.')) {
+                  remainingPath = remainingPath.substring(5);
+              } else if (remainingPath === 'root') {
+                  remainingPath = ''; 
+              }
+          }
+          
+          if (baseIsRoot) segments.push('root');
 
-  return (
-    <JsonViewerSyncContext.Provider
-      value={{
-        viewMode,
-        showDiffsOnly,
-        showColoredDiff,
-        expandedPaths,
-        ignoredDiffs,
-        setViewMode,
-        setShowDiffsOnly,
-        setShowColoredDiff,
-        toggleExpand,
-        setExpandAll,
-        syncEnabled,
-        setSyncEnabled,
-        toggleIgnoreDiff,
-        clearAllIgnoredDiffs,
-        goToDiff,
-        highlightPath,
-        setHighlightPath
-      }}
-    >
-      {children}
-    </JsonViewerSyncContext.Provider>
-  );
+          if (remainingPath) { 
+              const pathSegmentRegex = /([^.\[]+)|\[([^\]]+)\]/g; 
+              let match;
+              while ((match = pathSegmentRegex.exec(remainingPath)) !== null) {
+                  segments.push(match[1] || match[0]); 
+              }
+          }
+
+          const ancestorGenericPaths: string[] = [];
+          let currentAncestorPath = '';
+          // Iterate up to segments.length - 1 to get only strict ancestors for expansion.
+          // The final node itself will be handled by JsonNode's highlight + auto-expand effect if it's an object/array.
+          for (let i = 0; i < segments.length - 1; i++) { 
+            const segment = segments[i];
+            if (currentAncestorPath === '') {
+              currentAncestorPath = segment;
+            } else {
+              if (segment.startsWith('[') && segment.endsWith(']')) {
+                currentAncestorPath += segment; 
+              } else {
+                currentAncestorPath += `.${segment}`;
+              }
+            }
+            ancestorGenericPaths.push(currentAncestorPath);
+          }
+          
+          // console.log(`[JsonViewerSyncContext goToDiff] GENERIC ancestor paths to expand (derived from \"${numericPathToExpand}\"):`, ancestorGenericPaths);
+
+          ancestorGenericPaths.forEach(genericAncestor => {
+            if (genericAncestor) { 
+              newExpandedPaths.add(genericAncestor);
+            }
+          });
+          
+          // console.log(`[JsonViewerSyncContext goToDiff] Setting expandedPaths to:`, Array.from(newExpandedPaths));
+          return newExpandedPaths;
+        });
+      }, 50); // A small delay to ensure re-triggering.
+
+    }, [setHighlightPathState]); // Dependencies simplified
+
+    const toggleShowDiffsOnly = useCallback(() => {
+        setShowDiffsOnlyState(prev => !prev);
+    }, []);
+
+    return (
+        <JsonViewerSyncContext.Provider value={{
+            viewMode,
+            showDiffsOnly,
+            showColoredDiff,
+            expandedPaths,
+            ignoredDiffs,
+            setViewMode: memoizedSetViewMode,
+            setShowDiffsOnly: setShowDiffsOnlyState, 
+            setShowColoredDiff: memoizedSetShowColoredDiff,
+            toggleExpand,
+            setExpandAll,
+            syncEnabled,
+            setSyncEnabled,
+            toggleIgnoreDiff,
+            goToDiff,
+            highlightPath,
+            setHighlightPath: memoizedSetHighlightPath,
+            clearAllIgnoredDiffs,
+            diffResults,
+            viewerId1, 
+            viewerId2,
+            toggleShowDiffsOnly,
+        }}>
+            {children}
+        </JsonViewerSyncContext.Provider>
+    );
 };
 
-export const useJsonViewerSync = () => useContext(JsonViewerSyncContext);
+// Custom hook to use the JsonViewerSyncContext
+export const useJsonViewerSync = () => {
+  const context = useContext(JsonViewerSyncContext);
+  if (context === undefined) {
+    throw new Error('useJsonViewerSync must be used within a JsonViewerSyncProvider');
+  }
+  return context;
+};

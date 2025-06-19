@@ -1,115 +1,137 @@
+/* Base JSON tree view container */
 .json-tree-view {
-  font-family: monospace;
-  font-size: 14px;
-  line-height: 1.5;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 13px;
+  line-height: 1.4;
   color: #333;
   background-color: #fff;
   border-radius: 4px;
-  overflow: auto;
   width: 100%; 
-  height: 100%;
-  min-height: 65vh; /* Minimum height based on viewport */
   user-select: text;
   padding: 8px;
   box-sizing: border-box;
   margin: 0;
 }
 
+/* JSON node - complete reset of positioning */
 .json-node {
-  margin: 2px 0;
   position: relative;
+  margin: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  /* paddingLeft is controlled by inline style only */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.4;
+  display: block;
+  width: 100%;
 }
 
+/* Node content - absolutely no additional spacing */
 .json-node-content {
   display: flex;
   align-items: center;
+  min-height: 20px;
+  position: relative;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.clickable {
-  cursor: pointer;
-  user-select: none;
+/* Children containers - force zero spacing */
+.json-node-children,
+.json-children {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
 }
 
+/* Closing bracket containers */
+.json-closing-bracket,
+.json-closing-brace {
+  margin: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Diff markers positioned absolutely within the indentation space */
+.json-node::before {
+  content: attr(data-diff-marker);
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Expander positioned within indentation space, after diff marker */
+.expander {
+  position: absolute !important;
+  left: 6px !important;
+  top: 0 !important;
+  width: 16px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 11px !important;
+  color: #666 !important;
+  z-index: 10 !important;
+  user-select: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+
+.expander:hover {
+  color: #333 !important;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  border-radius: 3px !important;
+}
+
+/* Key styling with left margin to avoid overlap with controls */
 .json-key {
-  color: #881391;
-  margin-right: 4px;
-  padding: 0 2px; /* Add padding for better highlight appearance */
-  border-radius: 2px;
+  margin-left: 24px !important;
+  margin-right: 6px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  font-weight: 500 !important;
+  color: #881391 !important;
+  padding: 1px 3px !important;
+  border-radius: 2px !important;
+  white-space: nowrap !important;
 }
 
-.json-bracket {
-  color: #333;
+/* Ensure nodes without expanders still align their keys properly */
+.json-node-content:not(:has(.expander)) .json-key {
+  margin-left: 6px !important;
 }
 
-.json-type {
-  color: #333;
+/* Closing bracket positioning */
+.json-closing-bracket-node .json-bracket,
+.json-closing-brace-node .json-brace {
+  margin-left: 24px !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  color: #333 !important;
 }
 
 .json-collapsed-hint {
   color: #999;
   margin: 0 2px;
-  font-style: italic;
-}
-
-.json-value {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-all;
-  max-width: 100%; /* Use full available width */
-  text-overflow: ellipsis;
-}
-
-/* Make sure value highlighting in leaf nodes looks good */
-.json-value.json-changed {
-  display: inline-block;
-}
-
-.json-value.json-added {
-  display: inline-block;
-}
-
-.json-value.json-removed {
-  display: inline-block;
-}
-
-.json-value-string {
-  color: #a31515;
-}
-
-.json-value-number {
-  color: #0000ff;
-}
-
-.json-value-boolean {
-  color: #0000ff;
-}
-
-.json-value-null {
-  color: #0000ff;
-}
-
-.json-children {
-  margin-left: 20px;
-  border-left: 1px dotted #ccc;
-  padding-left: 10px;
-}
-
-.json-node-closing {
-  margin-left: -10px;
-}
-
-.expander {
-  display: inline-block;
-  width: 16px;
-  text-align: center;
-  margin-right: 5px;
-  font-size: 10px;
-}
-
-.json-collapsed-hint {
-  color: #999;
-  margin: 0 5px;
   font-style: italic;
 }
 
@@ -135,15 +157,26 @@
   box-shadow: 0 0 0 1px rgba(121, 184, 255, 0.8);
 }
 
-.json-parent-changed {
-  border-left: 3px solid rgba(121, 184, 255, 0.8);
-  padding-left: 5px;
+.json-parent-changed > .json-node-content::before {
+  content: '';
+  position: absolute;
+  left: 0; /* Position at the left edge */
+  top: 2px; /* Small offset from top */
+  bottom: 2px; /* Small offset from bottom */
+  width: 2px; /* Thinner marker */
+  background-color: rgba(121, 184, 255, 0.8);
+  border-radius: 1px;
+}
+
+/* Remove the old border-based rule */
+.json-node.json-parent-changed > .json-node-content {
+  border-left: none; /* Disable the old border */
 }
 
 /* Special styling for array elements with ID-based changes */
 .json-array-element-with-changes {
   border-left: 3px solid rgba(255, 165, 0, 0.8);
-  padding-left: 5px;
+  padding-left: 0; /* Remove padding that interferes with indentation */
 }
 
 /* Highlight animation for GoTo functionality */
@@ -194,4 +227,63 @@
 .highlighted-node .json-key,
 .highlighted-node .json-value {
   font-weight: bold;
+}
+
+/* Utility classes */
+.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.json-bracket {
+  color: #333;
+}
+
+.json-type {
+  color: #333;
+}
+
+.json-collapsed-hint {
+  color: #999;
+  margin: 0 2px;
+  font-style: italic;
+}
+
+.json-value {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  margin-left: 4px;
+}
+
+/* Value type styling */
+.json-value.json-changed {
+  display: inline-block;
+}
+
+.json-value.json-added {
+  display: inline-block;
+}
+
+.json-value.json-removed {
+  display: inline-block;
+}
+
+.json-value-string {
+  color: #a31515;
+}
+
+.json-value-number {
+  color: #0000ff;
+}
+
+.json-value-boolean {
+  color: #0000ff;
+}
+
+.json-value-null {
+  color: #0000ff;
 }

@@ -12,7 +12,6 @@
 .App {
   width: 100%;
   max-width: 100%;
-  overflow: hidden; /* Change from overflow-x to prevent both horizontal and vertical overflow */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -67,14 +66,16 @@
 
 .json-viewers-section {
   width: 100%;
-  overflow: hidden;
   position: relative;
+  display: flex; /* Ensure it's a flex container for ViewControls and json-comparison-container */
+  flex-direction: column;
 }
 
 .diff-list-section {
   width: 100%;
-  overflow: hidden;
   position: relative;
+  display: flex; /* Ensure it's a flex container for DiffList */
+  flex-direction: column;
 }
 
 /* Ensure content doesn't overflow */
@@ -82,4 +83,50 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden; /* Prevent scrolling on the body */
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #e8e8e8;
+  height: 60px; /* Fixed height */
+  box-sizing: border-box;
+}
+
+.app-title {
+  font-size: 1.25rem; /* Smaller font size */
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.app-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between control groups */
+}
+
+.sync-toggle-button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.sync-toggle-button.toggled-on {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  color: #096dd9;
+}
+
+/* Assuming ViewControls has its own styling, but we can add overrides if needed */
+.app-controls .view-controls-container {
+  /* Example: remove margin if ViewControls adds it */
+  margin: 0;
 }

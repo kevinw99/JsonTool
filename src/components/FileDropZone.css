@@ -1,0 +1,38 @@
+.file-drop-zone {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.file-drop-zone.drag-over {
+  border-color: #1890ff; /* A highlight color */
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+.drop-zone-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  pointer-events: none; /* Allows drag events to pass through to the drop zone */
+}
+
+.drop-zone-overlay p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1890ff;
+  text-align: center;
+  padding: 20px;
+  border: 2px solid #1890ff;
+  border-radius: 12px;
+  background-color: #fff;
+}

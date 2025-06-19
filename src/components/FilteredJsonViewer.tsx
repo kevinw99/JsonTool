@@ -15,7 +15,7 @@ interface FilteredJsonViewerProps {
 export const FilteredJsonViewer: React.FC<FilteredJsonViewerProps> = ({ 
   json, 
   diffResults, 
-  height = 'calc(70vh - 100px)',  // Use viewport height minus space for headers
+  height = '100%',  // Default to 100% to fill parent
   viewerId = 'default'
 }) => {
   const { 
@@ -24,10 +24,10 @@ export const FilteredJsonViewer: React.FC<FilteredJsonViewerProps> = ({
   } = useJsonViewerSync();
 
   return (
-    <div className="filtered-json-viewer-container" style={{ height, width: '100%' }}>
+    <div className="filtered-json-viewer-container" style={{ height, width: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
       {/* Controls moved to ViewControls component */}
       
-      <div className="filtered-json-viewer-content" style={{ width: '100%' }}>
+      <div className="filtered-json-viewer-content" style={{ width: '100%', flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {viewMode === 'text' ? (
           showDiffsOnly ? (
             <DiffFilteredJsonView
@@ -59,7 +59,7 @@ export const FilteredJsonViewer: React.FC<FilteredJsonViewerProps> = ({
             />
           )
         ) : (
-          <div className="tree-view-container">
+          <div className="tree-view-container" style={{ flexGrow: 1, overflow: 'auto' }}> {/* Ensure this takes up space and scrolls */}
             <JsonTreeView 
               json={showDiffsOnly ? 
                 (diffResults.length > 0 ? 

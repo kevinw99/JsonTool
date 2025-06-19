@@ -3,14 +3,15 @@
   flex-direction: column;
   border: 1px solid #ddd;
   border-radius: 6px;
-  overflow: hidden;
-  min-height: 65vh;
+  overflow: hidden; /* Keep this to clip its own children if necessary, but allow parent to scroll it */
+  /* min-height: 65vh; Removed, height is now 100% of parent */
   height: 100%;
   width: 100%;
-  max-width: 100%;
+  /* max-width: 100%; Already covered by width: 100% */
   margin: 0;
   box-sizing: border-box;
   background-color: #fff;
+  flex-grow: 1; /* Allow it to grow within its flex parent (json-viewer-column) */
 }
 
 .filtered-json-viewer-controls {
@@ -23,10 +24,10 @@
 
 .filtered-json-viewer-content {
   flex: 1;
-  overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* This will contain the tree-view-container which scrolls */
 }
 
 .view-mode-toggle,
@@ -53,7 +54,9 @@
 }
 
 .tree-view-container {
-  height: 100%;
+  /* height: 100%; Removed, use flex-grow instead */
+  flex-grow: 1; /* Allow it to take available space in filtered-json-viewer-content */
   overflow: auto;
   padding: 8px;
+  min-height: 50px; /* Ensure it has some minimum visible height */
 }

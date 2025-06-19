@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
-import type { DiffResult } from '../../jsonCompare';
-// Correct the CSS import path
+// Ensure DiffResult is imported from the correct location
+import type { DiffResult } from '../../utils/jsonCompare'; 
 import './DiffList.css';
 
 interface DiffListProps {
@@ -11,13 +11,13 @@ interface DiffListProps {
 
 export const DiffList: React.FC<DiffListProps> = ({
   diffs,
-  height = 'calc(25vh - 50px)',  // Default to 1/3 of the available height
+  height = 'calc(25vh - 50px)',
 }) => {
   const { 
     ignoredDiffs,
     toggleIgnoreDiff,
     goToDiff,
-    highlightPath,
+    highlightPath, // This will be a numeric path
     clearAllIgnoredDiffs
   } = useJsonViewerSync();
   
@@ -26,36 +26,36 @@ export const DiffList: React.FC<DiffListProps> = ({
   const [showIgnored, setShowIgnored] = useState<boolean>(false);
 
   useEffect(() => {
-    // Filter diffs based on search term and whether to show ignored diffs
     const filtered = diffs.filter(diff => {
+      // Search term should match against the display path
       const matchesSearch = searchTerm === '' || 
-                           diff.path.toLowerCase().includes(searchTerm.toLowerCase());
+                           diff.displayPath.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (showIgnored) {
-        // Show all diffs that match the search
         return matchesSearch;
       } else {
-        // Show only non-ignored diffs that match the search
-        return !ignoredDiffs.has(diff.path) && matchesSearch;
+        // Ignored diffs are identified by their numericPath
+        return !ignoredDiffs.has(diff.numericPath) && matchesSearch; // Changed .includes to .has
       }
     });
     
     setFilteredDiffs(filtered);
   }, [diffs, ignoredDiffs, searchTerm, showIgnored]);
 
-  const handleIgnore = (diffPath: string) => {
-    toggleIgnoreDiff(diffPath);
+  const handleIgnore = (numericDiffPath: string) => {
+    toggleIgnoreDiff(numericDiffPath);
   };
 
-  const handleGoToDiff = (diffPath: string) => {
-    goToDiff(diffPath);
+  const handleGoToDiff = (numericDiffPath: string) => {
+    console.log('[DiffList] GoTo button clicked for numeric path:', numericDiffPath);
+    goToDiff(numericDiffPath); // Pass numericPath to goToDiff
+    console.log('[DiffList] Called goToDiff from context with numeric path.');
   };
 
   const formatValue = (value: any): string => {
     if (value === undefined) return 'undefined';
     if (value === null) return 'null';
     
-    // For objects or arrays, show a summary
     if (typeof value === 'object') {
       if (Array.isArray(value)) {
         return `Array(${value.length})`;
@@ -63,9 +63,7 @@ export const DiffList: React.FC<DiffListProps> = ({
       return `Object{${Object.keys(value).length} keys}`;
     }
     
-    // For primitive values
     if (typeof value === 'string') {
-      // Truncate long strings
       if (value.length > 30) {
         return `"${value.substring(0, 30)}..."`;
       }
@@ -77,11 +75,14 @@ export const DiffList: React.FC<DiffListProps> = ({
   const getDiffSummary = (diff: DiffResult): string => {
     switch (diff.type) {
       case 'added':
-        return `Added: ${formatValue(diff.newValue)}`;
+        // Use value2 for added diffs
+        return `Added: ${formatValue(diff.value2)}`;
       case 'removed':
-        return `Removed: ${formatValue(diff.oldValue)}`;
+        // Use value1 for removed diffs
+        return `Removed: ${formatValue(diff.value1)}`;
       case 'changed':
-        return `Changed: ${formatValue(diff.oldValue)} → ${formatValue(diff.newValue)}`;
+        // Use value1 and value2 for changed diffs
+        return `Changed: ${formatValue(diff.value1)} → ${formatValue(diff.value2)}`;
       default:
         return '';
     }
@@ -92,16 +93,16 @@ export const DiffList: React.FC<DiffListProps> = ({
       <div className="diff-list-header">
         <h3>
           Differences ({filteredDiffs.length})
-          {ignoredDiffs.size > 0 && (
+          {ignoredDiffs.length > 0 && (
             <span className="ignored-count">
-              {ignoredDiffs.size} ignored
+              {ignoredDiffs.length} ignored
             </span>
           )}
         </h3>
         <div className="diff-search">
           <input
             type="text"
-            placeholder="Search diffs..."
+            placeholder="Search diffs (by displayed path)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="diff-search-input"
@@ -119,10 +120,11 @@ export const DiffList: React.FC<DiffListProps> = ({
             </label>
           </div>
           
-          {showIgnored && Array.from(ignoredDiffs).length > 0 && (
+          {/* Ensure clearAllIgnoredDiffs is available and used correctly */}
+          {showIgnored && ignoredDiffs.length > 0 && (
             <button 
               className="restore-all-button"
-              onClick={clearAllIgnoredDiffs}
+              onClick={clearAllIgnoredDiffs} 
               title="Restore all ignored differences"
             >
               Restore All
@@ -142,29 +144,34 @@ export const DiffList: React.FC<DiffListProps> = ({
           <ul className="diff-items">
             {filteredDiffs.map((diff, index) => (
               <li 
-                key={index} 
-                className={`diff-item ${diff.type} ${highlightPath === diff.path ? 'highlighted' : ''} ${ignoredDiffs.has(diff.path) ? 'ignored' : ''}`}
+                // Use numericPath for key if displayPath might not be unique enough,
+                // though index is fine if diffs array doesn't change order.
+                // Combining with displayPath for more robustness if needed.
+                key={`${diff.numericPath}-${index}`} 
+                className={`diff-item ${diff.type} ${highlightPath === diff.numericPath ? 'highlighted' : ''} ${ignoredDiffs.has(diff.numericPath) ? 'ignored' : ''}`}
               >
                 <div className="diff-path">
                   <span className="path-label">
                     <span className="diff-number">{index + 1}.</span>
-                    {diff.path}
-                    {ignoredDiffs.has(diff.path) && <span className="ignored-badge">Ignored</span>}
+                    {diff.displayPath} {/* Display the user-friendly path */}
+                    {ignoredDiffs.has(diff.numericPath) && <span className="ignored-badge">Ignored</span>}
                   </span>
                   <div className="diff-actions">
                     <button 
                       className="goto-button"
-                      onClick={() => handleGoToDiff(diff.path)}
+                      // Pass numericPath to handleGoToDiff
+                      onClick={() => handleGoToDiff(diff.numericPath)}
                       title="Navigate to this difference"
                     >
                       Go To
                     </button>
                     <button 
-                      className={`ignore-button ${ignoredDiffs.has(diff.path) ? 'restore-button' : ''}`}
-                      onClick={() => handleIgnore(diff.path)}
-                      title={ignoredDiffs.has(diff.path) ? "Restore this difference" : "Ignore this difference"}
+                      // Pass numericPath to handleIgnore
+                      className={`ignore-button ${ignoredDiffs.has(diff.numericPath) ? 'restore-button' : ''}`}
+                      onClick={() => handleIgnore(diff.numericPath)}
+                      title={ignoredDiffs.has(diff.numericPath) ? "Restore this difference" : "Ignore this difference"}
                     >
-                      {ignoredDiffs.has(diff.path) ? "Restore" : "Ignore"}
+                      {ignoredDiffs.has(diff.numericPath) ? "Restore" : "Ignore"}
                     </button>
                   </div>
                 </div>

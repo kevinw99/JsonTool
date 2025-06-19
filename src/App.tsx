@@ -1,29 +1,27 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { compareJSON } from './jsonCompare'
-import type { DiffResult } from './jsonCompare'
+import { jsonCompare } from './utils/jsonCompare'
+import type { DiffResult, JsonCompareResult } from './utils/jsonCompare'
 import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
-import { FilteredJsonViewer } from './components/FilteredJsonViewer'
+import { JsonTreeView } from './components/JsonTreeView'
 import { ViewControls } from './components/ViewControls'
 import { SyncScroll } from './components/SyncScroll'
 import { DiffList } from './components/DiffList/DiffList'
 import { ResizableDivider } from './components/ResizableDivider'
-import { useWindowSize } from './hooks/useWindowSize'
+import { FileDropZone } from './components/FileDropZone';
 import './components/JsonLayout.css'
+import type { JsonValue } from './components/JsonTreeView';
+import { useJsonViewerSync } from './components/JsonViewerSyncContext';
 
 function App() {
-  const [json1, setJson1] = useState<object | null>(null)
-  const [json2, setJson2] = useState<object | null>(null)
+  const [json1, setJson1] = useState<JsonValue | null>(null)
+  const [json2, setJson2] = useState<JsonValue | null>(null)
   const [diffs, setDiffs] = useState<DiffResult[]>([])
   const [error, setError] = useState<string | null>(null)
   const [syncScroll, setSyncScroll] = useState<boolean>(true)
-  const [dividerPosition, setDividerPosition] = useState<number>(70) // Initial position: 70% for JSON viewers, 30% for diff list
-  const { height } = useWindowSize()
+  const [dividerPosition, setDividerPosition] = useState<number>(70)
 
-  // Calculate heights based on the divider position and window height
-  // Subtract space for headers, controls, etc. (approximately 120px)
-  const jsonViewerHeight = Math.max(200, (height * (dividerPosition / 100)) - 120)
-  const diffListHeight = Math.max(150, (height * ((100 - dividerPosition) / 100)) - 40)
+  const headerAndControlsHeight = 60; // Reduced height
 
   useEffect(() => {
     async function loadSamples() {
@@ -32,116 +30,170 @@ function App() {
           fetch('src/sample1.json').then(r => r.json()),
           fetch('src/sample2.json').then(r => r.json())
         ])
-        setJson1(j1)
-        setJson2(j2)
-        setDiffs(compareJSON(j1, j2))
+        const comparisonResult: JsonCompareResult = jsonCompare(j1, j2);
+        setJson1(comparisonResult.processedJson1);
+        setJson2(comparisonResult.processedJson2);
+        setDiffs(comparisonResult.diffs);
       } catch (e) {
         setError('Failed to load sample JSON files.')
+        console.error("Error loading or comparing JSON:", e);
       }
     }
     loadSamples()
   }, [])
 
+  useEffect(() => {
+    if (json1 && json2) {
+      const comparisonResult: JsonCompareResult = jsonCompare(json1, json2);
+      setDiffs(comparisonResult.diffs);
+    }
+  }, [json1, json2]);
+
+  const handleFileDrop = (viewer: 'json1' | 'json2') => (jsonData: object) => {
+    const newJsonValue = jsonData as JsonValue;
+    if (viewer === 'json1') {
+      const comparisonResult = jsonCompare(newJsonValue, json2);
+      setJson1(comparisonResult.processedJson1);
+      setJson2(comparisonResult.processedJson2);
+      setDiffs(comparisonResult.diffs);
+    } else {
+      const comparisonResult = jsonCompare(json1, newJsonValue);
+      setJson1(comparisonResult.processedJson1);
+      setJson2(comparisonResult.processedJson2);
+      setDiffs(comparisonResult.diffs);
+    }
+  };
+
   const toggleSyncScroll = () => {
     setSyncScroll(!syncScroll)
   }
-   // When syncing is enabled, all other actions are automatically synchronized
-  // This is handled by the JsonViewerSyncContext internally
 
-  return (
-    <div className="App" style={{ 
-      width: "100%", 
-      margin: "0 auto", 
-      padding: "0",
-      height: "100vh",
-      display: "flex",
-      flexDirection: "column"
-    }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>JSON Comparison Tool</h1>
-      {error && <div style={{color: 'red'}}>{error}</div>}
-      
-      <div style={{ marginBottom: '15px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-        <button 
-          onClick={toggleSyncScroll} 
-          style={{
-            padding: '8px 16px',
-            background: syncScroll ? '#e6f7ff' : '#f0f0f0',
-            border: '1px solid ' + (syncScroll ? '#1890ff' : '#ddd'),
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            color: syncScroll ? '#1890ff' : 'inherit'
-          }}
-        >
-          {syncScroll ? '🔒 Synchronized Actions' : '🔓 Independent Actions'}
-        </button>
-      </div>
-      
-      <div className="resizable-container">
-        {json1 && json2 && (
-          <div className="json-viewers-section" style={{ height: `${dividerPosition}%` }}>
-            <JsonViewerSyncProvider
-              initialViewMode="tree"
-              initialShowDiffsOnly={true}
-              initialSyncEnabled={true} // Always enable synchronization by default
-              diffResults={diffs}
-            >
-              <ViewControls />
-              
+  // Inner component to access context
+  const MainContent = () => {
+    const { showDiffsOnly } = useJsonViewerSync();
+
+    return (
+      <div className="app-content-wrapper" style={{ 
+        flexGrow: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: `calc(100vh - ${headerAndControlsHeight}px)`,
+        overflow: 'hidden'
+      }}>
+        {json1 && json2 ? (
+          <>
+            <div className="json-viewers-section" style={{ 
+              flexBasis: `${dividerPosition}%`, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              overflow: 'hidden',
+              minHeight: '100px'
+            }}>
+              {/* ViewControls are now in the header */}
               <div className="json-comparison-container" style={{ 
-                width: "100%",
-                margin: "0 auto", 
-                display: "flex",
-                justifyContent: "space-between",
-                height: `calc(100% - 40px)` // Adjust for ViewControls
+                flexGrow: 1, 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                overflow: 'hidden',
+                minHeight: 0
               }}>
-                <div style={{width: "49%", height: "100%"}}>
-                  <SyncScroll enabled={syncScroll} syncGroup="json-viewers">
-                    <div className="json-viewer-column" style={{ width: "100%", height: "100%" }}>
-                      <h2 style={{ fontSize: '1.5rem', marginTop: 0, marginBottom: '8px' }}>Sample 1</h2>
-                      <FilteredJsonViewer 
-                        json={json1}
-                        diffResults={diffs} 
-                        height={jsonViewerHeight} 
-                        viewerId="viewer1" 
+                <SyncScroll 
+                  enabled={syncScroll} 
+                  syncGroup="json-viewers" 
+                  className="json-viewer-scroll-container"
+                  style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                >
+                  <FileDropZone onFileDrop={handleFileDrop('json1')}>
+                    <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
+                      <JsonTreeView
+                        jsonData={json1}
+                        viewerId="viewer1"
+                        jsonSide='left'
+                        idKeySetting={null}
+                        showDiffsOnly={showDiffsOnly}
                       />
                     </div>
-                  </SyncScroll>
-                </div>
-                <div style={{width: "49%", height: "100%"}}>
-                  <SyncScroll enabled={syncScroll} syncGroup="json-viewers">
-                    <div className="json-viewer-column" style={{ width: "100%", height: "100%" }}>
-                      <h2 style={{ fontSize: '1.5rem', marginTop: 0, marginBottom: '8px' }}>Sample 2</h2>
-                      <FilteredJsonViewer 
-                        json={json2} 
-                        diffResults={diffs} 
-                        height={jsonViewerHeight}
-                        viewerId="viewer2" 
+                  </FileDropZone>
+                </SyncScroll>
+                
+                <SyncScroll 
+                  enabled={syncScroll} 
+                  syncGroup="json-viewers" 
+                  className="json-viewer-scroll-container"
+                  style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                >
+                  <FileDropZone onFileDrop={handleFileDrop('json2')}>
+                    <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
+                      <JsonTreeView
+                        jsonData={json2}
+                        viewerId="viewer2"
+                        jsonSide='right'
+                        idKeySetting={null}
+                        showDiffsOnly={showDiffsOnly}
                       />
                     </div>
-                  </SyncScroll>
-                </div>
+                  </FileDropZone>
+                </SyncScroll>
               </div>
-            </JsonViewerSyncProvider>
+            </div>
+
+            <ResizableDivider 
+              direction="horizontal" 
+              initialPosition={dividerPosition}
+              onPositionChange={(newPosition) => {
+                setDividerPosition(newPosition);
+              }}
+              minPosition={20}
+              maxPosition={80}
+            />
+
+            <div className="diff-list-section" style={{ 
+              flexBasis: `${100 - dividerPosition}%`, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              overflow: 'hidden',
+              minHeight: '100px'
+            }}>
+              <DiffList 
+                diffs={diffs} 
+                height="100%"
+              />
+            </div>
+          </>
+        ) : (
+          <div style={{textAlign: 'center', padding: '20px'}}>
+            {error ? 'Error loading data.' : 'Loading JSON data...'}
           </div>
         )}
-        
-        <ResizableDivider 
-          direction="horizontal" 
-          initialPosition={dividerPosition}
-          minPosition={30} // Minimum 30% for JSON viewers
-          maxPosition={85} // Maximum 85% for JSON viewers
-          onPositionChange={setDividerPosition}
-        />
-        
-        <div className="diff-list-section" style={{ height: `${100 - dividerPosition}%` }}>
-          <DiffList 
-            diffs={diffs} 
-            height={diffListHeight}
-          />
-        </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <JsonViewerSyncProvider
+      initialViewMode="tree"
+      initialShowDiffsOnly={false}
+      initialSyncEnabled={true} 
+      diffResults={diffs}
+    >
+      <div className="App">
+        <header className="app-header">
+          <h1 className="app-title">JSON Compare</h1>
+          <div className="app-controls">
+            <button 
+              onClick={toggleSyncScroll} 
+              className={`sync-toggle-button ${syncScroll ? 'toggled-on' : ''}`}>
+              {syncScroll ? '🔒 Sync' : '🔓 Sync Off'}
+            </button>
+            <ViewControls />
+          </div>
+        </header>
+        
+        {error && <div style={{color: 'red'}}>{error}</div>}
+        
+        <MainContent />
+      </div>
+    </JsonViewerSyncProvider>
   )
 }
 

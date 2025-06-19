@@ -10,7 +10,8 @@
 .json-viewer-column {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Critical - prevents content from breaking layout */
+  height: 100%; /* Ensure the column takes full height of its parent (the scroll container) */
+  /* overflow: hidden; Removed - Critical to allow child content to scroll */
   /* Removed width constraints - we'll handle this inline */
 }
 
@@ -27,8 +28,11 @@
 }
 
 /* Fix the height of the viewers and make them scrollable */
+/* .tree-view-container styling here is likely overridden or not directly applicable anymore, 
+   as FilteredJsonViewer.css now handles its own .tree-view-container. 
+   Keeping for now, but might be redundant if FilteredJsonViewer's internal structure is self-contained. */
 .tree-view-container {
-  overflow: hidden;
+  /* overflow: hidden; This was conflicting, scroll is on parent or specific child */
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -36,7 +40,7 @@
 }
 
 .json-tree-view {
-  overflow: auto;
+  /* overflow: auto; Scrolling is now handled by .tree-view-container in FilteredJsonViewer.css */
   flex: 1;
   border: 1px solid #ddd;
   border-radius: 4px;
