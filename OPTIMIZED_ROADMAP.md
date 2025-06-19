@@ -20,9 +20,9 @@
 - [ ] 📡 **Synchronized expand/collapse** - same nodes in both viewers
 - [ ] 📡 **Synchronized tree/text mode toggle** - both viewers switch together
 - [ ] 📡 **Synchronized scrolling** - default enabled with toggle
-- [ ] 📡 **Synchronized "show differences only"** - filter both sides
 - [ ] 🎯 **"Go To" diff navigation** - instant jump to specific differences
 - [ ] 🎯 **Visual highlighting on navigation** - flash animation for found items
+- [ ] 📋 **Comprehensive diff list** - replaces "show differences only" functionality
 
 ### **Default Settings & Behavior**
 - [ ] ⚙️ **Default tree fully collapsed** - better overview on load
@@ -77,30 +77,71 @@
 6. **Diff Visualization**
    - Color-coded highlighting (add/remove/change)
    - Non-intrusive diff markers
-   - Side-by-side comparison layout
+### **PHASE 1: Foundation & Core Alignment** 🏗️
+*Focus: Get synchronization and indentation perfect before building features*
 
-7. **JsonViewer Component**
-   - Dual-pane layout with resizable divider
-   - Synchronized state management
+1. **Project Setup & Base Architecture**
+   - Vite + React + TypeScript + Tailwind CSS
+   - Component structure and TypeScript types
+   - Testing framework (Vitest + Testing Library)
+   - **REGRESSION TEST**: Project builds without errors
+
+2. **🔗 Synchronization Engine** *(MOVED FROM PHASE 3)*
+   - Cross-viewer state coordination system
+   - Synchronized expand/collapse logic  
+   - Synchronized scrolling with proper offset calculation
+   - Mode synchronization (tree/text view)
+   - **REGRESSION TEST**: State sync across viewers
+
+3. **Perfect JSON Tree Foundation**
+   - JsonNode component with pixel-perfect indentation
+   - Expander positioning (absolute positioning at fixed coordinates)
+   - Type-based value rendering (string, number, boolean, null)
+   - **REGRESSION TEST**: Array/object node alignment consistency
+
+4. **Basic JSON Display & Validation**
+   - JsonTree container component
+   - JSON loading and error handling
+   - Expand/collapse functionality
+   - **REGRESSION TEST**: Deep nesting indentation alignment
+
+### **PHASE 2: Intelligent Comparison** 🧠  
+*Focus: Complex diff algorithms and smart array comparison*
+
+5. **Intelligent ID Key Discovery**
+   - Automatic ID key detection for arrays
+   - Heuristic-based selection (80% object threshold)
+   - User override capability for manual ID key specification
+   - **REGRESSION TEST**: ID key detection accuracy
+
+6. **Advanced Diff Engine**
+   - ID-based array comparison with element matching
+   - Deep object comparison for nested structures  
+   - Diff result generation and path management
+   - **REGRESSION TEST**: Complex array diff accuracy
+
+7. **Diff Visualization System**
+   - Color-coded highlighting (added/removed/changed)
+   - Non-intrusive diff markers
+   - Side-by-side comparison layout
    - **REGRESSION TEST**: Diff marker positioning
 
-### **PHASE 3: Navigation & Synchronization** 🔄
-*Focus: User interaction and sync features*
+### **PHASE 3: Navigation & User Experience** 🎯
+*Focus: Advanced navigation and interaction features*
 
-8. **Synchronization Engine**
-   - Expand/collapse sync
-   - Scroll synchronization
-   - Mode toggle sync (tree/text)
+8. **"Go To" Navigation System**
+   - Path resolution and numeric path conversion
+   - Auto-expansion logic for parent nodes
+   - Visual highlighting with flash animation  
+   - Scroll-to-view functionality
+   - **REGRESSION TEST**: Deep path navigation accuracy
 
-9. **Diff Navigation**
-   - "Go To" functionality
-   - Visual highlighting on navigation
-   - Smooth scrolling to target
-
-10. **Diff Management Panel**
-    - Interactive diff list
-    - Ignore/restore functionality
-    - Search and filter diffs
+9. **Interactive Diff Management**
+   - Comprehensive diff list (replaces "show differences only")
+   - Ignore/restore specific differences
+   - Search and filter within diffs
+   - Entry numbering for easy reference
+   - **REGRESSION TEST**: Diff list navigation integration
 
 ### **PHASE 4: Polish & Advanced Features** ✨
 *Focus: User experience and productivity*
