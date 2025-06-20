@@ -216,55 +216,80 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     }
   }, [isPendingScroll, isExpanded, hasChildren]);
   
-  const getNodeDiffStatus = (): string => {
-    if (!diffResultsData || diffResultsData.length === 0) return '';
+  const getNodeDiffStatus = (): string[] => {
+    if (!diffResultsData || diffResultsData.length === 0) return [];
 
     const relevantDiffs = diffResultsData.filter((diff: DiffResult) => 
-      diff.numericPath && !ignoredDiffs.has(diff.numericPath) // Changed .includes to .has
+      diff.numericPath && !ignoredDiffs.has(diff.numericPath)
     );
 
-    // Prioritize direct matches
+    const classes: string[] = [];
+
+    // Debug logging for specific paths
+    if (normalizedPathForDiff.includes('currentContributionOverride')) {
+      console.log(`[DEBUG] Node ${normalizedPathForDiff} (${jsonSide}):`, {
+        relevantDiffs: relevantDiffs.map(d => ({ path: d.numericPath, type: d.type })),
+        normalizedPath: normalizedPathForDiff
+      });
+    }
+
+    // Check for direct matches first
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
       if (normalizedPathForDiff === diff.numericPath) {
-        if (diff.type === 'added' && jsonSide === 'right') return 'json-added';
-        if (diff.type === 'removed' && jsonSide === 'left') return 'json-deleted';
-        if (diff.type === 'changed') return 'json-changed';
+        if (diff.type === 'added' && jsonSide === 'right') {
+          classes.push('json-added');
+          if (normalizedPathForDiff.includes('currentContributionOverride')) {
+            console.log(`[DEBUG] Adding json-added class to ${normalizedPathForDiff}`);
+          }
+        } else if (diff.type === 'removed' && jsonSide === 'left') {
+          classes.push('json-deleted');
+          if (normalizedPathForDiff.includes('currentContributionOverride')) {
+            console.log(`[DEBUG] Adding json-deleted class to ${normalizedPathForDiff}`);
+          }
+        } else if (diff.type === 'changed') {
+          classes.push('json-changed');
+          if (normalizedPathForDiff.includes('currentContributionOverride')) {
+            console.log(`[DEBUG] Adding json-changed class to ${normalizedPathForDiff}`);
+          }
+        }
       }
     }
 
     // If no direct match, check for parent-changed status
-    for (const diff of relevantDiffs) {
-      if (!diff.numericPath) continue;
+    if (classes.length === 0) {
+      for (const diff of relevantDiffs) {
+        if (!diff.numericPath) continue;
 
-      // Ensure normalizedPathForDiff is not empty or just "root" before creating pathToCheck/arrayPathToCheck
-      // to avoid overly broad matches like "root." matching everything.
-      if (normalizedPathForDiff && normalizedPathForDiff !== 'root') { 
-        const pathToCheck = normalizedPathForDiff + '.';
-        const arrayPathToCheck = normalizedPathForDiff + '[';
+        if (normalizedPathForDiff && normalizedPathForDiff !== 'root') { 
+          const pathToCheck = normalizedPathForDiff + '.';
+          const arrayPathToCheck = normalizedPathForDiff + '[';
 
-        if (diff.numericPath.startsWith(pathToCheck) || diff.numericPath.startsWith(arrayPathToCheck)) {
-          return 'json-parent-changed'; 
-        }
-      } else if (normalizedPathForDiff === '' || path === `root_${viewerId}_root` || normalizedPathForDiff === 'root') {
-        // If it's the root node, any child diff (that wasn't a direct hit on the root itself)
-        // makes it a parent-changed.
-        // We've already checked for direct root diffs above.
-        // This condition implies diff.numericPath is a child of the root.
-        if (diff.numericPath !== normalizedPathForDiff) { // Ensure it's a child diff
-             // Further check to ensure the diff is actually a child of the root
-             // e.g. root diff.numericPath = "foo.bar", not just "foo" if root is ""
-            if (diff.numericPath.includes('.') || diff.numericPath.includes('[')) {
-                 return 'json-parent-changed';
+          if (diff.numericPath.startsWith(pathToCheck) || diff.numericPath.startsWith(arrayPathToCheck)) {
+            classes.push('json-parent-changed');
+            if (normalizedPathForDiff.includes('household') || normalizedPathForDiff.includes('accounts')) {
+              console.log(`[DEBUG] Adding json-parent-changed class to ${normalizedPathForDiff} because of child diff: ${diff.numericPath}`);
             }
+            break; // Only need to add this once
+          }
+        } else if (normalizedPathForDiff === '' || path === `root_${viewerId}_root` || normalizedPathForDiff === 'root') {
+          if (diff.numericPath !== normalizedPathForDiff) {
+            if (diff.numericPath.includes('.') || diff.numericPath.includes('[')) {
+              classes.push('json-parent-changed');
+              console.log(`[DEBUG] Adding json-parent-changed class to root because of child diff: ${diff.numericPath}`);
+              break; // Only need to add this once
+            }
+          }
         }
       }
     }
-    return ''; // No diff status
+
+    return classes;
   };
   
-  const diffStatus = getNodeDiffStatus(); // This is the single diffStatus declaration
+  const diffStatusClasses = getNodeDiffStatus(); // This returns an array of classes
+  const diffStatus = diffStatusClasses.join(' '); // Join for compatibility with existing code
 
   const calculateIsVisibleInDiffsOnlyMode = (): boolean => {
     // Use showDiffsOnly from props if available, otherwise from context
@@ -354,7 +379,16 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     'json-node',
     isLastChild ? 'last-child' : '',
     isHighlighted ? 'highlighted-node' : '',
-    diffStatus,
+    ...diffStatusClasses, // Spread the array of diff classes
+  ].filter(Boolean).join(' ');
+
+  // Create content-specific classes for highlighting
+  const contentClasses = [
+    'json-node-content',
+    hasChildren ? 'clickable' : '',
+    diffStatusClasses.includes('json-parent-changed') ? 'json-parent-changed-highlight' : '',
+    diffStatusClasses.includes('json-added') ? 'json-added-highlight' : '',
+    diffStatusClasses.includes('json-deleted') ? 'json-deleted-highlight' : '',
   ].filter(Boolean).join(' ');
 
   const diffSymbol = (() => {
@@ -368,7 +402,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const arrData = data as JsonArray;
     return (
       <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
-        <div className={`json-node-content ${hasChildren ? 'clickable' : ''}`} onClick={hasChildren ? toggleExpansion : undefined}>
+        <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
             {hasChildren ? (isExpanded ? '▼' : '►') : ''}
@@ -416,7 +450,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const entries = Object.entries(objData);
     return (
       <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
-        <div className={`json-node-content ${hasChildren ? 'clickable' : ''}`} onClick={hasChildren ? toggleExpansion : undefined}>
+        <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
             {hasChildren ? (isExpanded ? '▼' : '►') : ''}
@@ -462,7 +496,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // For primitive values, render directly
     return (
       <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
-        <div className="json-node-content">
+        <div className={contentClasses}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className="expander no-children" />
           <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>

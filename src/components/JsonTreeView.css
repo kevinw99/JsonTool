@@ -85,30 +85,28 @@
 
 /* --- Diff Style Overhaul --- */
 
-/* Type B: Property Added/Deleted (highlights the entire row) */
-.json-node.json-added > .json-node-content {
-  background-color: #e6ffed; /* Light Green */
+/* Type A: Parent of a Diff (highlight text content only, not brackets) */
+.json-parent-changed-highlight .json-key,
+.json-parent-changed-highlight .json-value,
+.json-parent-changed-highlight .json-collapsed-hint {
+  background-color: #b3d9ff; /* Darker blue background for text only */
+  box-shadow: 0 0 0 4px white; /* White outline for separation */
 }
-.json-node.json-deleted > .json-node-content {
-  background-color: #ffeef0; /* Light Red */
+
+/* Type B: Property Added/Deleted (highlights the entire row) */
+.json-added-highlight {
+  background-color: #d4edda !important; /* Distinct green - full row */
+  box-shadow: 0 0 0 4px white; /* White outline for separation */
+}
+
+.json-deleted-highlight {
+  background-color: #f8d7da !important; /* Distinct red - full row */
+  box-shadow: 0 0 0 4px white; /* White outline for separation */
 }
 
 /* Type C: Value Changed (highlights only the key and value) */
 .json-node.json-changed > .json-node-content .json-key,
 .json-node.json-changed > .json-node-content .json-value {
-  background-color: #fff9e0; /* Light Yellow */
-  padding: 1px 3px;
-  border-radius: 3px;
-}
-
-/* Type A: Parent of a Diff (adds a vertical bar) */
-.json-node.json-parent-changed::before {
-  content: '';
-  position: absolute;
-  left: 6px; /* Position inside the indentation padding */
-  top: 2px;
-  bottom: 2px;
-  width: 3px;
-  background-color: #e9ecef; /* Subtle grey bar */
-  border-radius: 2px;
+  background-color: #fff3cd; /* Light Yellow */
+  box-shadow: 0 0 0 4px white; /* White outline for separation */
 }
