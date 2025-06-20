@@ -2,7 +2,7 @@
 
 :root {
   --indent-size: 20px;
-  --font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  --font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace;
   --font-size: 13px;
   --line-height: 1.4;
   --key-color: #881391;
@@ -90,23 +90,21 @@
 .json-parent-changed-highlight .json-value,
 .json-parent-changed-highlight .json-collapsed-hint {
   background-color: #b3d9ff; /* Darker blue background for text only */
-  box-shadow: 0 0 0 4px white; /* White outline for separation */
+  display: inline; /* Only highlight the actual text content */
 }
 
 /* Type B: Property Added/Deleted (highlights the entire row) */
 .json-added-highlight {
   background-color: #d4edda !important; /* Distinct green - full row */
-  box-shadow: 0 0 0 4px white; /* White outline for separation */
 }
 
 .json-deleted-highlight {
   background-color: #f8d7da !important; /* Distinct red - full row */
-  box-shadow: 0 0 0 4px white; /* White outline for separation */
 }
 
 /* Type C: Value Changed (highlights only the key and value) */
 .json-node.json-changed > .json-node-content .json-key,
 .json-node.json-changed > .json-node-content .json-value {
   background-color: #fff3cd; /* Light Yellow */
-  box-shadow: 0 0 0 4px white; /* White outline for separation */
+  display: inline; /* Only highlight the actual text content */
 }
