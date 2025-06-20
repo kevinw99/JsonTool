@@ -350,52 +350,30 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     return String(val);
   };
   
-  // const diffStatus = getNodeDiffStatus(); // Ensure diffStatus is calculated - REMOVED DUPLICATE
-
   const nodeClasses = [
     'json-node',
-    // `json-level-${level}` class is kept for potential specific level styling, but padding is handled by style prop
-    isLastChild ? 'last-child' : '', 
+    isLastChild ? 'last-child' : '',
     isHighlighted ? 'highlighted-node' : '',
     diffStatus,
   ].filter(Boolean).join(' ');
 
-  // Use robust pixel-based indentation with precise control
-  const INDENT_SIZE = 24; // Increased to 24px for better visual separation
-  const nodeStyle: React.CSSProperties = {
-    paddingLeft: `${level * INDENT_SIZE}px`,
-    boxSizing: 'border-box',
-    position: 'relative',
-    margin: 0,
-    display: 'block',
-    width: '100%',
-  };
-  
-  // For debugging indentation issues, uncomment the next lines:
-  // const debugStyle = {
-  //   borderLeft: `1px solid rgba(255, 0, 0, 0.1)`,
-  //   backgroundColor: `rgba(0, 0, 255, ${0.05 + (level * 0.02)})`,
-  // };
-  // const finalNodeStyle = { ...nodeStyle, ...debugStyle };
-
-  const finalNodeStyle = nodeStyle;
+  const diffSymbol = (() => {
+    if (diffStatus === 'json-added') return '+';
+    if (diffStatus === 'json-deleted') return '-';
+    if (diffStatus === 'json-changed') return ''; // No symbol for changed, just highlighting
+    return '';
+  })();
 
   if (isArray && data) {
     const arrData = data as JsonArray;
     return (
-      <div className={nodeClasses} ref={nodeRef} style={finalNodeStyle}>
-        <div 
-          className={`json-node-content ${hasChildren ? 'clickable' : ''}`} 
-          onClick={hasChildren ? toggleExpansion : undefined}
-        >
-          {hasChildren && (
-            <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'}`}>
-              {isExpanded ? '▼' : '►'}
-            </span>
-          )}
-          {nodeKey !== undefined && (
-            <span className={`json-key ${diffStatus}`}>{nodeKey}:</span>
-          )}
+      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
+        <div className={`json-node-content ${hasChildren ? 'clickable' : ''}`} onClick={hasChildren ? toggleExpansion : undefined}>
+          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
+          <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
+            {hasChildren ? (isExpanded ? '▼' : '►') : ''}
+          </span>
+          <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>
           <span className="json-bracket">[</span>
           {!isExpanded && hasChildren && (
             <>
@@ -421,12 +399,12 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   jsonSide={jsonSide}
                   idKeySetting={idKeySetting}
                   actualNumericIndex={index}
-                  showDiffsOnly={showDiffsOnly} // Pass down
-                  onNodeToggle={onNodeToggle} // Pass down
+                  showDiffsOnly={showDiffsOnly}
+                  onNodeToggle={onNodeToggle}
                 />
               );
             })}
-            <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * INDENT_SIZE}px`, boxSizing: 'border-box', margin: 0, display: 'block'}}>
+            <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-bracket json-closing-bracket">]</span>
             </div>
           </div>
@@ -437,19 +415,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const objData = data as JsonObject;
     const entries = Object.entries(objData);
     return (
-      <div className={nodeClasses} ref={nodeRef} style={finalNodeStyle}>
-        <div 
-          className={`json-node-content ${hasChildren ? 'clickable' : ''}`} 
-          onClick={hasChildren ? toggleExpansion : undefined}
-        >
-          {hasChildren && (
-            <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'}`}>
-              {isExpanded ? '▼' : '►'}
-            </span>
-          )}
-          {nodeKey !== undefined && (
-            <span className={`json-key ${diffStatus}`}>{nodeKey}:</span>
-          )}
+      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
+        <div className={`json-node-content ${hasChildren ? 'clickable' : ''}`} onClick={hasChildren ? toggleExpansion : undefined}>
+          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
+          <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
+            {hasChildren ? (isExpanded ? '▼' : '►') : ''}
+          </span>
+          <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>
           <span className="json-brace">{'{'}</span>
           {!isExpanded && hasChildren && (
             <>
@@ -474,13 +446,12 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   isLastChild={index === entries.length - 1}
                   jsonSide={jsonSide}
                   idKeySetting={idKeySetting}
-                  // actualNumericIndex is not applicable for object properties
-                  showDiffsOnly={showDiffsOnly} // Pass down
-                  onNodeToggle={onNodeToggle} // Pass down
+                  showDiffsOnly={showDiffsOnly}
+                  onNodeToggle={onNodeToggle}
                 />
               );
             })}
-            <div className="json-node json-closing-brace-node" style={{paddingLeft: `${level * INDENT_SIZE}px`, boxSizing: 'border-box', margin: 0, display: 'block'}}>
+            <div className="json-node json-closing-brace-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-brace json-closing-brace">{'}'}</span>
             </div>
           </div>
@@ -488,53 +459,39 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       </div>
     );
   } else {
-    // Primitive value
+    // For primitive values, render directly
     return (
-      <div className={nodeClasses} ref={nodeRef} style={finalNodeStyle}>
+      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
         <div className="json-node-content">
-          {nodeKey !== undefined && (
-            <span className={`json-key ${diffStatus}`}>{nodeKey}:</span>
-          )}
-          <span className={`json-value json-${typeof data} ${diffStatus}`}>
-            {formatValue(data)}
-          </span>
+          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
+          <span className="expander no-children" />
+          <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>
+          <span className="json-value">{formatValue(data)}</span>
         </div>
       </div>
     );
   }
 };
 
-// Root component for the JSON Tree View
 interface JsonTreeViewProps {
-  jsonData: JsonValue;
+  data: JsonValue;
   viewerId: string;
+  jsonSide: 'left' | 'right';
   idKeySetting: string | null;
-  showDiffsOnly: boolean;
-  onNodeToggle?: (path: string) => void;
-  jsonSide: 'left' | 'right'; // Added jsonSide prop
+  showDiffsOnly?: boolean;
 }
 
-export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ 
-  jsonData, 
-  viewerId, 
-  idKeySetting, 
-  showDiffsOnly, 
-  onNodeToggle, 
-  jsonSide // Destructure jsonSide
-}) => {
-  const rootPath = `root_${viewerId}_root`;
-
+export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, showDiffsOnly }) => {
   return (
     <div className="json-tree-view">
       <JsonNode
-        data={jsonData}
-        path={rootPath}
+        data={data}
+        path={`root_${viewerId}_root`}
         level={0}
         viewerId={viewerId}
+        jsonSide={jsonSide}
         idKeySetting={idKeySetting}
-        jsonSide={jsonSide} // Pass down jsonSide
         showDiffsOnly={showDiffsOnly}
-        onNodeToggle={onNodeToggle}
       />
     </div>
   );

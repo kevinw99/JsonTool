@@ -27,8 +27,8 @@ function App() {
     async function loadSamples() {
       try {
         const [j1, j2] = await Promise.all([
-          fetch('src/sample1.json').then(r => r.json()),
-          fetch('src/sample2.json').then(r => r.json())
+          fetch('/sample1.json').then(r => r.json()),
+          fetch('/sample2.json').then(r => r.json())
         ])
         const comparisonResult: JsonCompareResult = jsonCompare(j1, j2);
         setJson1(comparisonResult.processedJson1);
@@ -106,7 +106,7 @@ function App() {
                   <FileDropZone onFileDrop={handleFileDrop('json1')}>
                     <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
                       <JsonTreeView
-                        jsonData={json1}
+                        data={json1}
                         viewerId="viewer1"
                         jsonSide='left'
                         idKeySetting={null}
@@ -125,7 +125,7 @@ function App() {
                   <FileDropZone onFileDrop={handleFileDrop('json2')}>
                     <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
                       <JsonTreeView
-                        jsonData={json2}
+                        data={json2}
                         viewerId="viewer2"
                         jsonSide='right'
                         idKeySetting={null}
