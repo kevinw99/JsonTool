@@ -168,9 +168,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
   if (!idKeysUsed || idKeysUsed.length === 0) {
     return (
       <div className="id-keys-panel">
-        <div className="id-keys-header">
-          <h3>Array ID Keys</h3>
-        </div>
         <div className="id-keys-content">
           <div className="id-keys-empty">
             No arrays with ID keys found
@@ -182,12 +179,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
 
   return (
     <div className="id-keys-panel">
-      <div className="id-keys-header">
-        <h3>Array ID Keys</h3>
-        <span className="id-keys-count">
-          ({consolidatedIdKeys.length} unique, {idKeysUsed.length} total)
-        </span>
-      </div>
       <div className="id-keys-content">
         {consolidatedIdKeys.map((consolidatedIdKey, index) => (
           <div key={index} className="id-key-item">

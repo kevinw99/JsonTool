@@ -177,31 +177,14 @@
 
 .diff-item.added {
   border-left: 3px solid #52c41a;
-  background-color: #f6ffed; /* Light green background for added items */
 }
 
 .diff-item.removed {
   border-left: 3px solid #f5222d;
-  background-color: #fff2f0; /* Light red background for removed items */
 }
 
 .diff-item.changed {
   border-left: 3px solid #faad14;
-  background-color: #fffbe6; /* Light yellow background for changed items */
-}
-
-.diff-item.highlighted {
-  background-color: #e6f7ff;
-  animation: highlight-flash 2s ease-in-out;
-}
-
-@keyframes highlight-flash {
-  0%, 100% {
-    background-color: #e6f7ff;
-  }
-  50% {
-    background-color: #bae7ff;
-  }
 }
 
 .no-diffs {
@@ -214,7 +197,6 @@
 /* Styles for ignored diffs */
 .diff-item.ignored {
   opacity: 0.6;
-  background-color: #f9f9f9;
   border-left-color: #c0c0c0;
 }
 
