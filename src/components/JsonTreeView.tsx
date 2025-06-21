@@ -225,12 +225,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     const classes: string[] = [];
 
-    // Debug logging for specific paths
-    if (normalizedPathForDiff.includes('currentContributionOverride')) {
-        relevantDiffs: relevantDiffs.map(d => ({ path: d.numericPath, type: d.type })),
-        normalizedPath: normalizedPathForDiff
-      });
-    }
+    // Check for specific paths if needed (removed debug logging)
 
     // Check for direct matches first
     for (const diff of relevantDiffs) {

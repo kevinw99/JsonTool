@@ -7,13 +7,26 @@ export interface DiffResult {
   idKeyUsed?: string | null;
 }
 
+export interface IdKeyInfo {
+  arrayPath: string;
+  idKey: string;
+  isComposite: boolean;
+  arraySize1: number;
+  arraySize2: number;
+}
+
 export interface JsonCompareResult {
   diffs: DiffResult[];
   processedJson1: any;
   processedJson2: any;
+  idKeysUsed: IdKeyInfo[];
 }
 
 function findIdKey(arr1: any[], arr2: any[]): string | null {
+  // Skip idKey detection for arrays with 0 or 1 length since there's no meaningful comparison
+  if (arr1.length <= 1 && arr2.length <= 1) return null;
+  
+  // Also skip if either array is empty (original check)
   if (!arr1.length && !arr2.length) return null;
 
   const getObjectItems = (arr: any[]) =>
@@ -22,7 +35,6 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
   const objArr2 = getObjectItems(arr2);
 
   // Heuristic: Only consider idKey if arrays predominantly consist of objects.
-  // This threshold can be adjusted.
   const minObjectProportion = 0.8;
   if (
     (arr1.length > 0 && objArr1.length / arr1.length < minObjectProportion) ||
@@ -40,6 +52,7 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
   if (!sampleObj) return null;
 
   let candidateKeys = Object.keys(sampleObj);
+
   const preferredKeyNames = ["id", "key", "uuid", "name", "_id"];
   candidateKeys.sort((a, b) => {
     const aLower = a.toLowerCase();
@@ -53,279 +66,293 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
     return a.localeCompare(b);
   });
 
-  for (const key of candidateKeys) {
-    let keyIsValid = true;
+  // Helper function to test if a key (single or composite) is valid
+  const testKey = (keyOrKeys: string | string[]): boolean => {
+    const isComposite = Array.isArray(keyOrKeys);
 
+    // Test if all items have the required key(s) and they are string/number
     for (const arr of [objArr1, objArr2]) {
-      if (
-        arr.length > 0 &&
-        !arr.every(
-          (item) =>
-            key in item &&
-            (typeof item[key] === "string" || typeof item[key] === "number")
-        )
-      ) {
-        keyIsValid = false;
-        break;
-      }
-    }
-    if (!keyIsValid) continue;
-
-    const valuesSet: Set<any>[] = [new Set(), new Set()];
-    const sourceArrays = [objArr1, objArr2];
-    for (let i = 0; i < 2; i++) {
-      const arr = sourceArrays[i];
       if (arr.length > 0) {
-        for (const item of arr) valuesSet[i].add(item[key]);
-        if (valuesSet[i].size !== arr.length) {
-          keyIsValid = false;
-          break;
+        const hasValidKeys = arr.every(item => {
+          if (isComposite) {
+            return (keyOrKeys as string[]).every(k => 
+              k in item && (typeof item[k] === "string" || typeof item[k] === "number")
+            );
+          } else {
+            return keyOrKeys in item && (typeof item[keyOrKeys] === "string" || typeof item[keyOrKeys] === "number");
+          }
+        });
+        
+        if (!hasValidKeys) {
+          return false;
         }
       }
     }
-    if (!keyIsValid) continue;
 
-    if (objArr1.length > 0 && objArr2.length > 0) {
-      const commonValues = new Set(
-        [...valuesSet[0]].filter((v) => valuesSet[1].has(v))
-      );
-      const minUniqueValues = Math.min(valuesSet[0].size, valuesSet[1].size);
+    // Test uniqueness
+    for (let arrayIndex = 0; arrayIndex < 2; arrayIndex++) {
+      const arr = arrayIndex === 0 ? objArr1 : objArr2;
+      if (arr.length <= 1) continue; // Skip uniqueness check for arrays with 0 or 1 items
 
-      if (minUniqueValues === 0 && (valuesSet[0].size > 0 || valuesSet[1].size > 0)) {
-        keyIsValid = false; 
-      } else if (minUniqueValues > 0 && (commonValues.size / minUniqueValues) < 0.5) { // 50% overlap threshold
-        keyIsValid = false;
+      const values = arr.map(item => {
+        if (isComposite) {
+          return (keyOrKeys as string[]).map(k => item[k]).join('|');
+        } else {
+          return item[keyOrKeys];
+        }
+      });
+
+      const uniqueValues = new Set(values);
+      if (uniqueValues.size !== values.length) {
+        return false;
       }
-    } else if (objArr1.length === 0 && objArr2.length === 0) {
-      keyIsValid = false; 
     }
-    // If one array is empty of objects, key remains valid if it passed checks for the non-empty one.
 
-    if (keyIsValid) {
+    // Test overlap between the two arrays
+    if (objArr1.length > 0 && objArr2.length > 0) {
+      const getValueSet = (arr: any[]) => {
+        return new Set(arr.map(item => {
+          if (isComposite) {
+            return (keyOrKeys as string[]).map(k => item[k]).join('|');
+          } else {
+            return item[keyOrKeys];
+          }
+        }));
+      };
+
+      const set1 = getValueSet(objArr1);
+      const set2 = getValueSet(objArr2);
+      
+      // Check if arrays have overlapping values
+      const intersection = new Set([...set1].filter(x => set2.has(x)));
+      if (intersection.size === 0) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // First, try single keys
+  for (const key of candidateKeys) {
+    if (testKey(key)) {
       return key;
     }
   }
+
+  // If no single key works, try composite keys (pairs)
+  for (let i = 0; i < candidateKeys.length; i++) {
+    for (let j = i + 1; j < candidateKeys.length; j++) {
+      const compositeKey = [candidateKeys[i], candidateKeys[j]];
+      if (testKey(compositeKey)) {
+        return compositeKey.join('+');
+      }
+    }
+  }
+
   return null;
 }
 
-export function jsonCompare(
-  originalObj1: any,
-  originalObj2: any,
-  initialDisplayPath: string = "root",
-  initialNumericPath: string = "root"
-): JsonCompareResult {
-  const diffs: DiffResult[] = [];
+function compareRecursively(
+  obj1: any,
+  obj2: any,
+  path: string,
+  numericPath: string,
+  result: DiffResult[],
+  idKeysUsed: IdKeyInfo[]
+): void {
+  if (obj1 === obj2) return;
 
-  // Deep clone inputs to ensure original objects are not mutated by sorting,
-  // and to return the versions of JSON that were actually compared.
-  let processedJson1 = JSON.parse(JSON.stringify(originalObj1));
-  let processedJson2 = JSON.parse(JSON.stringify(originalObj2));
+  const type1 = getType(obj1);
+  const type2 = getType(obj2);
 
-  // Initial sort for root-level arrays if applicable
-  if (Array.isArray(processedJson1) && Array.isArray(processedJson2)) {
-    const idKey = findIdKey(processedJson1, processedJson2);
-    if (idKey) {
-      processedJson1.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
-      processedJson2.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
-    } else if (
-      processedJson1.length > 0 || // Allow sorting even if one is empty after clone
-      processedJson2.length > 0 
-    ) {
-        // Check if both (if non-empty) are arrays of primitives
-        const isP1PrimitiveArray = processedJson1.length === 0 || processedJson1.every((val: any) => typeof val !== "object" || val === null);
-        const isP2PrimitiveArray = processedJson2.length === 0 || processedJson2.every((val: any) => typeof val !== "object" || val === null);
-
-        if (isP1PrimitiveArray && isP2PrimitiveArray) {
-            if (processedJson1.length > 0) processedJson1.sort((a: any, b: any) => String(a).localeCompare(String(b)));
-            if (processedJson2.length > 0) processedJson2.sort((a: any, b: any) => String(a).localeCompare(String(b)));
-        }
-    }
+  if (type1 !== type2) {
+    result.push({
+      displayPath: path,
+      numericPath: numericPath,
+      type: "changed",
+      value1: obj1,
+      value2: obj2,
+    });
+    return;
   }
 
-  function compareRecursively(
-    item1: any,
-    item2: any,
-    currentDisplayPath: string,
-    currentNumericPath: string
-  ) {
-    const type1 = typeof item1;
-    const type2 = typeof item2;
+  if (type1 === "array") {
+    const arr1 = obj1 as any[];
+    const arr2 = obj2 as any[];
 
-    if (
-      type1 !== type2 ||
-      (item1 === null && item2 !== null) || (item1 !== null && item2 === null) ||
-      (type1 === "undefined" && type2 !== "undefined") || (type1 !== "undefined" && type2 === "undefined")
-    ) {
-      const diffType =
-            item1 === undefined && item2 !== undefined ? "added" :
-            item1 !== undefined && item2 === undefined ? "removed" :
-            "changed";
-      diffs.push({
-        displayPath: currentDisplayPath,
-        numericPath: currentNumericPath,
-        type: diffType,
-        value1: item1,
-        value2: item2,
+    const idKey = findIdKey(arr1, arr2);
+    if (idKey) {
+      // Store the idKey info
+      idKeysUsed.push({
+        arrayPath: path,
+        idKey: idKey,
+        isComposite: idKey.includes('+'),
+        arraySize1: arr1.length,
+        arraySize2: arr2.length
       });
-      return;
+
+      compareArraysWithIdKey(arr1, arr2, idKey, path, numericPath, result, idKeysUsed);
+    } else {
+      compareArraysByIndex(arr1, arr2, path, numericPath, result, idKeysUsed);
     }
+  } else if (type1 === "object") {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    const allKeys = new Set([...keys1, ...keys2]);
 
-    if (item1 === item2) { // Handles identical primitives, nulls, and same object/array references
-      return;
-    }
+    for (const key of allKeys) {
+      const newPath = path === "root" ? key : `${path}.${key}`;
+      const newNumericPath = numericPath === "root" ? key : `${numericPath}.${key}`;
 
-    // At this point, item1 !== item2. Types are the same. Neither is undefined if the other isn't.
-    // Both are non-null or both are defined objects/arrays/primitives.
-
-    if (Array.isArray(item1)) { // item2 is also an array
-      const arr1 = item1 as any[]; // item1 and item2 are references from processedJson1/2
-      const arr2 = item2 as any[];
-
-      const idKey = findIdKey(arr1, arr2);
-
-      if (idKey) {
-        // Arrays should already be sorted if they are the root, or sorted here if nested.
-        // Ensure nested arrays are sorted if an idKey is found for them.
-        // This modifies parts of processedJson1/processedJson2 directly.
-        arr1.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
-        arr2.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
-        
-        const map2 = new Map(
-          arr2.map((val: any) => [val[idKey], val])
-        );
-        const consumedFromMap2 = new Set<any>();
-
-        arr1.forEach((val1: any, index1: number) => {
-          const idVal1 = val1[idKey];
-          // Correctly use the detected idKey in displayPath
-          const childDisplayPath = `${currentDisplayPath}[${idKey}=${idVal1}]`;
-          const childNumericPath = `${currentNumericPath}[${index1}]`;
-
-          if (map2.has(idVal1)) {
-            const val2FromMap = map2.get(idVal1)!;
-            consumedFromMap2.add(idVal1);
-            compareRecursively(
-              val1,
-              val2FromMap,
-              childDisplayPath,
-              childNumericPath
-            );
-          } else {
-            diffs.push({
-              displayPath: childDisplayPath,
-              numericPath: childNumericPath,
-              type: "removed",
-              value1: val1,
-              idKeyUsed: idKey,
-            });
-          }
+      if (!(key in obj1)) {
+        result.push({
+          displayPath: newPath,
+          numericPath: newNumericPath,
+          type: "added",
+          value2: obj2[key],
         });
-
-        arr2.forEach((val2: any, index2: number) => {
-          const idVal2 = val2[idKey];
-          if (!consumedFromMap2.has(idVal2)) {
-            // Correctly use the detected idKey in displayPath
-            const childDisplayPath = `${currentDisplayPath}[${idKey}=${idVal2}]`;
-            const childNumericPath = `${currentNumericPath}[${index2}]`;
-            diffs.push({
-              displayPath: childDisplayPath,
-              numericPath: childNumericPath,
-              type: "added",
-              value2: val2,
-              idKeyUsed: idKey,
-            });
-          }
+      } else if (!(key in obj2)) {
+        result.push({
+          displayPath: newPath,
+          numericPath: newNumericPath,
+          type: "removed",
+          value1: obj1[key],
         });
-      } else { // No idKey, numeric comparison for arrays
-        // Sort primitive arrays if not already sorted by root-level sort
-        const isP1PrimitiveArray = arr1.length === 0 || arr1.every((val: any) => typeof val !== "object" || val === null);
-        const isP2PrimitiveArray = arr2.length === 0 || arr2.every((val: any) => typeof val !== "object" || val === null);
-
-        if (isP1PrimitiveArray && isP2PrimitiveArray) {
-            if (arr1.length > 0) arr1.sort((a: any, b: any) => String(a).localeCompare(String(b)));
-            if (arr2.length > 0) arr2.sort((a: any, b: any) => String(a).localeCompare(String(b)));
-        }
-
-        const maxLength = Math.max(arr1.length, arr2.length);
-        for (let i = 0; i < maxLength; i++) {
-          const v1 = arr1[i];
-          const v2 = arr2[i];
-          // Ensure displayPath and numericPath are derived from their respective current paths
-          const childDisplayPath = `${currentDisplayPath}[${i}]`; 
-          const childNumericPath = `${currentNumericPath}[${i}]`;
-
-          if (i < arr1.length && i < arr2.length) {
-            compareRecursively(v1, v2, childDisplayPath, childNumericPath);
-          } else if (i < arr1.length) {
-            diffs.push({
-              displayPath: childDisplayPath,
-              numericPath: childNumericPath,
-              type: "removed",
-              value1: v1,
-            });
-          } else { // i < arr2.length
-            diffs.push({
-              displayPath: childDisplayPath,
-              numericPath: childNumericPath,
-              type: "added",
-              value2: v2,
-            });
-          }
-        }
+      } else {
+        compareRecursively(obj1[key], obj2[key], newPath, newNumericPath, result, idKeysUsed);
       }
-      return;
     }
-
-    if (type1 === "object") { // item2 is also an object
-      const obj1 = item1 as Record<string, any>;
-      const obj2 = item2 as Record<string, any>;
-      const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
-
-      allKeys.forEach(key => {
-        const v1 = obj1[key];
-        const v2 = obj2[key];
-        const childDisplayPath = `${currentDisplayPath}.${key}`;
-        const childNumericPath = `${currentNumericPath}.${key}`;
-
-        const keyInObj1 = Object.prototype.hasOwnProperty.call(obj1, key);
-        const keyInObj2 = Object.prototype.hasOwnProperty.call(obj2, key);
-
-        if (keyInObj1 && keyInObj2) {
-          compareRecursively(v1, v2, childDisplayPath, childNumericPath);
-        } else if (keyInObj1) {
-          diffs.push({
-            displayPath: childDisplayPath,
-            numericPath: childNumericPath,
-            type: "removed",
-            value1: v1,
-          });
-        } else { // keyInObj2
-          diffs.push({
-            displayPath: childDisplayPath,
-            numericPath: childNumericPath,
-            type: "added",
-            value2: v2,
-          });
-        }
-      });
-      return;
-    }
-
-    // Primitives of the same type but different values
-    diffs.push({
-      displayPath: currentDisplayPath,
-      numericPath: currentNumericPath,
+  } else {
+    result.push({
+      displayPath: path,
+      numericPath: numericPath,
       type: "changed",
-      value1: item1,
-      value2: item2,
+      value1: obj1,
+      value2: obj2,
     });
   }
+}
 
-  compareRecursively(processedJson1, processedJson2, initialDisplayPath, initialNumericPath);
+function compareArraysWithIdKey(
+  arr1: any[],
+  arr2: any[],
+  idKey: string,
+  path: string,
+  numericPath: string,
+  result: DiffResult[],
+  idKeysUsed: IdKeyInfo[]
+): void {
+  const isComposite = idKey.includes('+');
+  const keyParts = isComposite ? idKey.split('+') : [idKey];
 
+  const getIdValue = (item: any) => {
+    if (isComposite) {
+      return keyParts.map(k => item[k]).join('|');
+    } else {
+      return item[idKey];
+    }
+  };
+
+  const map1 = new Map();
+  const map2 = new Map();
+
+  arr1.forEach((item, index) => {
+    if (typeof item === "object" && item !== null) {
+      const id = getIdValue(item);
+      map1.set(id, { item, index });
+    }
+  });
+
+  arr2.forEach((item, index) => {
+    if (typeof item === "object" && item !== null) {
+      const id = getIdValue(item);
+      map2.set(id, { item, index });
+    }
+  });
+
+  const allIds = new Set([...map1.keys(), ...map2.keys()]);
+
+  for (const id of allIds) {
+    const entry1 = map1.get(id);
+    const entry2 = map2.get(id);
+
+    if (!entry1) {
+      const newPath = path === "root" ? `[${entry2.index}]` : `${path}[${entry2.index}]`;
+      const newNumericPath = numericPath === "root" ? `[${entry2.index}]` : `${numericPath}[${entry2.index}]`;
+      result.push({
+        displayPath: newPath,
+        numericPath: newNumericPath,
+        type: "added",
+        value2: entry2.item,
+        idKeyUsed: idKey,
+      });
+    } else if (!entry2) {
+      const newPath = path === "root" ? `[${entry1.index}]` : `${path}[${entry1.index}]`;
+      const newNumericPath = numericPath === "root" ? `[${entry1.index}]` : `${numericPath}[${entry1.index}]`;
+      result.push({
+        displayPath: newPath,
+        numericPath: newNumericPath,
+        type: "removed",
+        value1: entry1.item,
+        idKeyUsed: idKey,
+      });
+    } else {
+      const newPath = path === "root" ? `[${entry1.index}]` : `${path}[${entry1.index}]`;
+      const newNumericPath = numericPath === "root" ? `[${entry1.index}]` : `${numericPath}[${entry1.index}]`;
+      compareRecursively(entry1.item, entry2.item, newPath, newNumericPath, result, idKeysUsed);
+    }
+  }
+}
+
+function compareArraysByIndex(
+  arr1: any[],
+  arr2: any[],
+  path: string,
+  numericPath: string,
+  result: DiffResult[],
+  idKeysUsed: IdKeyInfo[]
+): void {
+  const maxLength = Math.max(arr1.length, arr2.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const newPath = path === "root" ? `[${i}]` : `${path}[${i}]`;
+    const newNumericPath = numericPath === "root" ? `[${i}]` : `${numericPath}[${i}]`;
+
+    if (i >= arr1.length) {
+      result.push({
+        displayPath: newPath,
+        numericPath: newNumericPath,
+        type: "added",
+        value2: arr2[i],
+      });
+    } else if (i >= arr2.length) {
+      result.push({
+        displayPath: newPath,
+        numericPath: newNumericPath,
+        type: "removed",
+        value1: arr1[i],
+      });
+    } else {
+      compareRecursively(arr1[i], arr2[i], newPath, newNumericPath, result, idKeysUsed);
+    }
+  }
+}
+
+function getType(value: any): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  return typeof value;
+}
+
+export function jsonCompare(json1: any, json2: any): JsonCompareResult {
+  const result: DiffResult[] = [];
+  const idKeysUsed: IdKeyInfo[] = [];
+  compareRecursively(json1, json2, "root", "root", result, idKeysUsed);
   return {
-    diffs,
-    processedJson1,
-    processedJson2,
+    diffs: result,
+    processedJson1: json1,
+    processedJson2: json2,
+    idKeysUsed,
   };
 }

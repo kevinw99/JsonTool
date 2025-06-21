@@ -5,8 +5,8 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import './TabbedBottomPanel.css';
 
 interface TabbedBottomPanelProps {
-  diffs: DiffResult[];
-  idKeysUsed: IdKeyInfo[];
+  diffs?: DiffResult[];
+  idKeysUsed?: IdKeyInfo[];
   height: string;
   activeTab: 'differences' | 'idkeys';
   onTabChange: (tab: 'differences' | 'idkeys') => void;
@@ -28,20 +28,20 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
           className={`tab-button ${activeTab === 'differences' ? 'active' : ''}`}
           onClick={() => onTabChange('differences')}
         >
-          Differences ({diffs.length})
+          Differences ({diffs?.length || 0})
         </button>
         <button
           className={`tab-button ${activeTab === 'idkeys' ? 'active' : ''}`}
           onClick={() => onTabChange('idkeys')}
         >
-          ID Keys ({idKeysUsed.length})
+          ID Keys ({idKeysUsed?.length || 0})
         </button>
       </div>
       <div className="tab-content">
         {activeTab === 'differences' ? (
-          <DiffList diffs={diffs} height="100%" />
+          <DiffList diffs={diffs || []} height="100%" />
         ) : (
-          <IdKeysPanel idKeysUsed={idKeysUsed} jsonData={jsonData} />
+          <IdKeysPanel idKeysUsed={idKeysUsed || []} jsonData={jsonData} />
         )}
       </div>
     </div>
