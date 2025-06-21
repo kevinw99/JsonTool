@@ -144,7 +144,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, []);
 
     const goToDiff = useCallback((numericPathToExpand: string) => {
-      // console.log(`[JsonViewerSyncContext goToDiff] CALLED with NUMERIC path: \"${numericPathToExpand}\"`);
+      console.log(`[JsonViewerSyncContext goToDiff] 🎯 CALLED with NUMERIC path: "${numericPathToExpand}"`);
       
       // Reset highlight to re-trigger the effect in JsonNode, even for the same path.
       setHighlightPathState(null);
@@ -152,6 +152,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       // Use a timeout to allow the null state to propagate before setting the new path.
       // This ensures the `isHighlighted && !prevIsHighlighted` condition in JsonNode's useEffect fires correctly.
       setTimeout(() => {
+        console.log(`[JsonViewerSyncContext goToDiff] 🔆 Setting highlight path: "${numericPathToExpand}"`);
         setHighlightPathState(numericPathToExpand); // highlightPath is generic numeric
 
         setExpandedPathsState(currentExpandedPaths => {
@@ -181,6 +182,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               }
           }
 
+          console.log(`[JsonViewerSyncContext goToDiff] 🧩 Parsed segments from "${numericPathToExpand}":`, segments);
+
           const ancestorGenericPaths: string[] = [];
           let currentAncestorPath = '';
           // Iterate up to segments.length - 1 to get only strict ancestors for expansion.
@@ -197,19 +200,66 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               }
             }
             ancestorGenericPaths.push(currentAncestorPath);
+            console.log(`[JsonViewerSyncContext goToDiff] 📂 Ancestor path ${i + 1}: "${currentAncestorPath}"`);
           }
           
-          // console.log(`[JsonViewerSyncContext goToDiff] GENERIC ancestor paths to expand (derived from \"${numericPathToExpand}\"):`, ancestorGenericPaths);
+          console.log(`[JsonViewerSyncContext goToDiff] 📂 GENERIC ancestor paths to expand (derived from "${numericPathToExpand}"):`, ancestorGenericPaths);
 
           ancestorGenericPaths.forEach(genericAncestor => {
             if (genericAncestor) { 
               newExpandedPaths.add(genericAncestor);
+              console.log(`[JsonViewerSyncContext goToDiff] ➕ Added to expanded paths: "${genericAncestor}"`);
             }
           });
           
-          // console.log(`[JsonViewerSyncContext goToDiff] Setting expandedPaths to:`, Array.from(newExpandedPaths));
+          console.log(`[JsonViewerSyncContext goToDiff] 📂 Setting expandedPaths to:`, Array.from(newExpandedPaths));
           return newExpandedPaths;
         });
+
+        // Add additional scrolling logic after a delay to ensure DOM is updated
+        setTimeout(() => {
+          console.log(`[JsonViewerSyncContext goToDiff] 📜 Attempting to scroll to target: "${numericPathToExpand}"`);
+          
+          // Try multiple selectors to find the target element
+          const selectors = [
+            `[data-path="${numericPathToExpand}"]`,
+            `[data-numeric-path="${numericPathToExpand}"]`,
+            `[data-generic-path="${numericPathToExpand}"]`,
+            `.json-node[data-path="${numericPathToExpand}"]`,
+            // Try without the array index as fallback
+            `[data-path="${numericPathToExpand.replace(/\[0\]$/, '')}"]`
+          ];
+          
+          let targetElement = null;
+          for (const selector of selectors) {
+            targetElement = document.querySelector(selector);
+            if (targetElement) {
+              console.log(`[JsonViewerSyncContext goToDiff] ✅ Found target element with selector: "${selector}"`);
+              break;
+            }
+          }
+          
+          if (targetElement) {
+            console.log(`[JsonViewerSyncContext goToDiff] 📜 Scrolling to target element`);
+            targetElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            });
+            
+            // Flash the element after scrolling
+            setTimeout(() => {
+              console.log(`[JsonViewerSyncContext goToDiff] ✨ Flashing target element`);
+              targetElement.classList.add('json-flash');
+              setTimeout(() => {
+                targetElement.classList.remove('json-flash');
+              }, 1000);
+            }, 200);
+          } else {
+            console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found for path: "${numericPathToExpand}"`);
+            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Tried selectors:`, selectors);
+          }
+        }, 500); // Increased delay to ensure DOM updates and expansions complete
       }, 50); // A small delay to ensure re-triggering.
 
     }, [setHighlightPathState]); // Dependencies simplified

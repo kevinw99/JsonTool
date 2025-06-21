@@ -108,3 +108,51 @@
   background-color: #fff3cd; /* Light Yellow */
   display: inline; /* Only highlight the actual text content */
 }
+
+/* Flash animation for highlighting target elements */
+.json-flash {
+  animation: flashHighlight 1s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes flashHighlight {
+  0% {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+    transform: scale(1);
+  }
+  25% {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+    transform: scale(1.02);
+  }
+  50% {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+    transform: scale(1.02);
+  }
+  75% {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+    transform: scale(1.01);
+  }
+  100% {
+    background-color: transparent;
+    border-color: initial;
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+/* Ensure flash works on different element types */
+.json-node.json-flash,
+.json-key.json-flash,
+.json-value.json-flash,
+[data-path].json-flash {
+  position: relative;
+  z-index: 10;
+}

@@ -390,7 +390,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   if (isArray && data) {
     const arrData = data as JsonArray;
     return (
-      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
+      <div 
+        className={nodeClasses} 
+        ref={nodeRef} 
+        style={{ '--level': level } as React.CSSProperties}
+        data-path={genericNumericPathForNode}
+        data-original-path={path}
+      >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
@@ -438,7 +444,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const objData = data as JsonObject;
     const entries = Object.entries(objData);
     return (
-      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
+      <div 
+        className={nodeClasses} 
+        ref={nodeRef} 
+        style={{ '--level': level } as React.CSSProperties}
+        data-path={genericNumericPathForNode}
+        data-original-path={path}
+      >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
@@ -484,7 +496,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   } else {
     // For primitive values, render directly
     return (
-      <div className={nodeClasses} ref={nodeRef} style={{ '--level': level } as React.CSSProperties}>
+      <div 
+        className={nodeClasses} 
+        ref={nodeRef} 
+        style={{ '--level': level } as React.CSSProperties}
+        data-path={genericNumericPathForNode}
+        data-original-path={path}
+      >
         <div className={contentClasses}>
           <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className="expander no-children" />
