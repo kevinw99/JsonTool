@@ -47,9 +47,49 @@ export const DiffList: React.FC<DiffListProps> = ({
   };
 
   const handleGoToDiff = (numericDiffPath: string) => {
-    console.log('[DiffList] GoTo button clicked for numeric path:', numericDiffPath);
-    goToDiff(numericDiffPath); // Pass numericPath to goToDiff
-    console.log('[DiffList] Called goToDiff from context with numeric path.');
+    console.log('[DiffList] 🔍 GoTo button clicked for numeric path:', numericDiffPath);
+    console.log('[DiffList] 🔍 Checking DOM elements with this path...');
+    
+    // The JsonTreeView DOM elements have paths with "root." prefix, so we need to add it
+    const pathWithRoot = numericDiffPath.startsWith('root.') ? numericDiffPath : `root.${numericDiffPath}`;
+    
+    // Debug: First, let's see what data-path attributes actually exist in the DOM
+    const allDataPathElements = document.querySelectorAll('[data-path]');
+    console.log(`[DiffList] 🔍 Found ${allDataPathElements.length} elements with data-path attributes`);
+    
+    // Look for partial matches to debug
+    const partialMatches = Array.from(allDataPathElements).filter(el => {
+      const path = el.getAttribute('data-path');
+      return path && (path.includes('boomerForecastV3Requests') || path.includes('metadata') || path.includes('externalRequestDateTime'));
+    });
+    
+    console.log(`[DiffList] 🔍 Found ${partialMatches.length} elements with partial path matches:`);
+    partialMatches.forEach((el, i) => {
+      console.log(`[DiffList] 🔍   ${i + 1}: data-path="${el.getAttribute('data-path')}"`);
+    });
+    
+    // Debug: Check what elements exist with various selectors
+    const selectors = [
+      `[data-path="${pathWithRoot}"]`,
+      `[data-path="${numericDiffPath}"]`,
+      `[data-numeric-path="${pathWithRoot}"]`,
+      `[data-numeric-path="${numericDiffPath}"]`,
+      `[data-generic-path="${pathWithRoot}"]`,
+      `[data-generic-path="${numericDiffPath}"]`,
+      `.json-node[data-path="${pathWithRoot}"]`,
+      `.json-node[data-path="${numericDiffPath}"]`
+    ];
+    
+    selectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      console.log(`[DiffList] 🔍 Selector "${selector}" found ${elements.length} elements`);
+      if (elements.length > 0) {
+        console.log(`[DiffList] 🔍 First element:`, elements[0]);
+      }
+    });
+    
+    goToDiff(pathWithRoot); // Pass path WITH root prefix to goToDiff (like ID Keys Panel does)
+    console.log(`[DiffList] ✅ Called goToDiff from context with path: ${pathWithRoot}`);
   };
 
   const formatValue = (value: any): string => {
@@ -150,23 +190,24 @@ export const DiffList: React.FC<DiffListProps> = ({
                 key={`${diff.numericPath}-${index}`} 
                 className={`diff-item ${diff.type} ${highlightPath === diff.numericPath ? 'highlighted' : ''} ${ignoredDiffs.has(diff.numericPath) ? 'ignored' : ''}`}
               >
-                <div className="diff-path">
-                  <span className="path-label">
-                    <span className="diff-number">{index + 1}.</span>
-                    {diff.displayPath.startsWith('root.') ? diff.displayPath.substring(5) : diff.displayPath} {/* Remove root. prefix */}
-                    {ignoredDiffs.has(diff.numericPath) && <span className="ignored-badge">Ignored</span>}
+                <div className="diff-item-content">
+                  <span className="diff-number">{index + 1}.</span>
+                  <span className="diff-path-inline">
+                    {diff.displayPath.startsWith('root.') ? diff.displayPath.substring(5) : diff.displayPath}
                   </span>
+                  <span className="diff-summary-inline">
+                    {getDiffSummary(diff)}
+                  </span>
+                  {ignoredDiffs.has(diff.numericPath) && <span className="ignored-badge">Ignored</span>}
                   <div className="diff-actions">
                     <button 
                       className="goto-button"
-                      // Pass numericPath to handleGoToDiff
                       onClick={() => handleGoToDiff(diff.numericPath)}
                       title="Navigate to this difference"
                     >
                       Go To
                     </button>
                     <button 
-                      // Pass numericPath to handleIgnore
                       className={`ignore-button ${ignoredDiffs.has(diff.numericPath) ? 'restore-button' : ''}`}
                       onClick={() => handleIgnore(diff.numericPath)}
                       title={ignoredDiffs.has(diff.numericPath) ? "Restore this difference" : "Ignore this difference"}
@@ -174,9 +215,6 @@ export const DiffList: React.FC<DiffListProps> = ({
                       {ignoredDiffs.has(diff.numericPath) ? "Restore" : "Ignore"}
                     </button>
                   </div>
-                </div>
-                <div className="diff-summary">
-                  {getDiffSummary(diff)}
                 </div>
               </li>
             ))}

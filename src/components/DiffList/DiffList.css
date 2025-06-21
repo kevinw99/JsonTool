@@ -50,7 +50,7 @@
 }
 
 .diff-item {
-  padding: 10px 15px;
+  padding: 8px 15px;
   border-bottom: 1px solid #eee;
   transition: background-color 0.3s ease;
 }
@@ -63,40 +63,80 @@
   background-color: #f9f9f9;
 }
 
-.diff-path {
+/* Single-line diff item layout - improved */
+.diff-item-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
-}
-
-.path-label {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  padding: 2px 0;
-  word-break: break-word;
-  font-weight: 600;
-  font-family: monospace;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70%;
+  gap: 8px;
+  width: 100%;
+  min-height: 24px;
+  white-space: nowrap; /* Ensure everything stays on one line */
+  overflow-x: auto; /* Allow horizontal scrolling for long paths */
+  text-align: left; /* Ensure left alignment for all content */
 }
 
 .diff-number {
   display: inline-block;
   min-width: 24px;
   font-weight: bold;
-  margin-right: 6px;
   color: #555;
   text-align: right;
+  flex-shrink: 0;
+}
+
+.diff-path-inline {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  /* Removed overflow: hidden and text-overflow: ellipsis to show full path */
+  min-width: 120px; /* Reduced to give more space to summary */
+  flex: 0 1 auto; /* Allow it to grow as needed */
+  text-align: left; /* Ensure left alignment */
+}
+
+.diff-summary-inline {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 150px; /* Minimum space for summary */
+  flex: 1; /* Take remaining space */
+  text-align: left; /* Ensure left alignment */
+}
+
+.ignored-badge {
+  background: #ff4d4f;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-left: 6px;
+  flex-shrink: 0;
 }
 
 .diff-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Legacy styles - keeping for compatibility but hiding */
+.diff-path {
+  display: none;
+}
+
+.diff-summary {
+  display: none;
+}
+
+.path-label {
+  display: none;
 }
 
 .goto-button, .ignore-button {
@@ -137,14 +177,17 @@
 
 .diff-item.added {
   border-left: 3px solid #52c41a;
+  background-color: #f6ffed; /* Light green background for added items */
 }
 
 .diff-item.removed {
   border-left: 3px solid #f5222d;
+  background-color: #fff2f0; /* Light red background for removed items */
 }
 
 .diff-item.changed {
   border-left: 3px solid #faad14;
+  background-color: #fffbe6; /* Light yellow background for changed items */
 }
 
 .diff-item.highlighted {
@@ -223,43 +266,60 @@
   }
 }
 
-.show-ignored-toggle {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
+/* Strong responsive overrides for diff items - force single line */
+@media (max-width: 1200px) {
+  .diff-item-content {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  
+  .diff-path-inline {
+    flex: 0 0 auto !important; /* Allow it to size naturally */
+    min-width: 100px !important;
+    max-width: none !important; /* Remove max-width to show full path */
+  }
+  
+  .diff-summary-inline {
+    flex: 1 !important;
+    min-width: 120px !important;
+  }
 }
 
-.show-ignored-toggle label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 14px;
-  color: #666;
+@media (max-width: 768px) {
+  .diff-item-content {
+    gap: 4px !important;
+  }
+  
+  .diff-path-inline {
+    flex: 0 0 auto !important; /* Allow it to size naturally */
+    min-width: 80px !important;
+    max-width: none !important; /* Remove max-width to show full path */
+    font-size: 12px !important;
+  }
+  
+  .diff-summary-inline {
+    flex: 1 !important;
+    min-width: 100px !important;
+    font-size: 11px !important;
+  }
+  
+  .goto-button, .ignore-button {
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+  }
 }
 
-.show-ignored-toggle input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-.diff-controls {
-  margin-top: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.restore-all-button {
-  background-color: #e6f7ff;
-  color: #1890ff;
-  border: 1px solid #91d5ff;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
-}
-
-.restore-all-button:hover {
-  background-color: #1890ff;
-  color: white;
+@media (max-width: 480px) {
+  .diff-number {
+    min-width: 20px !important;
+    font-size: 12px !important;
+  }
+  
+  .diff-path-inline {
+    flex: 0 0 auto !important; /* Allow it to size naturally */
+    min-width: 60px !important;
+    max-width: none !important; /* Remove max-width to show full path */
+  }
 }

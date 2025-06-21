@@ -242,26 +242,54 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           // The target path should be what we want to scroll to
           let targetPath = numericPathToExpand;
+          // JsonTreeView DOM elements have paths with "root." prefix, so we need to add it if missing
+          const pathWithRoot = targetPath.startsWith('root.') ? targetPath : `root.${targetPath}`;
           console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target path for scrolling: "${targetPath}"`);
+          console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target path with root prefix: "${pathWithRoot}"`);
           
-          // Try multiple selectors to find the target element
-          const selectors = [
-            `[data-path="${targetPath}"]`,
-            `[data-numeric-path="${targetPath}"]`,
-            `[data-generic-path="${targetPath}"]`,
-            `.json-node[data-path="${targetPath}"]`
-          ];
+          // Debug: Check what data-path attributes exist that are similar
+          const allDataPathElements = document.querySelectorAll('[data-path]');
+          console.log(`[JsonViewerSyncContext goToDiff] 🔍 Total elements with data-path: ${allDataPathElements.length}`);
           
-          let targetElement = null;
-          for (const selector of selectors) {
-            targetElement = document.querySelector(selector);
-            if (targetElement) {
-              console.log(`[JsonViewerSyncContext goToDiff] ✅ Found target element with selector: "${selector}"`);
-              break;
+          const partialMatches = Array.from(allDataPathElements).filter(el => {
+            const path = el.getAttribute('data-path');
+            return path && (path.includes('boomerForecastV3Requests') || path.includes('metadata') || path.includes('externalRequestDateTime'));
+          });
+          
+          console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found ${partialMatches.length} elements with similar paths:`);
+          partialMatches.forEach((el, i) => {
+            if (i < 5) { // Limit output to first 5 matches
+              console.log(`[JsonViewerSyncContext goToDiff] 🔍   ${i + 1}: data-path="${el.getAttribute('data-path')}"`);
             }
-          }
+          });
           
-          if (targetElement) {
+          // Function to attempt finding and scrolling to the target element
+          const attemptScrollToTarget = (attempt: number = 1, maxAttempts: number = 5) => {
+            console.log(`[JsonViewerSyncContext goToDiff] 🔄 Scroll attempt ${attempt}/${maxAttempts}`);
+            
+            // Try multiple selectors to find the target element
+            const selectors = [
+              `[data-path="${pathWithRoot}"]`,
+              `[data-path="${targetPath}"]`,
+              `[data-numeric-path="${pathWithRoot}"]`,
+              `[data-numeric-path="${targetPath}"]`,
+              `[data-generic-path="${pathWithRoot}"]`,
+              `[data-generic-path="${targetPath}"]`,
+              `.json-node[data-path="${pathWithRoot}"]`,
+              `.json-node[data-path="${targetPath}"]`
+            ];
+            
+            let targetElement = null;
+            for (const selector of selectors) {
+              targetElement = document.querySelector(selector);
+              if (targetElement) {
+                console.log(`[JsonViewerSyncContext goToDiff] ✅ Found target element with selector: "${selector}"`);
+                break;
+              }
+            }
+            
+            if (targetElement) {
+              // Found the element, scroll to it
             console.log(`[JsonViewerSyncContext goToDiff] 📜 Scrolling to target element`);
             console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target element details:`, {
               tagName: targetElement.tagName,
@@ -380,11 +408,26 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
                 targetElement.classList.remove('json-flash');
               }, 1000);
             }, 200);
-          } else {
-            console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found for path: "${targetPath}"`);
-            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Tried selectors:`, selectors);
-          }
-        }, 800); // Increased delay to ensure DOM updates and expansions complete
+            } else if (attempt < maxAttempts) {
+              // Element not found, but we still have attempts left
+              console.log(`[JsonViewerSyncContext goToDiff] ⏳ Element not found, retrying in 500ms... (attempt ${attempt}/${maxAttempts})`);
+              setTimeout(() => attemptScrollToTarget(attempt + 1, maxAttempts), 500);
+            } else {
+              // Final attempt failed
+              console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found after ${maxAttempts} attempts for path: "${targetPath}"`);
+              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Also tried with root prefix: "${pathWithRoot}"`);
+              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Tried selectors:`, selectors);
+              
+              // Show what elements are actually available for debugging
+              const availableElements = document.querySelectorAll('[data-path]');
+              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Currently available elements:`, 
+                Array.from(availableElements).slice(0, 10).map(el => el.getAttribute('data-path')));
+            }
+          };
+          
+          // Start the scroll attempt process
+          attemptScrollToTarget();
+        }, 1200); // Increased delay to ensure DOM updates and expansions complete
       }, 50); // A small delay to ensure re-triggering.
 
     }, [setHighlightPathState]); // Dependencies simplified
