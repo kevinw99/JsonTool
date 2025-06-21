@@ -1,121 +1,84 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import './ResizableDivider.css';
 
 interface ResizableDividerProps {
-  initialPosition: number;
-  minPosition?: number;
-  maxPosition?: number;
   direction: 'horizontal' | 'vertical';
   onPositionChange: (position: number) => void;
+  minPosition?: number;
+  maxPosition?: number;
+  initialPosition?: number;
 }
 
 export const ResizableDivider: React.FC<ResizableDividerProps> = ({
-  initialPosition,
-  minPosition = 20,
-  maxPosition = 80,
   direction,
-  onPositionChange
+  onPositionChange,
+  minPosition = 10,
+  maxPosition = 90,
+  initialPosition = 50
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState(initialPosition);
-  const dragStateRef = useRef(false);
-  
-  // Update position when not dragging
-  useEffect(() => {
-    if (!isDragging && !dragStateRef.current) {
-      setPosition(initialPosition);
-    }
-  }, [initialPosition, isDragging]);
+  const isDraggingRef = useRef(false);
+  const currentPositionRef = useRef(initialPosition);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!dragStateRef.current) {
-      console.log('[ResizableDivider] MouseMove called but not dragging, ignoring');
-      return;
-    }
-
-    const target = e.target as HTMLElement;
-    const container = target.closest('.app-content-wrapper') as HTMLElement;
-    
-    if (!container) {
-      console.log('[ResizableDivider] No container found');
-      return;
-    }
-
-    const rect = container.getBoundingClientRect();
-    let newPosition;
-
-    if (direction === 'horizontal') {
-      newPosition = ((e.clientY - rect.top) / rect.height) * 100;
-      console.log('[ResizableDivider] Horizontal movement:', {
-        mouseY: e.clientY,
-        containerTop: rect.top,
-        containerHeight: rect.height,
-        newPosition
-      });
-    } else {
-      newPosition = ((e.clientX - rect.left) / rect.width) * 100;
-      console.log('[ResizableDivider] Vertical movement:', {
-        mouseX: e.clientX,
-        containerLeft: rect.left,
-        containerWidth: rect.width,
-        newPosition
-      });
-    }
-
-    newPosition = Math.max(minPosition, Math.min(maxPosition, newPosition));
-    
-    console.log('[ResizableDivider] About to call callbacks:', {
-      newPosition,
-      onPositionChangeType: typeof onPositionChange
-    });
-    
-    setPosition(newPosition);
-    onPositionChange(newPosition);
-    
-    console.log('[ResizableDivider] Callbacks called, position should update to:', newPosition);
-  }, [direction, minPosition, maxPosition, onPositionChange]);
-
-  const handleMouseUp = useCallback(() => {
-    console.log('[ResizableDivider] Mouse up - ending drag');
-    setIsDragging(false);
-    dragStateRef.current = false;
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }, []);
+  // Update current position when initialPosition changes
+  React.useEffect(() => {
+    currentPositionRef.current = initialPosition;
+  }, [initialPosition]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    console.log('[ResizableDivider] Mouse down - starting drag');
-    setIsDragging(true);
-    dragStateRef.current = true;
-    document.body.style.cursor = direction === 'horizontal' ? 'row-resize' : 'col-resize';
-    document.body.style.userSelect = 'none';
-  }, [direction]);
+    console.log('[ResizableDivider] Mouse down, starting drag');
+    isDraggingRef.current = true;
+    
+    const startMouse = direction === 'horizontal' ? e.clientY : e.clientX;
+    console.log('[ResizableDivider] Start mouse position:', startMouse);
 
-  useEffect(() => {
-    if (isDragging && dragStateRef.current) {
-      console.log('[ResizableDivider] Adding event listeners');
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
 
-    return () => {
-      console.log('[ResizableDivider] Removing event listeners');
+      const currentMouse = direction === 'horizontal' ? e.clientY : e.clientX;
+      const mouseDelta = currentMouse - startMouse;
+      
+      // Get container dimensions
+      const container = document.querySelector('.app-content-wrapper');
+      if (!container) {
+        console.warn('Container .app-content-wrapper not found');
+        return;
+      }
+      
+      const containerRect = container.getBoundingClientRect();
+      const containerSize = direction === 'horizontal' ? containerRect.height : containerRect.width;
+      
+      // Calculate percentage change
+      const percentChange = (mouseDelta / containerSize) * 100;
+      let newPosition = initialPosition + percentChange;
+      
+      // Apply constraints
+      newPosition = Math.max(minPosition, Math.min(maxPosition, newPosition));
+      
+      console.log('[ResizableDivider] Move:', { mouseDelta, containerSize, percentChange, newPosition });
+      
+      // Update our ref and call the callback
+      currentPositionRef.current = newPosition;
+      onPositionChange(newPosition);
+    };
+
+    const handleMouseUp = () => {
+      console.log('[ResizableDivider] Mouse up, ending drag');
+      isDraggingRef.current = false;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  console.log('[ResizableDivider] Render:', { position, isDragging, dragStateRef: dragStateRef.current, direction });
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [direction, onPositionChange, minPosition, maxPosition, initialPosition]);
+
+  const className = `resizable-divider ${direction === 'horizontal' ? 'horizontal' : 'vertical'}`;
 
   return (
-    <div 
-      className={`resizable-divider ${direction} ${isDragging ? 'dragging' : ''}`}
+    <div
+      className={className}
       onMouseDown={handleMouseDown}
-      style={{
-        position: 'absolute',
-        [direction === 'horizontal' ? 'top' : 'left']: `${position}%`
-      }}
     >
       <div className="divider-handle" />
     </div>

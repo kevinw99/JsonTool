@@ -7,26 +7,13 @@ export interface DiffResult {
   idKeyUsed?: string | null;
 }
 
-export interface IdKeyInfo {
-  arrayPath: string;
-  idKey: string;
-  isComposite: boolean;
-  arraySize1: number;
-  arraySize2: number;
-}
-
 export interface JsonCompareResult {
   diffs: DiffResult[];
   processedJson1: any;
   processedJson2: any;
-  idKeysUsed: IdKeyInfo[];
 }
 
 function findIdKey(arr1: any[], arr2: any[]): string | null {
-  // Skip idKey detection for arrays with 0 or 1 length since there's no meaningful comparison
-  if (arr1.length <= 1 && arr2.length <= 1) return null;
-  
-  // Also skip if either array is empty (original check)
   if (!arr1.length && !arr2.length) return null;
 
   const getObjectItems = (arr: any[]) =>
@@ -34,34 +21,13 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
   const objArr1 = getObjectItems(arr1);
   const objArr2 = getObjectItems(arr2);
 
-  // Debug logging for taxRates array specifically
-  const isTaxRatesArray = arr1.some(item => item && typeof item === 'object' && 'federalMarginalTaxRate' in item) ||
-                         arr2.some(item => item && typeof item === 'object' && 'federalMarginalTaxRate' in item);
-  
-  if (isTaxRatesArray) {
-    console.log('[DEBUG] taxRates array detected:', {
-      arr1Length: arr1.length,
-      arr2Length: arr2.length,
-      objArr1Length: objArr1.length,
-      objArr2Length: objArr2.length,
-      arr1Sample: arr1[0],
-      arr2Sample: arr2[0]
-    });
-  }
-
   // Heuristic: Only consider idKey if arrays predominantly consist of objects.
+  // This threshold can be adjusted.
   const minObjectProportion = 0.8;
   if (
     (arr1.length > 0 && objArr1.length / arr1.length < minObjectProportion) ||
     (arr2.length > 0 && objArr2.length / arr2.length < minObjectProportion)
   ) {
-    if (isTaxRatesArray) {
-      console.log('[DEBUG] taxRates failed object proportion check:', {
-        arr1Proportion: arr1.length > 0 ? objArr1.length / arr1.length : 0,
-        arr2Proportion: arr2.length > 0 ? objArr2.length / arr2.length : 0,
-        threshold: minObjectProportion
-      });
-    }
     return null;
   }
   if (objArr1.length === 0 && objArr2.length === 0) return null;
@@ -74,11 +40,6 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
   if (!sampleObj) return null;
 
   let candidateKeys = Object.keys(sampleObj);
-  
-  if (isTaxRatesArray) {
-    console.log('[DEBUG] taxRates candidateKeys:', candidateKeys);
-  }
-
   const preferredKeyNames = ["id", "key", "uuid", "name", "_id"];
   candidateKeys.sort((a, b) => {
     const aLower = a.toLowerCase();
@@ -92,81 +53,38 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
     return a.localeCompare(b);
   });
 
-  // Helper function to test if a key (single or composite) is valid
-  const testKey = (keyOrKeys: string | string[]): boolean => {
-    const isComposite = Array.isArray(keyOrKeys);
-    const keyName = isComposite ? keyOrKeys.join('+') : keyOrKeys;
-    
-    if (isTaxRatesArray) {
-      console.log(`[DEBUG] taxRates testing key: ${keyName}`);
-    }
+  for (const key of candidateKeys) {
+    let keyIsValid = true;
 
-    // Test if all items have the required key(s) and they are string/number
     for (const arr of [objArr1, objArr2]) {
-      if (arr.length > 0) {
-        const hasValidKeys = arr.every(item => {
-          if (isComposite) {
-            return (keyOrKeys as string[]).every(k => 
-              k in item && (typeof item[k] === "string" || typeof item[k] === "number")
-            );
-          } else {
-            return keyOrKeys in item && (typeof item[keyOrKeys] === "string" || typeof item[keyOrKeys] === "number");
-          }
-        });
-        
-        if (!hasValidKeys) {
-          if (isTaxRatesArray) {
-            console.log(`[DEBUG] taxRates key ${keyName} failed validation:`, arr.map(item => {
-              if (isComposite) {
-                const result: any = {};
-                (keyOrKeys as string[]).forEach(k => {
-                  result[k] = { value: item[k], hasKey: k in item, type: typeof item[k] };
-                });
-                return result;
-              } else {
-                return { [keyOrKeys]: item[keyOrKeys], hasKey: keyOrKeys in item, type: typeof item[keyOrKeys] };
-              }
-            }));
-          }
-          return false;
-        }
+      if (
+        arr.length > 0 &&
+        !arr.every(
+          (item) =>
+            key in item &&
+            (typeof item[key] === "string" || typeof item[key] === "number")
+        )
+      ) {
+        keyIsValid = false;
+        break;
       }
     }
+    if (!keyIsValid) continue;
 
-    // Test uniqueness within each array
-    const valuesSet: Set<string>[] = [new Set(), new Set()];
+    const valuesSet: Set<any>[] = [new Set(), new Set()];
     const sourceArrays = [objArr1, objArr2];
-    
     for (let i = 0; i < 2; i++) {
       const arr = sourceArrays[i];
       if (arr.length > 0) {
-        for (const item of arr) {
-          const compositeValue = isComposite 
-            ? (keyOrKeys as string[]).map(k => String(item[k])).join('|')
-            : String(item[keyOrKeys]);
-          valuesSet[i].add(compositeValue);
-        }
-        
+        for (const item of arr) valuesSet[i].add(item[key]);
         if (valuesSet[i].size !== arr.length) {
-          if (isTaxRatesArray) {
-            const values = arr.map(item => 
-              isComposite 
-                ? (keyOrKeys as string[]).map(k => String(item[k])).join('|')
-                : String(item[keyOrKeys])
-            );
-            console.log(`[DEBUG] taxRates key ${keyName} failed uniqueness:`, {
-              arrayIndex: i,
-              arrayLength: arr.length,
-              uniqueValues: valuesSet[i].size,
-              values
-            });
-          }
-          return false;
+          keyIsValid = false;
+          break;
         }
       }
     }
+    if (!keyIsValid) continue;
 
-    // Test overlap between arrays
     if (objArr1.length > 0 && objArr2.length > 0) {
       const commonValues = new Set(
         [...valuesSet[0]].filter((v) => valuesSet[1].has(v))
@@ -174,75 +92,21 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
       const minUniqueValues = Math.min(valuesSet[0].size, valuesSet[1].size);
 
       if (minUniqueValues === 0 && (valuesSet[0].size > 0 || valuesSet[1].size > 0)) {
-        if (isTaxRatesArray) {
-          console.log(`[DEBUG] taxRates key ${keyName} failed - empty array with non-empty array`);
-        }
-        return false;
-      } else if (minUniqueValues > 0 && (commonValues.size / minUniqueValues) < 0.5) {
-        if (isTaxRatesArray) {
-          console.log(`[DEBUG] taxRates key ${keyName} failed overlap check:`, {
-            commonValues: commonValues.size,
-            minUniqueValues,
-            overlapRatio: commonValues.size / minUniqueValues,
-            threshold: 0.5,
-            values1: [...valuesSet[0]],
-            values2: [...valuesSet[1]],
-            commonValuesList: [...commonValues]
-          });
-        }
-        return false;
+        keyIsValid = false; 
+      } else if (minUniqueValues > 0 && (commonValues.size / minUniqueValues) < 0.5) { // 50% overlap threshold
+        keyIsValid = false;
       }
     } else if (objArr1.length === 0 && objArr2.length === 0) {
-      return false;
+      keyIsValid = false; 
     }
+    // If one array is empty of objects, key remains valid if it passed checks for the non-empty one.
 
-    if (isTaxRatesArray) {
-      console.log(`[DEBUG] taxRates found valid idKey: ${keyName}`);
-    }
-    return true;
-  };
-
-  // Try single keys first
-  for (const key of candidateKeys) {
-    if (testKey(key)) {
+    if (keyIsValid) {
       return key;
     }
   }
-
-  // If no single key works, try composite keys (combinations of 2-3 keys)
-  if (isTaxRatesArray) {
-    console.log('[DEBUG] taxRates trying composite keys...');
-  }
-
-  // Try combinations of 2 keys
-  for (let i = 0; i < candidateKeys.length; i++) {
-    for (let j = i + 1; j < candidateKeys.length; j++) {
-      const compositeKey = [candidateKeys[i], candidateKeys[j]];
-      if (testKey(compositeKey)) {
-        return compositeKey.join('+'); // Return as "key1+key2"
-      }
-    }
-  }
-
-  // Try combinations of 3 keys (for more complex scenarios)
-  for (let i = 0; i < candidateKeys.length; i++) {
-    for (let j = i + 1; j < candidateKeys.length; j++) {
-      for (let k = j + 1; k < candidateKeys.length; k++) {
-        const compositeKey = [candidateKeys[i], candidateKeys[j], candidateKeys[k]];
-        if (testKey(compositeKey)) {
-          return compositeKey.join('+'); // Return as "key1+key2+key3"
-        }
-      }
-    }
-  }
-
-  if (isTaxRatesArray) {
-    console.log('[DEBUG] taxRates no valid idKey found (including composite keys)');
-  }
   return null;
 }
-
-// ...existing code...
 
 export function jsonCompare(
   originalObj1: any,
@@ -251,7 +115,6 @@ export function jsonCompare(
   initialNumericPath: string = "root"
 ): JsonCompareResult {
   const diffs: DiffResult[] = [];
-  const idKeysUsed: IdKeyInfo[] = [];
 
   // Deep clone inputs to ensure original objects are not mutated by sorting,
   // and to return the versions of JSON that were actually compared.
@@ -262,28 +125,8 @@ export function jsonCompare(
   if (Array.isArray(processedJson1) && Array.isArray(processedJson2)) {
     const idKey = findIdKey(processedJson1, processedJson2);
     if (idKey) {
-      idKeysUsed.push({
-        arrayPath: initialDisplayPath,
-        idKey: idKey,
-        isComposite: idKey.includes('+'),
-        arraySize1: processedJson1.length,
-        arraySize2: processedJson2.length
-      });
-      
-      // Helper function to handle both single and composite keys for sorting
-      const isCompositeKey = idKey.includes('+');
-      const keyParts = isCompositeKey ? idKey.split('+') : [idKey];
-      
-      const getKeyValue = (item: any): string => {
-        if (isCompositeKey) {
-          return keyParts.map(k => String(item[k])).join('|');
-        } else {
-          return String(item[idKey]);
-        }
-      };
-      
-      processedJson1.sort((a: any, b: any) => getKeyValue(a).localeCompare(getKeyValue(b)));
-      processedJson2.sort((a: any, b: any) => getKeyValue(a).localeCompare(getKeyValue(b)));
+      processedJson1.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
+      processedJson2.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
     } else if (
       processedJson1.length > 0 || // Allow sorting even if one is empty after clone
       processedJson2.length > 0 
@@ -341,56 +184,26 @@ export function jsonCompare(
       const idKey = findIdKey(arr1, arr2);
 
       if (idKey) {
-        // Track this idKey usage
-        idKeysUsed.push({
-          arrayPath: currentDisplayPath,
-          idKey: idKey,
-          isComposite: idKey.includes('+'),
-          arraySize1: arr1.length,
-          arraySize2: arr2.length
-        });
-        
-        // Helper functions to handle both single and composite keys
-        const isCompositeKey = idKey.includes('+');
-        const keyParts = isCompositeKey ? idKey.split('+') : [idKey];
-        
-        const getKeyValue = (item: any): string => {
-          if (isCompositeKey) {
-            return keyParts.map(k => String(item[k])).join('|');
-          } else {
-            return String(item[idKey]);
-          }
-        };
-        
-        const getDisplayKeyValue = (item: any): string => {
-          if (isCompositeKey) {
-            return keyParts.map(k => `${k}=${item[k]}`).join(',');
-          } else {
-            return String(item[idKey]);
-          }
-        };
-
         // Arrays should already be sorted if they are the root, or sorted here if nested.
         // Ensure nested arrays are sorted if an idKey is found for them.
         // This modifies parts of processedJson1/processedJson2 directly.
-        arr1.sort((a: any, b: any) => getKeyValue(a).localeCompare(getKeyValue(b)));
-        arr2.sort((a: any, b: any) => getKeyValue(a).localeCompare(getKeyValue(b)));
+        arr1.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
+        arr2.sort((a: any, b: any) => String(a[idKey]).localeCompare(String(b[idKey])));
         
         const map2 = new Map(
-          arr2.map((val: any) => [getKeyValue(val), val])
+          arr2.map((val: any) => [val[idKey], val])
         );
-        const consumedFromMap2 = new Set<string>();
+        const consumedFromMap2 = new Set<any>();
 
         arr1.forEach((val1: any, index1: number) => {
-          const keyVal1 = getKeyValue(val1);
-          const displayKeyVal1 = getDisplayKeyValue(val1);
+          const idVal1 = val1[idKey];
           // Correctly use the detected idKey in displayPath
-          const childDisplayPath = `${currentDisplayPath}[${displayKeyVal1}]`;
+          const childDisplayPath = `${currentDisplayPath}[${idKey}=${idVal1}]`;
           const childNumericPath = `${currentNumericPath}[${index1}]`;
 
-          if (map2.has(keyVal1)) {
-            const val2FromMap = map2.get(keyVal1)!;
-            consumedFromMap2.add(keyVal1);
+          if (map2.has(idVal1)) {
+            const val2FromMap = map2.get(idVal1)!;
+            consumedFromMap2.add(idVal1);
             compareRecursively(
               val1,
               val2FromMap,
@@ -409,11 +222,10 @@ export function jsonCompare(
         });
 
         arr2.forEach((val2: any, index2: number) => {
-          const keyVal2 = getKeyValue(val2);
-          const displayKeyVal2 = getDisplayKeyValue(val2);
-          if (!consumedFromMap2.has(keyVal2)) {
+          const idVal2 = val2[idKey];
+          if (!consumedFromMap2.has(idVal2)) {
             // Correctly use the detected idKey in displayPath
-            const childDisplayPath = `${currentDisplayPath}[${displayKeyVal2}]`;
+            const childDisplayPath = `${currentDisplayPath}[${idKey}=${idVal2}]`;
             const childNumericPath = `${currentNumericPath}[${index2}]`;
             diffs.push({
               displayPath: childDisplayPath,
@@ -515,6 +327,5 @@ export function jsonCompare(
     diffs,
     processedJson1,
     processedJson2,
-    idKeysUsed,
   };
 }

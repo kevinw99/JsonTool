@@ -227,7 +227,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     // Debug logging for specific paths
     if (normalizedPathForDiff.includes('currentContributionOverride')) {
-      console.log(`[DEBUG] Node ${normalizedPathForDiff} (${jsonSide}):`, {
         relevantDiffs: relevantDiffs.map(d => ({ path: d.numericPath, type: d.type })),
         normalizedPath: normalizedPathForDiff
       });
@@ -241,17 +240,14 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         if (diff.type === 'added' && jsonSide === 'right') {
           classes.push('json-added');
           if (normalizedPathForDiff.includes('currentContributionOverride')) {
-            console.log(`[DEBUG] Adding json-added class to ${normalizedPathForDiff}`);
           }
         } else if (diff.type === 'removed' && jsonSide === 'left') {
           classes.push('json-deleted');
           if (normalizedPathForDiff.includes('currentContributionOverride')) {
-            console.log(`[DEBUG] Adding json-deleted class to ${normalizedPathForDiff}`);
           }
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
           if (normalizedPathForDiff.includes('currentContributionOverride')) {
-            console.log(`[DEBUG] Adding json-changed class to ${normalizedPathForDiff}`);
           }
         }
       }
@@ -269,7 +265,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           if (diff.numericPath.startsWith(pathToCheck) || diff.numericPath.startsWith(arrayPathToCheck)) {
             classes.push('json-parent-changed');
             if (normalizedPathForDiff.includes('household') || normalizedPathForDiff.includes('accounts')) {
-              console.log(`[DEBUG] Adding json-parent-changed class to ${normalizedPathForDiff} because of child diff: ${diff.numericPath}`);
             }
             break; // Only need to add this once
           }
@@ -277,7 +272,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           if (diff.numericPath !== normalizedPathForDiff) {
             if (diff.numericPath.includes('.') || diff.numericPath.includes('[')) {
               classes.push('json-parent-changed');
-              console.log(`[DEBUG] Adding json-parent-changed class to root because of child diff: ${diff.numericPath}`);
               break; // Only need to add this once
             }
           }

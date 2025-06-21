@@ -8,7 +8,7 @@ import { TextViewer } from './components/TextViewer'
 import { ViewControls } from './components/ViewControls'
 import { SyncScroll } from './components/SyncScroll'
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
-import { ResizableDivider } from './components/ResizableDivider'
+import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone';
 import './components/JsonLayout.css'
 import type { JsonValue } from './components/JsonTreeView';
@@ -27,14 +27,30 @@ function App() {
   const [idKeysUsed, setIdKeysUsed] = useState<IdKeyInfo[]>([])
   const [error, setError] = useState<string | null>(null)
   const [syncScroll, setSyncScroll] = useState<boolean>(true)
-  const [dividerPosition, setDividerPosition] = useState<number>(70)
-
-  // Debug dividerPosition changes
-  useEffect(() => {
-    console.log('[App] dividerPosition state changed to:', dividerPosition);
-  }, [dividerPosition]);
+  
+  // Load divider position from localStorage, default to 70
+  const [dividerPosition, setDividerPosition] = useState<number>(() => {
+    const saved = localStorage.getItem('jsontool-divider-position');
+    return saved ? parseFloat(saved) : 70;
+  })
+  
+  // Load active tab from localStorage, default to 'differences'
+  const [activeTab, setActiveTab] = useState<'differences' | 'idkeys'>(() => {
+    const saved = localStorage.getItem('jsontool-active-tab');
+    return (saved === 'idkeys') ? 'idkeys' : 'differences';
+  })
 
   const headerAndControlsHeight = 60; // Reduced height
+
+  // Persist divider position to localStorage
+  useEffect(() => {
+    localStorage.setItem('jsontool-divider-position', dividerPosition.toString());
+  }, [dividerPosition]);
+
+  // Persist active tab to localStorage
+  useEffect(() => {
+    localStorage.setItem('jsontool-active-tab', activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     async function loadSamples() {
@@ -187,15 +203,8 @@ function App() {
 
             <ResizableDivider 
               direction="horizontal" 
+              onPositionChange={setDividerPosition}
               initialPosition={dividerPosition}
-              onPositionChange={(newPosition) => {
-                console.log('[App] ResizableDivider onPositionChange called:', {
-                  oldDividerPosition: dividerPosition,
-                  newPosition
-                });
-                setDividerPosition(newPosition);
-                console.log('[App] setDividerPosition called with:', newPosition);
-              }}
               minPosition={20}
               maxPosition={80}
             />
@@ -223,6 +232,9 @@ function App() {
                   diffs={diffs}
                   idKeysUsed={idKeysUsed}
                   height="100%"
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  jsonData={file1.content}
                 />
               )}
             </div>

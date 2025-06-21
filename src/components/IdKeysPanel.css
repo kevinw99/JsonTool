@@ -63,11 +63,21 @@
   gap: 12px;
 }
 
+.id-key-number {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+
 .id-key-path-section {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0; /* Allow text truncation */
+  margin-right: 12px; /* Add some space before the ID Key section */
+  justify-content: flex-start; /* Ensure left alignment */
 }
 
 .id-key-field-section {
@@ -100,10 +110,52 @@
   font-size: 11px;
   color: #2c3e50;
   border: 1px solid #e1e5e9;
+  position: relative;
+  /* Remove fixed max-width, let it use available space */
+  flex: 1;
+  min-width: 0; /* Allow shrinking when necessary */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 400px;
+  text-align: left; /* Ensure left alignment */
+}
+
+.path-value.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.path-value.clickable:hover {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.path-value:hover {
+  background: #e8f0fe;
+  border-color: #4285f4;
+}
+
+.occurrence-path {
+  background: #f8f9fa;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 10px;
+  color: #495057;
+  flex: 1;
+  margin-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* Allow shrinking */
+  text-align: left; /* Ensure left alignment */
+}
+
+.occurrence-path:hover {
+  background: #e8f0fe;
 }
 
 .key-label {
@@ -167,21 +219,15 @@
   font-weight: 500;
   list-style: none;
   position: relative;
+  user-select: none;
 }
 
 .occurrences-details summary::-webkit-details-marker {
   display: none;
 }
 
-.occurrences-details summary::before {
-  content: "▼";
-  font-size: 10px;
-  margin-right: 4px;
-  transition: transform 0.2s ease;
-}
-
-.occurrences-details:not([open]) summary::before {
-  content: "▶";
+.occurrences-details[open] summary {
+  color: #0056b3;
 }
 
 .occurrences-details summary:hover {
@@ -214,7 +260,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3px 0;
+  padding: 6px 8px;
   font-size: 11px;
   border-bottom: 1px solid #f1f3f4;
 }
