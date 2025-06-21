@@ -93,9 +93,9 @@ export const DiffList: React.FC<DiffListProps> = ({
       <div className="diff-list-header">
         <h3>
           Differences ({filteredDiffs.length})
-          {ignoredDiffs.length > 0 && (
+          {ignoredDiffs.size > 0 && (
             <span className="ignored-count">
-              {ignoredDiffs.length} ignored
+              {ignoredDiffs.size} ignored
             </span>
           )}
         </h3>
@@ -121,7 +121,7 @@ export const DiffList: React.FC<DiffListProps> = ({
           </div>
           
           {/* Ensure clearAllIgnoredDiffs is available and used correctly */}
-          {showIgnored && ignoredDiffs.length > 0 && (
+          {showIgnored && ignoredDiffs.size > 0 && (
             <button 
               className="restore-all-button"
               onClick={clearAllIgnoredDiffs} 
@@ -153,7 +153,7 @@ export const DiffList: React.FC<DiffListProps> = ({
                 <div className="diff-path">
                   <span className="path-label">
                     <span className="diff-number">{index + 1}.</span>
-                    {diff.displayPath} {/* Display the user-friendly path */}
+                    {diff.displayPath.startsWith('root.') ? diff.displayPath.substring(5) : diff.displayPath} {/* Remove root. prefix */}
                     {ignoredDiffs.has(diff.numericPath) && <span className="ignored-badge">Ignored</span>}
                   </span>
                   <div className="diff-actions">

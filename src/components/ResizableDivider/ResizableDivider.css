@@ -2,7 +2,8 @@
   position: absolute;
   z-index: 100;
   background-color: #e0e0e0;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
+  user-select: none;
 }
 
 .resizable-divider:hover,
@@ -13,24 +14,35 @@
 .resizable-divider.horizontal {
   left: 0;
   right: 0;
-  height: 6px;
+  height: 4px;
   cursor: row-resize;
-  margin-top: -3px; /* Center the divider */
+  margin-top: -2px;
 }
 
 .resizable-divider.vertical {
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 4px;
   cursor: col-resize;
-  margin-left: -3px; /* Center the divider */
+  margin-left: -2px;
+}
+
+.resizable-divider.dragging {
+  transition: none;
 }
 
 .divider-handle {
   position: absolute;
-  background-color: #1890ff;
+  background-color: transparent;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.resizable-divider:hover .divider-handle,
+.resizable-divider.dragging .divider-handle {
+  opacity: 1;
+  background-color: #1890ff;
 }
 
 .resizable-divider.horizontal .divider-handle {
@@ -39,6 +51,7 @@
   width: 40px;
   height: 100%;
   margin-left: -20px;
+  border-radius: 3px;
 }
 
 .resizable-divider.vertical .divider-handle {
@@ -47,6 +60,7 @@
   height: 40px;
   width: 100%;
   margin-top: -20px;
+  border-radius: 3px;
 }
 
 .resizable-divider:hover .divider-handle,

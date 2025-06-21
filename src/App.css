@@ -130,3 +130,8 @@ body {
   /* Example: remove margin if ViewControls adds it */
   margin: 0;
 }
+
+/* Container for resizable divider */
+.app-content-wrapper {
+  position: relative;
+}

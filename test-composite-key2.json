@@ -1,0 +1,13 @@
+{
+  "users": [
+    {"id": 1, "name": "Alice Smith", "department": "Engineering"},
+    {"id": 2, "name": "Bob", "department": "Marketing"},
+    {"id": 4, "name": "David", "department": "Engineering"}
+  ],
+  "taxRates": [
+    {"ownerId": "123", "startDate": "2023-01-01", "federalMarginalTaxRate": 0.22, "stateMarginalTaxRate": 0.06},
+    {"ownerId": "123", "startDate": "2024-01-01", "federalMarginalTaxRate": 0.25, "stateMarginalTaxRate": 0.05},
+    {"ownerId": "456", "startDate": "2023-01-01", "federalMarginalTaxRate": 0.12, "stateMarginalTaxRate": 0.00},
+    {"ownerId": "789", "startDate": "2023-01-01", "federalMarginalTaxRate": 0.15, "stateMarginalTaxRate": 0.02}
+  ]
+}

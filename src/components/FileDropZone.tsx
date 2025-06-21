@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import './FileDropZone.css';
 
 interface FileDropZoneProps {
-  onFileDrop: (jsonData: object) => void;
+  onFileDrop: (data: { content: any; isTextMode: boolean; fileName?: string }) => void;
   children: React.ReactNode;
 }
 
@@ -39,15 +39,30 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, children
         try {
           const text = event.target?.result;
           if (typeof text === 'string') {
-            const jsonData = JSON.parse(text);
-            onFileDrop(jsonData);
+            try {
+              // Try to parse as JSON first
+              const jsonData = JSON.parse(text);
+              onFileDrop({ 
+                content: jsonData, 
+                isTextMode: false, 
+                fileName: file.name 
+              });
+            } catch (jsonError) {
+              // If JSON parsing fails, fall back to text mode
+              console.warn('JSON parsing failed, displaying as text:', jsonError);
+              onFileDrop({ 
+                content: text, 
+                isTextMode: true, 
+                fileName: file.name 
+              });
+            }
           } else {
             console.error('File content is not a string.');
             alert('Error: Could not read file content as text.');
           }
         } catch (error) {
-          console.error('Error parsing JSON:', error);
-          alert(`Error parsing file: ${(error as Error).message}`);
+          console.error('Error reading file:', error);
+          alert(`Error reading file: ${(error as Error).message}`);
         }
       };
       reader.onerror = () => {
@@ -69,7 +84,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, children
       {children}
       {isDragOver && (
         <div className="drop-zone-overlay">
-          <p>Drop JSON file here</p>
+          <p>Drop file here (JSON or text)</p>
         </div>
       )}
     </div>

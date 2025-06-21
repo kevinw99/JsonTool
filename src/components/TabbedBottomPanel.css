@@ -1,0 +1,49 @@
+.tabbed-bottom-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f8f9fa;
+}
+
+.tab-header {
+  display: flex;
+  background: #e9ecef;
+  border-bottom: 1px solid #dee2e6;
+  min-height: 40px;
+}
+
+.tab-button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6c757d;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.tab-button:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.tab-button.active {
+  background: #ffffff;
+  color: #495057;
+  border-bottom-color: #007bff;
+  font-weight: 600;
+}
+
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  background: white;
+}
+
+/* Ensure content fills the available space */
+.tab-content > * {
+  height: 100%;
+}
