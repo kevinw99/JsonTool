@@ -349,3 +349,70 @@
     flex-wrap: wrap;
   }
 }
+
+/* Simple responsive for IdKeysPanel - no wrapping, just truncation */
+@media (max-width: 768px) {
+  .id-keys-content {
+    padding: 6px;
+  }
+  
+  .id-key-item {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .path-value {
+    font-size: 10px;
+    padding: 2px 4px;
+    /* Keep single line with ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .key-value {
+    padding: 2px 6px;
+    font-size: 11px;
+    /* Keep single line with ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 600px) {
+  .id-key-main-row {
+    gap: 6px; /* Reduce gap but keep horizontal layout */
+  }
+  
+  /* Make path section take more space, truncate others */
+  .id-key-path-section {
+    flex: 2; /* Give more space to path */
+    min-width: 0;
+  }
+  
+  .id-key-field-section {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .occurrences-section {
+    flex: 0 0 auto; /* Don't shrink occurrences too much */
+  }
+  
+  .path-value {
+    /* Ensure path truncates with ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  
+  .occurrence-path {
+    /* Ensure occurrence paths truncate */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}

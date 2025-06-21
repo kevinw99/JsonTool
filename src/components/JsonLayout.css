@@ -27,6 +27,31 @@
   }
 }
 
+/* Simple responsive - no wrapping, just overflow handling */
+@media (max-width: 768px) {
+  .json-comparison-container {
+    gap: 10px; /* Reduce gap on smaller screens */
+  }
+  
+  .json-tree-view {
+    overflow-x: auto; /* Allow horizontal scrolling */
+    white-space: nowrap; /* Keep content on one line */
+  }
+}
+
+@media (max-width: 600px) {
+  .json-comparison-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .json-viewer-column {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
 /* Fix the height of the viewers and make them scrollable */
 /* .tree-view-container styling here is likely overridden or not directly applicable anymore, 
    as FilteredJsonViewer.css now handles its own .tree-view-container. 
@@ -51,4 +76,15 @@
   word-break: break-word; /* Break long words */
   max-width: 100%; /* Ensure content doesn't exceed container */
   overflow-wrap: break-word; /* Modern browsers */
+}
+
+/* Override for responsive - no breaking on narrow screens */
+@media (max-width: 768px) {
+  .json-value {
+    word-break: normal !important; /* Don't break words on narrow screens */
+    overflow-wrap: normal !important; /* Don't wrap on narrow screens */
+    white-space: nowrap !important; /* Keep on one line */
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ellipsis */
+  }
 }

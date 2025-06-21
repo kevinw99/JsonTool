@@ -156,3 +156,49 @@
   position: relative;
   z-index: 10;
 }
+
+/* Simple responsive approach - just hide overflow, no wrapping */
+@media (max-width: 768px) {
+  .json-tree-view {
+    overflow-x: auto !important; /* Allow horizontal scrolling if needed */
+  }
+  
+  .json-node-content {
+    white-space: nowrap !important; /* Keep everything on one line */
+    overflow: hidden !important; /* Hide content that doesn't fit */
+    flex-wrap: nowrap !important; /* Prevent flex wrapping */
+    min-width: 0 !important; /* Allow shrinking */
+  }
+  
+  .value-container {
+    white-space: nowrap !important; /* Keep values on one line */
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ... for truncated content */
+    flex-shrink: 1 !important; /* Allow shrinking */
+    min-width: 0 !important; /* Allow shrinking */
+    max-width: none !important; /* Remove any max-width constraints */
+  }
+  
+  .json-key {
+    white-space: nowrap !important; /* Keep keys on one line */
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ... for truncated content */
+    flex-shrink: 0 !important; /* Don't shrink keys too much */
+    max-width: 200px !important; /* Limit key width but allow truncation */
+  }
+  
+  .json-value {
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ... for truncated content */
+    white-space: nowrap !important; /* Keep values on one line */
+    flex-shrink: 1 !important; /* Allow values to shrink */
+    min-width: 0 !important; /* Allow shrinking */
+  }
+  
+  .json-collapsed-hint {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex-shrink: 1 !important;
+  }
+}

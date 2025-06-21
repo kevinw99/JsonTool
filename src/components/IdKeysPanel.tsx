@@ -20,11 +20,16 @@ interface ConsolidatedIdKey {
 }
 
 // Function to consolidate idKeys by collapsing parent arrays with the same idKey
-const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] => {
+export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] => {
   const consolidatedMap = new Map<string, ConsolidatedIdKey>();
 
   idKeysUsed.forEach(idKeyInfo => {
     let originalPath = idKeyInfo.arrayPath;
+    
+    // Safety check for undefined path
+    if (!originalPath || typeof originalPath !== 'string') {
+      return;
+    }
     
     // Remove "root." prefix if present
     if (originalPath.startsWith('root.')) {
@@ -125,12 +130,11 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
               numericPath += '[0]';
               currentData = currentData[0];
               console.log(`[IdKeysPanel] 🔄 Intermediate array: added [0], continuing with first element`);
+              console.log(`[IdKeysPanel] 📍 Updated numeric path: "${numericPath}"`);
             } else {
-              // This is the target array, pick first element to open
-              numericPath += '[0]';
-              console.log(`[IdKeysPanel] 🎯 Target array reached: added [0] to open first element`);
+              // This is the target array, DON'T add [0] - we want to target the array itself
+              console.log(`[IdKeysPanel] 🎯 Target array reached: stopping at array level (no [0] added)`);
             }
-            console.log(`[IdKeysPanel] 📍 Updated numeric path: "${numericPath}"`);
           }
         } else {
           // If we can't find the segment, break and use what we have
@@ -159,61 +163,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     
     // Call goToDiff which will handle expansion and highlighting
     goToDiff(numericPath);
-    
-    // Additional scrolling fallback after a delay to ensure DOM updates
-    setTimeout(() => {
-      console.log('[IdKeysPanel] 📜 Attempting scroll to element with path:', numericPath);
-      
-      // Try to find the element and scroll to it
-      const element = document.querySelector(`[data-path="${numericPath}"]`);
-      if (element) {
-        console.log('[IdKeysPanel] ✅ Found target element, scrolling to it');
-        element.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-        
-        // Flash the element
-        setTimeout(() => {
-          console.log('[IdKeysPanel] ✨ Flashing target element');
-          element.classList.add('json-flash');
-          setTimeout(() => {
-            element.classList.remove('json-flash');
-          }, 1000);
-        }, 100);
-      } else {
-        console.log('[IdKeysPanel] ❌ Target element not found with path:', numericPath);
-        
-        // Try alternative selectors
-        const alternatives = [
-          `[data-numeric-path="${numericPath}"]`,
-          `[data-generic-path="${numericPath}"]`,
-          `.json-node[data-path*="${numericPath.split('.').pop()}"]`
-        ];
-        
-        for (const selector of alternatives) {
-          const altElement = document.querySelector(selector);
-          if (altElement) {
-            console.log('[IdKeysPanel] ✅ Found element with alternative selector:', selector);
-            altElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
-            });
-            
-            // Flash the element
-            setTimeout(() => {
-              altElement.classList.add('json-flash');
-              setTimeout(() => {
-                altElement.classList.remove('json-flash');
-              }, 1000);
-            }, 100);
-            break;
-          }
-        }
-      }
-    }, 300); // Wait for DOM updates and expansions
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {

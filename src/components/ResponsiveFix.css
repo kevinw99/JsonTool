@@ -1,0 +1,44 @@
+/* Responsive fix for JSON tree - prevent text wrapping on narrow screens */
+@media (max-width: 768px) {
+  /* Target our specific responsive class */
+  .json-tree-view.responsive-no-wrap {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Force single-line layout with ellipsis truncation */
+  .json-tree-view.responsive-no-wrap * {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    white-space: nowrap !important;
+  }
+  
+  .json-tree-view.responsive-no-wrap .json-node-content,
+  .json-tree-view.responsive-no-wrap .json-node-content *,
+  .json-tree-view.responsive-no-wrap .value-container,
+  .json-tree-view.responsive-no-wrap .value-container *,
+  .json-tree-view.responsive-no-wrap .json-key,
+  .json-tree-view.responsive-no-wrap .json-value,
+  .json-tree-view.responsive-no-wrap .json-collapsed-hint {
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Allow proper truncation with ellipsis */
+  .json-tree-view.responsive-no-wrap .json-key,
+  .json-tree-view.responsive-no-wrap .json-value,
+  .json-tree-view.responsive-no-wrap .json-collapsed-hint,
+  .json-tree-view.responsive-no-wrap .value-container {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+  }
+  
+  /* Prevent flex items from growing too much */
+  .json-tree-view.responsive-no-wrap .json-node-content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}

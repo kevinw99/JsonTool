@@ -60,3 +60,28 @@
   padding: 8px;
   min-height: 50px; /* Ensure it has some minimum visible height */
 }
+
+/* Simple responsive for FilteredJsonViewer - keep layout, just smaller sizes */
+@media (max-width: 768px) {
+  .filtered-json-viewer-controls {
+    padding: 6px;
+  }
+  
+  .view-mode-toggle,
+  .filter-toggle {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .filtered-json-viewer-controls {
+    padding: 4px;
+  }
+  
+  .view-mode-toggle,
+  .filter-toggle {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}

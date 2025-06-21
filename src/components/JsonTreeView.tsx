@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useContext, useMemo, useState } from 'react';
 import './JsonTreeView.css';
+import './ResponsiveFix.css';
 import { JsonViewerSyncContext } from './JsonViewerSyncContext';
 import type { DiffResult } from '../utils/jsonCompare';
 
@@ -150,8 +151,16 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   // console.log(`[JsonNode VId:${viewerId}] Path: \\"${path}\\", GenericNumeric: \\"${genericNumericPathForNode}\\", IsExpanded: ${isExpanded}, IsHighlighted: ${isHighlighted}, HasChildren: ${hasChildren}`);
 
   useEffect(() => {
-    if (isHighlighted && (isObject || isArray) && hasChildren && !isExpanded) { 
-      // console.log(`[JsonNode VId:${viewerId}] Auto-expanding highlighted node: \\"${path}\\" (generic: \\"${genericNumericPathForNode}\\")`);
+    // Only auto-expand if this is an object/array with children that should be expanded
+    // For array navigation from ID Keys panel, we want to highlight the array but not auto-expand it
+    // unless it's specifically requested
+    const shouldAutoExpand = isHighlighted && (isObject || isArray) && hasChildren && !isExpanded;
+    
+    // Don't auto-expand array elements (paths ending with [number])
+    const isArrayElement = genericNumericPathForNode.match(/\[\d+\]$/);
+    
+    if (shouldAutoExpand && !isArrayElement) { 
+      console.log(`[JsonNode VId:${viewerId}] Auto-expanding highlighted node: "${path}" (generic: "${genericNumericPathForNode}")`);
       // Pass the node's generic numeric path to toggleExpand for auto-expansion
       toggleExpand(genericNumericPathForNode); 
     }
@@ -524,7 +533,7 @@ interface JsonTreeViewProps {
 
 export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, showDiffsOnly }) => {
   return (
-    <div className="json-tree-view">
+    <div className="json-tree-view responsive-no-wrap">
       <JsonNode
         data={data}
         path={`root_${viewerId}_root`}

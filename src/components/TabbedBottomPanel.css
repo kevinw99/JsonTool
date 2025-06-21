@@ -47,3 +47,28 @@
 .tab-content > * {
   height: 100%;
 }
+
+/* Simple responsive for TabbedBottomPanel - keep layout, smaller sizes */
+@media (max-width: 768px) {
+  .tab-header {
+    min-height: 36px;
+  }
+  
+  .tab-button {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tab-button {
+    padding: 5px 8px;
+    font-size: 11px;
+    min-width: 80px;
+  }
+  
+  .tab-header {
+    min-height: 32px;
+  }
+}

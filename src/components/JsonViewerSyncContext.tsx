@@ -146,14 +146,20 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     const goToDiff = useCallback((numericPathToExpand: string) => {
       console.log(`[JsonViewerSyncContext goToDiff] 🎯 CALLED with NUMERIC path: "${numericPathToExpand}"`);
       
+      // For array paths from ID Keys, we typically want to highlight the array itself
+      // The IdKeysPanel should now be sending us the array path without [0] at the end
+      // So we don't need to strip it here anymore
+      let pathToHighlight = numericPathToExpand;
+      console.log(`[JsonViewerSyncContext goToDiff] 🎯 Will highlight path: "${pathToHighlight}"`);
+      
       // Reset highlight to re-trigger the effect in JsonNode, even for the same path.
       setHighlightPathState(null);
 
       // Use a timeout to allow the null state to propagate before setting the new path.
       // This ensures the `isHighlighted && !prevIsHighlighted` condition in JsonNode's useEffect fires correctly.
       setTimeout(() => {
-        console.log(`[JsonViewerSyncContext goToDiff] 🔆 Setting highlight path: "${numericPathToExpand}"`);
-        setHighlightPathState(numericPathToExpand); // highlightPath is generic numeric
+        console.log(`[JsonViewerSyncContext goToDiff] 🔆 Setting highlight path: "${pathToHighlight}"`);
+        setHighlightPathState(pathToHighlight); // highlightPath is generic numeric
 
         setExpandedPathsState(currentExpandedPaths => {
           const newExpandedPaths = new Set<string>(currentExpandedPaths);
@@ -186,21 +192,35 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
           const ancestorGenericPaths: string[] = [];
           let currentAncestorPath = '';
-          // Iterate up to segments.length - 1 to get only strict ancestors for expansion.
-          // The final node itself will be handled by JsonNode's highlight + auto-expand effect if it's an object/array.
-          for (let i = 0; i < segments.length - 1; i++) { 
+          
+          // For array paths like "root.data.items[5]", we want to expand:
+          // - "root" 
+          // - "root.data"
+          // - "root.data.items" (the array itself)
+          // We need to continue through the full path to reach the target
+          
+          for (let i = 0; i < segments.length; i++) { 
             const segment = segments[i];
+            
             if (currentAncestorPath === '') {
               currentAncestorPath = segment;
             } else {
               if (segment.startsWith('[') && segment.endsWith(']')) {
+                // This is an array index - add the current path (array) as ancestor
+                ancestorGenericPaths.push(currentAncestorPath);
+                console.log(`[JsonViewerSyncContext goToDiff] 📂 Array ancestor: "${currentAncestorPath}"`);
+                // Continue building the path through the array index
                 currentAncestorPath += segment; 
               } else {
                 currentAncestorPath += `.${segment}`;
               }
             }
-            ancestorGenericPaths.push(currentAncestorPath);
-            console.log(`[JsonViewerSyncContext goToDiff] 📂 Ancestor path ${i + 1}: "${currentAncestorPath}"`);
+            
+            // Add all paths as ancestors - INCLUDING the final target
+            if (!ancestorGenericPaths.includes(currentAncestorPath)) {
+              ancestorGenericPaths.push(currentAncestorPath);
+              console.log(`[JsonViewerSyncContext goToDiff] 📂 Ancestor path ${i + 1}: "${currentAncestorPath}"`);
+            }
           }
           
           console.log(`[JsonViewerSyncContext goToDiff] 📂 GENERIC ancestor paths to expand (derived from "${numericPathToExpand}"):`, ancestorGenericPaths);
@@ -220,14 +240,16 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setTimeout(() => {
           console.log(`[JsonViewerSyncContext goToDiff] 📜 Attempting to scroll to target: "${numericPathToExpand}"`);
           
+          // The target path should be what we want to scroll to
+          let targetPath = numericPathToExpand;
+          console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target path for scrolling: "${targetPath}"`);
+          
           // Try multiple selectors to find the target element
           const selectors = [
-            `[data-path="${numericPathToExpand}"]`,
-            `[data-numeric-path="${numericPathToExpand}"]`,
-            `[data-generic-path="${numericPathToExpand}"]`,
-            `.json-node[data-path="${numericPathToExpand}"]`,
-            // Try without the array index as fallback
-            `[data-path="${numericPathToExpand.replace(/\[0\]$/, '')}"]`
+            `[data-path="${targetPath}"]`,
+            `[data-numeric-path="${targetPath}"]`,
+            `[data-generic-path="${targetPath}"]`,
+            `.json-node[data-path="${targetPath}"]`
           ];
           
           let targetElement = null;
@@ -241,11 +263,114 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           if (targetElement) {
             console.log(`[JsonViewerSyncContext goToDiff] 📜 Scrolling to target element`);
-            targetElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
+            console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target element details:`, {
+              tagName: targetElement.tagName,
+              className: targetElement.className,
+              dataPath: targetElement.getAttribute('data-path'),
+              textContent: targetElement.textContent?.substring(0, 100) + '...',
+              offsetTop: (targetElement as HTMLElement).offsetTop,
+              offsetLeft: (targetElement as HTMLElement).offsetLeft,
+              clientHeight: (targetElement as HTMLElement).clientHeight,
+              scrollTop: (targetElement as HTMLElement).scrollTop
             });
+            
+            // Use the scroll container for better control
+            const scrollContainer = targetElement.closest('.json-viewer-scroll-container');
+            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Scroll container found:`, scrollContainer ? 'YES' : 'NO');
+            
+            if (scrollContainer) {
+              // Force a reflow to ensure all DOM changes are applied
+              targetElement.getBoundingClientRect();
+              scrollContainer.getBoundingClientRect();
+              
+              const containerRect = scrollContainer.getBoundingClientRect();
+              const nodeRect = targetElement.getBoundingClientRect();
+              
+              console.log(`[JsonViewerSyncContext goToDiff] 📦 Container details:`, {
+                scrollTop: scrollContainer.scrollTop,
+                scrollHeight: scrollContainer.scrollHeight,
+                clientHeight: scrollContainer.clientHeight,
+                containerRect: {
+                  top: containerRect.top,
+                  height: containerRect.height
+                }
+              });
+              
+              console.log(`[JsonViewerSyncContext goToDiff] 🎯 Node details:`, {
+                nodeRect: {
+                  top: nodeRect.top,
+                  height: nodeRect.height
+                }
+              });
+              
+              // Calculate the desired scrollTop to center the node
+              const offsetTopInContainer = nodeRect.top - containerRect.top;
+              const desiredScrollTop = scrollContainer.scrollTop + offsetTopInContainer - (containerRect.height / 2) + (nodeRect.height / 2);
+              
+              console.log(`[JsonViewerSyncContext goToDiff] 🧮 Scroll calculation:`, {
+                offsetTopInContainer,
+                currentScrollTop: scrollContainer.scrollTop,
+                desiredScrollTop,
+                willScrollBy: desiredScrollTop - scrollContainer.scrollTop
+              });
+              
+              // Try multiple scrolling approaches
+              console.log(`[JsonViewerSyncContext goToDiff] 🔄 Trying programmatic scroll (bypass SyncScroll interference)`);
+              
+              // Approach 1: Direct scrollTop assignment (bypasses SyncScroll debouncing)
+              const originalScrollTop = scrollContainer.scrollTop;
+              scrollContainer.scrollTop = desiredScrollTop;
+              
+              console.log(`[JsonViewerSyncContext goToDiff] ✅ Direct scroll executed - from ${originalScrollTop} to ${desiredScrollTop}`);
+              
+              // Verify immediately
+              setTimeout(() => {
+                const actualScrollTop = scrollContainer.scrollTop;
+                console.log(`[JsonViewerSyncContext goToDiff] 📍 Immediate verification - container scrollTop: ${actualScrollTop}`);
+                
+                // If direct assignment didn't work, try scrollTo
+                if (Math.abs(actualScrollTop - desiredScrollTop) > 50) {
+                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 Direct scroll failed, trying scrollTo`);
+                  
+                  requestAnimationFrame(() => {
+                    scrollContainer.scrollTo({
+                      top: desiredScrollTop,
+                      behavior: 'auto' // Use auto instead of smooth to bypass potential conflicts
+                    });
+                    
+                    setTimeout(() => {
+                      console.log(`[JsonViewerSyncContext goToDiff] 📍 Post-scrollTo verification - container scrollTop: ${scrollContainer.scrollTop}`);
+                    }, 100);
+                  });
+                }
+              }, 100);
+            } else {
+              console.log(`[JsonViewerSyncContext goToDiff] ⚠️ Scroll container not found, using fallback scrollIntoView`);
+              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Element parent hierarchy:`, {
+                parentElement: targetElement.parentElement?.className,
+                grandParent: targetElement.parentElement?.parentElement?.className,
+                greatGrandParent: targetElement.parentElement?.parentElement?.parentElement?.className
+              });
+              
+              // Try to find any scrollable parent
+              let scrollableParent = targetElement.parentElement;
+              while (scrollableParent) {
+                const style = window.getComputedStyle(scrollableParent);
+                if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                  console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found scrollable parent:`, scrollableParent.className);
+                  scrollableParent.scrollTop = scrollableParent.scrollTop + 200; // Test scroll
+                  break;
+                }
+                scrollableParent = scrollableParent.parentElement;
+              }
+              
+              // Fallback to standard scrollIntoView with more specific options
+              targetElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+              });
+            }
             
             // Flash the element after scrolling
             setTimeout(() => {
@@ -256,10 +381,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               }, 1000);
             }, 200);
           } else {
-            console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found for path: "${numericPathToExpand}"`);
+            console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found for path: "${targetPath}"`);
             console.log(`[JsonViewerSyncContext goToDiff] 🔍 Tried selectors:`, selectors);
           }
-        }, 500); // Increased delay to ensure DOM updates and expansions complete
+        }, 800); // Increased delay to ensure DOM updates and expansions complete
       }, 50); // A small delay to ensure re-triggering.
 
     }, [setHighlightPathState]); // Dependencies simplified

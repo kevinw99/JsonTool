@@ -135,3 +135,58 @@ body {
 .app-content-wrapper {
   position: relative;
 }
+
+/* Responsive header improvements */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 6px 12px;
+    height: 50px; /* Smaller header on mobile */
+  }
+  
+  .app-title {
+    font-size: 1.1rem;
+  }
+  
+  .app-controls {
+    gap: 8px;
+  }
+  
+  .sync-toggle-button {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .app-title {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  
+  .app-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 6px;
+  }
+  
+  .app-title {
+    font-size: 0.95rem;
+  }
+  
+  .sync-toggle-button {
+    padding: 3px 6px;
+    font-size: 0.85rem;
+  }
+}
