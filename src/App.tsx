@@ -35,9 +35,9 @@ function App() {
   })
   
   // Load active tab from localStorage, default to 'differences'
-  const [activeTab, setActiveTab] = useState<'differences' | 'idkeys'>(() => {
+  const [activeTab, setActiveTab] = useState<'differences' | 'idkeys' | 'ignored'>(() => {
     const saved = localStorage.getItem('jsontool-active-tab');
-    return (saved === 'idkeys') ? 'idkeys' : 'differences';
+    return (saved === 'idkeys' || saved === 'ignored') ? saved as 'differences' | 'idkeys' | 'ignored' : 'differences';
   })
 
   const headerAndControlsHeight = 60; // Reduced height

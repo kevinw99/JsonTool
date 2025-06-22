@@ -170,6 +170,14 @@
   z-index: 10;
 }
 
+/* Persistent highlight with border - stays until next node is updated */
+.json-node.persistent-highlight {
+  border: 2px solid #007acc !important;
+  border-radius: 4px !important;
+  margin: 1px 0 !important; /* Prevent layout shift from border */
+  /* No background color - border only highlighting */
+}
+
 /* Simple responsive approach - just hide overflow, no wrapping */
 @media (max-width: 768px) {
   .json-tree-view {

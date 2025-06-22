@@ -88,6 +88,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     expandedPaths, 
     toggleExpand, 
     highlightPath, // Assumed to be numerically indexed for array segments from context
+    persistentHighlightPath, // For persistent border highlighting
     diffResults: diffResultsData,
     showDiffsOnly: showDiffsOnlyContext, 
     ignoredDiffs, 
@@ -140,6 +141,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // Compare it with the node's generic numeric path.
     // console.log(`[JsonNode VId:${viewerId}] Highlight Check: Node's genericNumericPathForNode=\\"${genericNumericPathForNode}\\", context.highlightPath=\\"${highlightPath}\\"`);
     return highlightPath === genericNumericPathForNode;
+  })();
+
+  const isPersistentlyHighlighted = (() => {
+    if (!persistentHighlightPath) return false; 
+    // persistentHighlightPath from context is already generic and numeric.
+    // Compare it with the node's generic numeric path.
+    return persistentHighlightPath === genericNumericPathForNode;
   })();
 
   const isExpanded = (() => {
@@ -217,20 +225,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           nodeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // Highlighting logic remains the same
-        nodeRef.current.classList.add('flash-highlight');
-        nodeRef.current.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
-        
-        const highlightTimer = setTimeout(() => {
-          if (nodeRef.current) {
-            nodeRef.current.classList.remove('flash-highlight');
-            nodeRef.current.style.backgroundColor = '';
-          }
-        }, 3000);
-
         setIsPendingScroll(false); // Disarm trigger after scrolling
-
-        return () => clearTimeout(highlightTimer);
       }
     }
   }, [isPendingScroll, isExpanded, hasChildren]);
@@ -388,6 +383,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     'json-node',
     isLastChild ? 'last-child' : '',
     isHighlighted ? 'highlighted-node' : '',
+    isPersistentlyHighlighted ? 'persistent-highlight' : '',
     ...diffStatusClasses, // Spread the array of diff classes
   ].filter(Boolean).join(' ');
 

@@ -8,6 +8,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   showColoredDiff: boolean;
   expandedPaths: Set<string>; // Stores generic numeric paths (e.g., "root.some.array[0]")
   ignoredDiffs: Set<string>; 
+  ignoredPatterns: Map<string, string>; // Map<id, pattern> for ignored patterns
   setViewMode: (mode: 'text' | 'tree') => void;
   setShowDiffsOnly: (show: boolean) => void;
   setShowColoredDiff: (show: boolean) => void;
@@ -16,9 +17,15 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   syncEnabled: boolean;
   setSyncEnabled: (enabled: boolean) => void;
   toggleIgnoreDiff: (diffPath: string) => void; 
+  addIgnoredPattern: (pattern: string) => void;
+  removeIgnoredPattern: (id: string) => void;
+  updateIgnoredPattern: (id: string, newPattern: string) => void;
+  isPathIgnoredByPattern: (path: string) => boolean;
   goToDiff: (diffPath: string) => void; 
   highlightPath: string | null;
   setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
+  persistentHighlightPath: string | null; // New property for persistent border highlighting
+  setPersistentHighlightPath: (path: string | null) => void;
   clearAllIgnoredDiffs: () => void;
   diffResults: DiffResult[]; 
   viewerId1: string; // Still needed for root path construction if JsonNode needs it initially, though generic paths are preferred
@@ -56,7 +63,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     );
     const [syncEnabled, setSyncEnabled] = useState<boolean>(initialSyncEnabled);
     const [ignoredDiffs, setIgnoredDiffsState] = useState<Set<string>>(new Set());
+    const [ignoredPatterns, setIgnoredPatternsState] = useState<Map<string, string>>(new Map());
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
+    const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
 
     const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
       _setViewMode(mode);
@@ -160,6 +169,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       setTimeout(() => {
         console.log(`[JsonViewerSyncContext goToDiff] 🔆 Setting highlight path: "${pathToHighlight}"`);
         setHighlightPathState(pathToHighlight); // highlightPath is generic numeric
+        
+        // Set persistent highlight for border highlighting that persists until next navigation
+        setPersistentHighlightPath(pathToHighlight);
+        console.log(`[JsonViewerSyncContext goToDiff] 🔒 Setting persistent highlight path: "${pathToHighlight}"`);
 
         setExpandedPathsState(currentExpandedPaths => {
           const newExpandedPaths = new Set<string>(currentExpandedPaths);
@@ -436,13 +449,121 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setShowDiffsOnlyState(prev => !prev);
     }, []);
 
+    // Wildcard pattern matching function
+    const matchesPattern = useCallback((path: string, pattern: string): boolean => {
+      // Convert pattern to regex:
+      // 1. Split pattern by '.' to handle each segment separately
+      // 2. For each segment, convert * to match within that segment
+      // 3. Reassemble with literal dots
+      
+      const patternSegments = pattern.split('.');
+      const pathSegments = path.split('.');
+      
+      // If pattern has different number of segments than path, check if pattern uses wildcards
+      if (patternSegments.length !== pathSegments.length) {
+        // Fall back to full regex matching for complex patterns
+        let regexPattern = pattern
+          .replace(/[.+?^${}()|\\]/g, '\\$&') // Escape regex special chars except * and []
+          .replace(/\[(\d+)\]/g, '\\[$1\\]') // Escape literal array indices like [0]
+          .replace(/\[\*\]/g, '\\[[0-9]+\\]') // Convert [*] to match any array index
+          .replace(/\*/g, '.*'); // Convert * to match any characters (including dots for complex patterns)
+        
+        const regex = new RegExp(`^${regexPattern}$`);
+        const result = regex.test(path);
+        console.log(`[Pattern Match] Complex - Path: "${path}", Pattern: "${pattern}", Regex: "${regexPattern}", Result: ${result}`);
+        return result;
+      }
+      
+      // Segment-by-segment matching
+      for (let i = 0; i < patternSegments.length; i++) {
+        const patternSegment = patternSegments[i];
+        const pathSegment = pathSegments[i];
+        
+        if (patternSegment === '*') {
+          // * matches any segment
+          continue;
+        }
+        
+        if (patternSegment.includes('*')) {
+          // Segment contains wildcards - convert to regex
+          const segmentRegex = patternSegment
+            .replace(/[.+?^${}()|\\]/g, '\\$&') // Escape regex special chars
+            .replace(/\[\*\]/g, '\\[[0-9]+\\]') // Handle array wildcards
+            .replace(/\*/g, '.*'); // Convert * to match any chars within segment
+          
+          const regex = new RegExp(`^${segmentRegex}$`);
+          if (!regex.test(pathSegment)) {
+            console.log(`[Pattern Match] Segment failed - PathSegment: "${pathSegment}", PatternSegment: "${patternSegment}", SegmentRegex: "${segmentRegex}"`);
+            return false;
+          }
+        } else {
+          // Exact match required
+          if (patternSegment !== pathSegment) {
+            console.log(`[Pattern Match] Exact match failed - PathSegment: "${pathSegment}", PatternSegment: "${patternSegment}"`);
+            return false;
+          }
+        }
+      }
+      
+      console.log(`[Pattern Match] Success - Path: "${path}", Pattern: "${pattern}"`);
+      return true;
+    }, []);
+
+    // Check if a path is ignored by any pattern
+    const isPathIgnoredByPattern = useCallback((path: string): boolean => {
+      for (const pattern of ignoredPatterns.values()) {
+        if (matchesPattern(path, pattern)) {
+          return true;
+        }
+      }
+      return false;
+    }, [ignoredPatterns, matchesPattern]);
+
+    // Pattern management functions
+    const addIgnoredPattern = useCallback((pattern: string) => {
+      const id = `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      setIgnoredPatternsState(prev => new Map(prev).set(id, pattern));
+    }, []);
+
+    const removeIgnoredPattern = useCallback((id: string) => {
+      setIgnoredPatternsState(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+    }, []);
+
+    const updateIgnoredPattern = useCallback((id: string, newPattern: string) => {
+      setIgnoredPatternsState(prev => {
+        if (prev.has(id)) {
+          return new Map(prev).set(id, newPattern);
+        }
+        return prev;
+      });
+    }, []);
+
+    // Update ignoredDiffs to include both specific paths and pattern matches
+    const effectiveIgnoredDiffs = useCallback(() => {
+      const ignored = new Set(ignoredDiffs);
+      
+      // Add paths that match any ignored pattern
+      for (const diff of diffResults) {
+        if (diff.numericPath && isPathIgnoredByPattern(diff.numericPath)) {
+          ignored.add(diff.numericPath);
+        }
+      }
+      
+      return ignored;
+    }, [ignoredDiffs, diffResults, isPathIgnoredByPattern]);
+
     return (
         <JsonViewerSyncContext.Provider value={{
             viewMode,
             showDiffsOnly,
             showColoredDiff,
             expandedPaths,
-            ignoredDiffs,
+            ignoredDiffs: effectiveIgnoredDiffs(),
+            ignoredPatterns,
             setViewMode: memoizedSetViewMode,
             setShowDiffsOnly: setShowDiffsOnlyState, 
             setShowColoredDiff: memoizedSetShowColoredDiff,
@@ -451,9 +572,15 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             syncEnabled,
             setSyncEnabled,
             toggleIgnoreDiff,
+            addIgnoredPattern,
+            removeIgnoredPattern,
+            updateIgnoredPattern,
+            isPathIgnoredByPattern,
             goToDiff,
             highlightPath,
             setHighlightPath: memoizedSetHighlightPath,
+            persistentHighlightPath,
+            setPersistentHighlightPath,
             clearAllIgnoredDiffs,
             diffResults,
             viewerId1, 

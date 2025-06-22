@@ -90,7 +90,7 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
 };
 
 export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }) => {
-  const { goToDiff } = useJsonViewerSync();
+  const { goToDiff, setPersistentHighlightPath } = useJsonViewerSync();
   const consolidatedIdKeys = consolidateIdKeys(idKeysUsed || []);
 
   const buildNumericPath = (displayPath: string): string => {
@@ -160,6 +160,9 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     
     const numericPath = buildNumericPath(pathToExpand);
     console.log('[IdKeysPanel] 🎯 Calling goToDiff with numeric path:', numericPath);
+    
+    // Set persistent highlight for border highlighting that persists until next navigation
+    setPersistentHighlightPath(numericPath);
     
     // Call goToDiff which will handle expansion and highlighting
     goToDiff(numericPath);
