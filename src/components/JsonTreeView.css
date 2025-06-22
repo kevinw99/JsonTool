@@ -14,6 +14,8 @@
   font-size: var(--font-size);
   line-height: var(--line-height);
   padding: 8px;
+  /* Remove overflow settings to let parent SyncScroll handle scrolling */
+  white-space: nowrap; /* Prevent wrapping at the tree level */
 }
 
 .json-node {
@@ -27,6 +29,9 @@
   display: flex;
   align-items: center;
   cursor: pointer;
+  white-space: nowrap; /* Prevent wrapping to maintain alignment */
+  /* Remove overflow: hidden to not interfere with scroll container */
+  min-width: 0; /* Allow shrinking */
 }
 
 /* The expander arrow (►/▼). It's pulled into the parent's padding. */
@@ -59,12 +64,25 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+  overflow: hidden; /* Hide overflow content */
+  text-overflow: ellipsis; /* Show ... for truncated content */
+  min-width: 0; /* Allow shrinking */
+  flex: 1; /* Take remaining space */
 }
 
 .json-value.string { color: #032f62; }
 .json-value.number { color: #1a01cc; }
 .json-value.boolean { font-weight: bold; }
 .json-value.null { color: #808080; font-style: italic; }
+
+/* Ensure JSON values don't wrap and show ellipsis when too long */
+.json-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+}
 
 .json-bracket, .json-brace {
   color: #333;
@@ -85,28 +103,23 @@
 
 /* --- Diff Style Overhaul --- */
 
-/* Type A: Parent of a Diff (highlight text content only, not brackets) */
-.json-parent-changed-highlight .json-key,
-.json-parent-changed-highlight .json-value,
-.json-parent-changed-highlight .json-collapsed-hint {
-  background-color: #b3d9ff; /* Darker blue background for text only */
-  display: inline; /* Only highlight the actual text content */
+/* Type A: Parent of a Diff (highlight the entire node) */
+.json-node.json-parent-changed {
+  background-color: #e6f3ff !important; /* Light blue background for entire node */
 }
 
-/* Type B: Property Added/Deleted (highlights the entire row) */
-.json-added-highlight {
-  background-color: #d4edda !important; /* Distinct green - full row */
+/* Type B: Property Added/Deleted (highlights the entire node) */
+.json-node.json-added {
+  background-color: #d4edda !important; /* Distinct green - full node */
 }
 
-.json-deleted-highlight {
-  background-color: #f8d7da !important; /* Distinct red - full row */
+.json-node.json-deleted {
+  background-color: #f8d7da !important; /* Distinct red - full node */
 }
 
-/* Type C: Value Changed (highlights only the key and value) */
-.json-node.json-changed > .json-node-content .json-key,
-.json-node.json-changed > .json-node-content .json-value {
-  background-color: #fff3cd; /* Light Yellow */
-  display: inline; /* Only highlight the actual text content */
+/* Type C: Value Changed (highlights the entire node) */
+.json-node.json-changed {
+  background-color: #fff3cd !important; /* Light Yellow - full node */
 }
 
 /* Flash animation for highlighting target elements */

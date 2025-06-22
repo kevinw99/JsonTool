@@ -391,13 +391,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     ...diffStatusClasses, // Spread the array of diff classes
   ].filter(Boolean).join(' ');
 
-  // Create content-specific classes for highlighting
+  // Create content-specific classes
   const contentClasses = [
     'json-node-content',
     hasChildren ? 'clickable' : '',
-    diffStatusClasses.includes('json-parent-changed') ? 'json-parent-changed-highlight' : '',
-    diffStatusClasses.includes('json-added') ? 'json-added-highlight' : '',
-    diffStatusClasses.includes('json-deleted') ? 'json-deleted-highlight' : '',
   ].filter(Boolean).join(' ');
 
   const diffSymbol = (() => {
