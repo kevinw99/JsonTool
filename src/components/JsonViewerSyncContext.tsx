@@ -63,7 +63,34 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     );
     const [syncEnabled, setSyncEnabled] = useState<boolean>(initialSyncEnabled);
     const [ignoredDiffs, setIgnoredDiffsState] = useState<Set<string>>(new Set());
-    const [ignoredPatterns, setIgnoredPatternsState] = useState<Map<string, string>>(new Map());
+    
+    // Helper functions for localStorage persistence
+    const saveIgnoredPatternsToStorage = useCallback((patterns: Map<string, string>) => {
+      try {
+        const patternsArray = Array.from(patterns.entries());
+        localStorage.setItem('jsonTool_ignoredPatterns', JSON.stringify(patternsArray));
+      } catch (error) {
+        console.warn('Failed to save ignored patterns to localStorage:', error);
+      }
+    }, []);
+
+    const loadIgnoredPatternsFromStorage = useCallback((): Map<string, string> => {
+      try {
+        const stored = localStorage.getItem('jsonTool_ignoredPatterns');
+        if (stored) {
+          const patternsArray = JSON.parse(stored);
+          return new Map(patternsArray);
+        }
+      } catch (error) {
+        console.warn('Failed to load ignored patterns from localStorage:', error);
+      }
+      return new Map();
+    }, []);
+
+    // Initialize ignored patterns from localStorage
+    const [ignoredPatterns, setIgnoredPatternsState] = useState<Map<string, string>>(() => {
+      return loadIgnoredPatternsFromStorage();
+    });
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
     const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
 
@@ -470,7 +497,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         const regex = new RegExp(`^${regexPattern}$`);
         const result = regex.test(path);
-        console.log(`[Pattern Match] Complex - Path: "${path}", Pattern: "${pattern}", Regex: "${regexPattern}", Result: ${result}`);
         return result;
       }
       
@@ -493,19 +519,16 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           const regex = new RegExp(`^${segmentRegex}$`);
           if (!regex.test(pathSegment)) {
-            console.log(`[Pattern Match] Segment failed - PathSegment: "${pathSegment}", PatternSegment: "${patternSegment}", SegmentRegex: "${segmentRegex}"`);
             return false;
           }
         } else {
           // Exact match required
           if (patternSegment !== pathSegment) {
-            console.log(`[Pattern Match] Exact match failed - PathSegment: "${pathSegment}", PatternSegment: "${patternSegment}"`);
             return false;
           }
         }
       }
       
-      console.log(`[Pattern Match] Success - Path: "${path}", Pattern: "${pattern}"`);
       return true;
     }, []);
 
@@ -522,25 +545,32 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     // Pattern management functions
     const addIgnoredPattern = useCallback((pattern: string) => {
       const id = `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      setIgnoredPatternsState(prev => new Map(prev).set(id, pattern));
-    }, []);
+      setIgnoredPatternsState(prev => {
+        const newMap = new Map(prev).set(id, pattern);
+        saveIgnoredPatternsToStorage(newMap);
+        return newMap;
+      });
+    }, [saveIgnoredPatternsToStorage]);
 
     const removeIgnoredPattern = useCallback((id: string) => {
       setIgnoredPatternsState(prev => {
         const newMap = new Map(prev);
         newMap.delete(id);
+        saveIgnoredPatternsToStorage(newMap);
         return newMap;
       });
-    }, []);
+    }, [saveIgnoredPatternsToStorage]);
 
     const updateIgnoredPattern = useCallback((id: string, newPattern: string) => {
       setIgnoredPatternsState(prev => {
         if (prev.has(id)) {
-          return new Map(prev).set(id, newPattern);
+          const newMap = new Map(prev).set(id, newPattern);
+          saveIgnoredPatternsToStorage(newMap);
+          return newMap;
         }
         return prev;
       });
-    }, []);
+    }, [saveIgnoredPatternsToStorage]);
 
     // Update ignoredDiffs to include both specific paths and pattern matches
     const effectiveIgnoredDiffs = useCallback(() => {

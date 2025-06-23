@@ -108,6 +108,19 @@
   text-align: left; /* Ensure left alignment */
 }
 
+/* Style the diff symbols with appropriate colors */
+.diff-item.added .diff-summary-inline {
+  color: #52c41a; /* Green for added items */
+}
+
+.diff-item.removed .diff-summary-inline {
+  color: #f5222d; /* Red for removed items */
+}
+
+.diff-item.changed .diff-summary-inline {
+  color: #faad14; /* Orange for changed items */
+}
+
 .ignored-badge {
   background: #ff4d4f;
   color: white;

@@ -4,14 +4,13 @@ import './ViewControls.css';
 
 interface ViewControlsProps {
   onToggleViewMode?: () => void;
+  onSaveFiles?: () => void;
 }
 
-export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode }) => {
+export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, onSaveFiles }) => {
   const { 
     viewMode, 
     setViewMode, 
-    showDiffsOnly, 
-    setShowDiffsOnly,
     showColoredDiff,
     setShowColoredDiff
   } = useJsonViewerSync();
@@ -21,10 +20,6 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode }) 
     if (onToggleViewMode) {
       onToggleViewMode();
     }
-  };
-
-  const toggleShowDiffsOnly = () => {
-    setShowDiffsOnly(!showDiffsOnly);
   };
   
   const toggleShowColoredDiff = () => {
@@ -41,17 +36,20 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode }) 
           {viewMode === 'text' ? '🔄 View as Tree' : '🔄 View as Text'}
         </button>
         <button 
-          className={`filter-toggle ${showDiffsOnly ? 'active' : ''}`}
-          onClick={toggleShowDiffsOnly}
-        >
-          {showDiffsOnly ? '👁️ Showing Diffs Only' : '👁️ Showing Full JSON'}
-        </button>
-        <button 
           className={`diff-mode-toggle ${showColoredDiff ? 'active' : ''}`}
           onClick={toggleShowColoredDiff}
         >
           {showColoredDiff ? '🎨 Show Diff Highlighting' : '⬜ Hide Diff Highlighting'}
         </button>
+        {onSaveFiles && (
+          <button 
+            className="save-files-button"
+            onClick={onSaveFiles}
+            title="Save current files as sample1.json and sample2.json"
+          >
+            💾 Save Files
+          </button>
+        )}
       </div>
     </div>
   );

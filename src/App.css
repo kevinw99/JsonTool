@@ -107,16 +107,22 @@ body {
   display: flex;
   align-items: center;
   gap: 12px; /* Space between control groups */
+  height: 32px; /* Ensure consistent height */
 }
 
 .sync-toggle-button {
-  padding: 6px 12px;
+  padding: 4px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  font-size: 14px;
 }
 
 .sync-toggle-button.toggled-on {
@@ -125,10 +131,12 @@ body {
   color: #096dd9;
 }
 
-/* Assuming ViewControls has its own styling, but we can add overrides if needed */
-.app-controls .view-controls-container {
-  /* Example: remove margin if ViewControls adds it */
+/* Ensure ViewControls aligns properly with other controls */
+.app-controls .view-controls {
   margin: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
 }
 
 /* Container for resizable divider */
@@ -154,6 +162,7 @@ body {
   .sync-toggle-button {
     padding: 4px 8px;
     font-size: 0.9rem;
+    height: 28px;
   }
 }
 
@@ -188,5 +197,6 @@ body {
   .sync-toggle-button {
     padding: 3px 6px;
     font-size: 0.85rem;
+    height: 24px;
   }
 }

@@ -78,14 +78,14 @@ export const DiffList: React.FC<DiffListProps> = ({
   const getDiffSummary = (diff: DiffResult): string => {
     switch (diff.type) {
       case 'added':
-        // Use value2 for added diffs
-        return `Added: ${formatValue(diff.value2)}`;
+        // Use value2 for added diffs (+ indicates added to the new/right version)
+        return `+ Added: ${formatValue(diff.value2)}`;
       case 'removed':
-        // Use value1 for removed diffs
-        return `Removed: ${formatValue(diff.value1)}`;
+        // Use value1 for removed diffs (- indicates removed from the old/left version)
+        return `- Removed: ${formatValue(diff.value1)}`;
       case 'changed':
         // Use value1 and value2 for changed diffs
-        return `Changed: ${formatValue(diff.value1)} → ${formatValue(diff.value2)}`;
+        return `~ Changed: ${formatValue(diff.value1)} → ${formatValue(diff.value2)}`;
       default:
         return '';
     }

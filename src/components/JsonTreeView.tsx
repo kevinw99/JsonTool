@@ -393,12 +393,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     hasChildren ? 'clickable' : '',
   ].filter(Boolean).join(' ');
 
-  const diffSymbol = (() => {
-    if (diffStatus === 'json-added') return '+';
-    if (diffStatus === 'json-deleted') return '-';
-    if (diffStatus === 'json-changed') return ''; // No symbol for changed, just highlighting
-    return '';
-  })();
+
 
   if (isArray && data) {
     const arrData = data as JsonArray;
@@ -411,7 +406,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         data-original-path={path}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
-          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
             {hasChildren ? (isExpanded ? '▼' : '►') : ''}
           </span>
@@ -427,25 +421,66 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         </div>
         {isExpanded && hasChildren && (
           <div className="json-node-children">
-            {arrData.map((itemValue, index) => {
-              const itemPathSuffix = getItemPathSuffix(itemValue, index, idKeySetting);
-              const childPath = `${path}${itemPathSuffix}`;
-              return (
-                <JsonNode
-                  key={`${viewerId}-${childPath}`}
-                  data={itemValue}
-                  path={childPath}
-                  level={level + 1}
-                  viewerId={viewerId}
-                  isLastChild={index === arrData.length - 1}
-                  jsonSide={jsonSide}
-                  idKeySetting={idKeySetting}
-                  actualNumericIndex={index}
-                  showDiffsOnly={showDiffsOnly}
-                  onNodeToggle={onNodeToggle}
-                />
-              );
-            })}
+            {(() => {
+              // Sort array by ID key if idKeySetting is provided
+              let sortedData = [...arrData];
+              let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
+              
+              if (idKeySetting) {
+                // Create array of {item, originalIndex} pairs
+                const itemsWithOriginalIndex = arrData.map((item, originalIndex) => ({
+                  item,
+                  originalIndex
+                }));
+                
+                // Sort by ID key value
+                itemsWithOriginalIndex.sort((a, b) => {
+                  const aHasId = typeof a.item === 'object' && a.item !== null && !Array.isArray(a.item) && idKeySetting in a.item;
+                  const bHasId = typeof b.item === 'object' && b.item !== null && !Array.isArray(b.item) && idKeySetting in b.item;
+                  
+                  if (!aHasId && !bHasId) return 0;
+                  if (!aHasId) return 1; // Items without ID key go to end
+                  if (!bHasId) return -1; // Items without ID key go to end
+                  
+                  const aId = String((a.item as JsonObject)[idKeySetting]);
+                  const bId = String((b.item as JsonObject)[idKeySetting]);
+                  
+                  return aId.localeCompare(bId);
+                });
+                
+                // Extract sorted data and build index map
+                sortedData = itemsWithOriginalIndex.map(({ item }) => item);
+                itemsWithOriginalIndex.forEach(({ originalIndex }, sortedIndex) => {
+                  sortedIndexMap.set(sortedIndex, originalIndex);
+                });
+              } else {
+                // No sorting, create identity mapping
+                arrData.forEach((_, index) => {
+                  sortedIndexMap.set(index, index);
+                });
+              }
+              
+              return sortedData.map((itemValue, sortedIndex) => {
+                const originalIndex = sortedIndexMap.get(sortedIndex) ?? sortedIndex;
+                const itemPathSuffix = getItemPathSuffix(itemValue, originalIndex, idKeySetting);
+                const childPath = `${path}${itemPathSuffix}`;
+                return (
+                  <JsonNode
+                    key={`${viewerId}-${childPath}`}
+                    data={itemValue}
+                    path={childPath}
+                    level={level + 1}
+                    viewerId={viewerId}
+                    isLastChild={sortedIndex === sortedData.length - 1}
+                    jsonSide={jsonSide}
+                    idKeySetting={idKeySetting}
+                    actualNumericIndex={originalIndex}
+                    showDiffsOnly={showDiffsOnly}
+                    onNodeToggle={onNodeToggle}
+                  />
+                );
+              });
+            })()}
             <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-bracket json-closing-bracket">]</span>
             </div>
@@ -465,7 +500,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         data-original-path={path}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
-          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
             {hasChildren ? (isExpanded ? '▼' : '►') : ''}
           </span>
@@ -517,7 +551,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         data-original-path={path}
       >
         <div className={contentClasses}>
-          <span className={`diff-marker ${diffStatus}`}>{diffSymbol}</span>
           <span className="expander no-children" />
           <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>
           <span className="json-value">{formatValue(data)}</span>

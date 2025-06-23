@@ -1,18 +1,20 @@
 .view-controls {
-  margin: 0 auto 10px;
-  width: 100%;
+  margin: 0;
+  width: auto;
 }
 
 .controls-container {
   display: flex;
+  align-items: center;
   gap: 10px;
-  justify-content: center;
-  width: 100%;
+  justify-content: flex-start;
+  width: auto;
 }
 
 .view-mode-toggle,
 .filter-toggle,
-.diff-mode-toggle {
+.diff-mode-toggle,
+.save-files-button {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -21,6 +23,11 @@
   font-size: 14px;
   color: #333;
   outline: none;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .view-mode-toggle:hover,
@@ -35,4 +42,8 @@
   background: #e6f7ff;
   border-color: #1890ff;
   color: #1890ff;
+}
+
+.save-files-button:hover {
+  background: #444;
 }
