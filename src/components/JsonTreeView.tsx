@@ -241,7 +241,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     // Debug logging to trace path matching
     // console.log(`[JsonNode VId:${viewerId}] Checking diff status for path: "${normalizedPathForDiff}"`);
-    // console.log(`[JsonNode VId:${viewerId}] Available diff paths:`, relevantDiffs.map(d => d.numericPath));
+    // if (relevantDiffs.length > 0) {
+    //   console.log(`[JsonNode VId:${viewerId}] Available diff paths:`, relevantDiffs.map(d => d.numericPath));
+    // }
 
     // Check for direct matches first
     for (const diff of relevantDiffs) {

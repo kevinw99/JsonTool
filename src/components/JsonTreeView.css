@@ -103,23 +103,27 @@
 
 /* --- Diff Style Overhaul --- */
 
-/* Type A: Parent of a Diff (highlight the entire node) */
-.json-node.json-parent-changed {
-  background-color: #e6f3ff !important; /* Light blue background for entire node */
+/* Type A: Parent of a Diff (light blue background for parent's content line) */
+.json-node.json-parent-changed > .json-node-content {
+  background-color: #e6f3ff; /* Light blue background for parent's content line including spaces */
+  width: fit-content; /* Make background only span the content width */
 }
 
-/* Type B: Property Added/Deleted (highlights the entire node) */
-.json-node.json-added {
-  background-color: #d4edda !important; /* Distinct green - full node */
+/* Type B: Property Added/Deleted (highlights the node's own content line) */
+.json-node.json-added > .json-node-content {
+  background-color: #d4edda; /* Green background for content line including spaces */
+  width: fit-content; /* Make background only span the content width */
 }
 
-.json-node.json-deleted {
-  background-color: #f8d7da !important; /* Distinct red - full node */
+.json-node.json-deleted > .json-node-content {
+  background-color: #f8d7da; /* Red background for content line including spaces */
+  width: fit-content; /* Make background only span the content width */
 }
 
-/* Type C: Value Changed (highlights the entire node) */
-.json-node.json-changed {
-  background-color: #fff3cd !important; /* Light Yellow - full node */
+/* Type C: Value Changed (highlights the node's own content line) */
+.json-node.json-changed > .json-node-content {
+  background-color: #fff3cd; /* Yellow background for content line including spaces */
+  width: fit-content; /* Make background only span the content width */
 }
 
 /* Flash animation for highlighting target elements */
