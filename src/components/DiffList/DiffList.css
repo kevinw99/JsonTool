@@ -118,7 +118,7 @@
 }
 
 .diff-item.changed .diff-summary-inline {
-  color: #faad14; /* Orange for changed items */
+  color: #1a365d; /* Dark blue for changed items - better readability */
 }
 
 .ignored-badge {
