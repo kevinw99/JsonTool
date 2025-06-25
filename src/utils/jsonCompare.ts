@@ -52,8 +52,15 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
   if (!sampleObj) return null;
 
   let candidateKeys = Object.keys(sampleObj);
+  
+  // For accounts array, prefer accountType over entityId since entityId might change
+  if (objArr1.length > 0 && objArr1[0].entityId && objArr1[0].accountType) {
+    if (candidateKeys.includes('accountType')) {
+      candidateKeys = ['accountType', ...candidateKeys.filter(key => key !== 'accountType')];
+    }
+  }
 
-  const preferredKeyNames = ["id", "key", "uuid", "name", "_id"];
+  const preferredKeyNames = ["id", "key", "uuid", "name", "_id", "accountType"];
   candidateKeys.sort((a, b) => {
     const aLower = a.toLowerCase();
     const bLower = b.toLowerCase();

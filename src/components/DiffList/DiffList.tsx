@@ -55,7 +55,7 @@ export const DiffList: React.FC<DiffListProps> = ({
     goToDiff(pathWithRoot);
   };
 
-  const formatValue = (value: any): string => {
+  const formatValue = (value: any, truncate: boolean = true): string => {
     if (value === undefined) return 'undefined';
     if (value === null) return 'null';
     
@@ -67,7 +67,7 @@ export const DiffList: React.FC<DiffListProps> = ({
     }
     
     if (typeof value === 'string') {
-      if (value.length > 30) {
+      if (truncate && value.length > 30) {
         return `"${value.substring(0, 30)}..."`;
       }
       return `"${value}"`;
@@ -75,17 +75,17 @@ export const DiffList: React.FC<DiffListProps> = ({
     return String(value);
   };
   
-  const getDiffSummary = (diff: DiffResult): string => {
+  const getDiffSummary = (diff: DiffResult, truncate: boolean = true): string => {
     switch (diff.type) {
       case 'added':
         // Use value2 for added diffs (+ indicates added to the new/right version)
-        return `+ Added: ${formatValue(diff.value2)}`;
+        return `+ Added: ${formatValue(diff.value2, truncate)}`;
       case 'removed':
         // Use value1 for removed diffs (- indicates removed from the old/left version)
-        return `- Removed: ${formatValue(diff.value1)}`;
+        return `- Removed: ${formatValue(diff.value1, truncate)}`;
       case 'changed':
         // Use value1 and value2 for changed diffs
-        return `~ Changed: ${formatValue(diff.value1)} → ${formatValue(diff.value2)}`;
+        return `~ Changed: ${formatValue(diff.value1, truncate)} → ${formatValue(diff.value2, truncate)}`;
       default:
         return '';
     }
@@ -113,8 +113,11 @@ export const DiffList: React.FC<DiffListProps> = ({
                   <span className="diff-path-inline">
                     {diff.displayPath.startsWith('root.') ? diff.displayPath.substring(5) : diff.displayPath}
                   </span>
-                  <span className="diff-summary-inline">
-                    {getDiffSummary(diff)}
+                  <span 
+                    className="diff-summary-inline"
+                    title={getDiffSummary(diff, false)} // Full content for tooltip
+                  >
+                    {getDiffSummary(diff, true)} {/* Truncated content for display */}
                   </span>
                   {ignoredDiffs.has(diff.numericPath) && <span className="ignored-badge">Ignored</span>}
                   <div className="diff-actions">

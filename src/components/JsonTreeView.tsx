@@ -240,10 +240,12 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const classes: string[] = [];
 
     // Debug logging to trace path matching
-    // console.log(`[JsonNode VId:${viewerId}] Checking diff status for path: "${normalizedPathForDiff}"`);
-    // if (relevantDiffs.length > 0) {
-    //   console.log(`[JsonNode VId:${viewerId}] Available diff paths:`, relevantDiffs.map(d => d.numericPath));
-    // }
+    if (normalizedPathForDiff.includes('entityId')) {
+      console.log(`[JsonNode VId:${viewerId}] 🔍 ENTITY DEBUG - Checking diff status for path: "${normalizedPathForDiff}"`);
+      if (relevantDiffs.length > 0) {
+        console.log(`[JsonNode VId:${viewerId}] 🔍 Available diff paths:`, relevantDiffs.map(d => `${d.numericPath} (${d.type})`));
+      }
+    }
 
     // Check for direct matches first
     for (const diff of relevantDiffs) {
@@ -252,13 +254,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       if (normalizedPathForDiff === diff.numericPath) {
         if (diff.type === 'added' && jsonSide === 'right') {
           classes.push('json-added');
-          // console.log(`[JsonNode VId:${viewerId}] Direct match ADDED: "${normalizedPathForDiff}"`);
+          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match ADDED: "${normalizedPathForDiff}"`);
         } else if (diff.type === 'removed' && jsonSide === 'left') {
           classes.push('json-deleted');
-          // console.log(`[JsonNode VId:${viewerId}] Direct match REMOVED: "${normalizedPathForDiff}"`);
+          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match REMOVED: "${normalizedPathForDiff}"`);
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
-          // console.log(`[JsonNode VId:${viewerId}] Direct match CHANGED: "${normalizedPathForDiff}"`);
+          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match CHANGED: "${normalizedPathForDiff}" from "${diff.value1}" to "${diff.value2}"`);
         }
       }
     }
