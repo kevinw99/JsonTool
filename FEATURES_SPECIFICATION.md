@@ -1,7 +1,21 @@
 # JSON Comparison Tool - Features Specification
 
 ## Overview
-This document defines the exact requirements and expected behavior for all features in the JSON comparison tool to prevent regressions and ensure consistent functionality.
+This document defines the exact requ### ✅ FIXED (Recently Completed)
+1. **Diff Panel showing ID-key based paths instead of index-based**
+   - ✅ Fixed: displayPath now uses `[idKey=value]` format
+   - ✅ Root cause: jsonCompare.ts was using numeric indices for displayPath
+   - ✅ Solution: Updated compareArraysWithIdKey function to generate proper ID-key paths
+
+2. **JSON tree diff highlighting working**
+   - ✅ Fixed: Path matching logic completely rewritten
+   - ✅ Root cause: Overly complex path conversion causing no matches
+   - ✅ Solution: Simplified exact match and parent match logic with proper ID-key to numeric conversion
+
+3. **File persistence on reload**
+   - ✅ Added: Files now auto-save to localStorage when loaded
+   - ✅ Added: On reload, tries to restore saved files first, falls back to sample1.json/sample2.json
+   - ✅ Added: 7-day expiration for saved files to prevent stale datand expected behavior for all features in the JSON comparison tool to prevent regressions and ensure consistent functionality.
 
 ## Core Features
 

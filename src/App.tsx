@@ -92,6 +92,55 @@ function App() {
     return primaryKey;
   };
 
+  // Helper function to save files to localStorage
+  const saveFilesToStorage = (file1Data: FileData, file2Data: FileData) => {
+    try {
+      const fileState = {
+        file1: {
+          content: file1Data.content,
+          isTextMode: file1Data.isTextMode,
+          fileName: file1Data.fileName
+        },
+        file2: {
+          content: file2Data.content,
+          isTextMode: file2Data.isTextMode,
+          fileName: file2Data.fileName
+        },
+        timestamp: Date.now()
+      };
+      localStorage.setItem('jsontool-saved-files', JSON.stringify(fileState));
+      console.log('Files saved to localStorage');
+    } catch (e) {
+      console.warn('Failed to save files to localStorage:', e);
+    }
+  };
+
+  // Helper function to load files from localStorage
+  const loadFilesFromStorage = (): { file1: FileData, file2: FileData } | null => {
+    try {
+      const saved = localStorage.getItem('jsontool-saved-files');
+      if (!saved) return null;
+      
+      const fileState = JSON.parse(saved);
+      
+      // Check if saved files are recent (within 7 days)
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - fileState.timestamp > oneWeek) {
+        localStorage.removeItem('jsontool-saved-files');
+        return null;
+      }
+      
+      return {
+        file1: fileState.file1,
+        file2: fileState.file2
+      };
+    } catch (e) {
+      console.warn('Failed to load files from localStorage:', e);
+      localStorage.removeItem('jsontool-saved-files');
+      return null;
+    }
+  };
+
   // Sample data loading function
   const loadSamples = async () => {
     try {
@@ -119,8 +168,18 @@ function App() {
     }
   };
 
+  // Initial loading effect - try to load saved files first, then fall back to samples
   useEffect(() => {
-    loadSamples()
+    const savedFiles = loadFilesFromStorage();
+    if (savedFiles) {
+      console.log('Loading previously saved files from localStorage');
+      setFile1(savedFiles.file1);
+      setFile2(savedFiles.file2);
+      setError(null);
+    } else {
+      console.log('No saved files found, loading default samples');
+      loadSamples();
+    }
   }, [])
 
   useEffect(() => {
@@ -358,22 +417,38 @@ function App() {
 
   const handleFileDrop = (viewer: 'file1' | 'file2') => (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
     if (viewer === 'file1') {
-      setFile1(data);
+      const newFile1 = data;
+      setFile1(newFile1);
       if (!data.isTextMode && file2 && !file2.isTextMode) {
         const comparisonResult = jsonCompare(data.content as JsonValue, file2.content as JsonValue);
-        setFile1({ ...data, content: comparisonResult.processedJson1 });
-        setFile2({ ...file2, content: comparisonResult.processedJson2 });
+        const updatedFile1 = { ...data, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...file2, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
+        // Auto-save when files are processed
+        saveFilesToStorage(updatedFile1, updatedFile2);
+      } else if (file2) {
+        // Auto-save even if not both JSON files
+        saveFilesToStorage(newFile1, file2);
       }
     } else {
-      setFile2(data);
+      const newFile2 = data;
+      setFile2(newFile2);
       if (!data.isTextMode && file1 && !file1.isTextMode) {
         const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
-        setFile1({ ...file1, content: comparisonResult.processedJson1 });
-        setFile2({ ...data, content: comparisonResult.processedJson2 });
+        const updatedFile1 = { ...file1, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...data, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
+        // Auto-save when files are processed
+        saveFilesToStorage(updatedFile1, updatedFile2);
+      } else if (file1) {
+        // Auto-save even if not both JSON files
+        saveFilesToStorage(file1, newFile2);
       }
     }
   };

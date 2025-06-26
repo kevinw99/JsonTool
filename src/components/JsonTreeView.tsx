@@ -239,28 +239,17 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     const classes: string[] = [];
 
-    // Helper function to convert ID-based path to numeric path
-    const convertIdPathToNumericPath = (idPath: string): string => {
-      if (actualNumericIndex !== undefined && idPath.includes('[') && idPath.includes('=')) {
-        const lastBracket = idPath.lastIndexOf('[');
-        if (lastBracket > -1) {
-          const parentPath = idPath.substring(0, lastBracket);
-          const remainingPath = idPath.substring(idPath.indexOf(']') + 1);
-          return `${parentPath}[${actualNumericIndex}]${remainingPath}`;
-        }
-      }
-      return idPath;
-    };
-
-    // Convert current node's path to numeric for comparison
-    const numericPathForComparison = convertIdPathToNumericPath(normalizedPathForDiff);
+    // Debug logging for first few nodes to see what's happening
+    if (normalizedPathForDiff.length < 50) { // Only log short paths to avoid spam
+      console.log(`[JsonNode VId:${viewerId}] Checking path: "${normalizedPathForDiff}", actualNumericIndex: ${actualNumericIndex}`);
+    }
 
     // Check for EXACT matches first (this node IS the diff)
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
-      // Check both the original path and the converted numeric path
-      if (normalizedPathForDiff === diff.numericPath || numericPathForComparison === diff.numericPath) {
+      // Direct path match
+      if (normalizedPathForDiff === diff.numericPath) {
         if (diff.type === 'added' && jsonSide === 'right') {
           classes.push('json-added');
         } else if (diff.type === 'removed' && jsonSide === 'left') {
@@ -268,12 +257,79 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
         }
-        console.log(`[JsonNode VId:${viewerId}] ✅ EXACT MATCH: "${normalizedPathForDiff}" (numeric: "${numericPathForComparison}") matches diff "${diff.numericPath}" -> ${diff.type}`);
+        console.log(`[JsonNode VId:${viewerId}] ✅ DIRECT MATCH: "${normalizedPathForDiff}" -> ${diff.type}`);
         return classes; // Return immediately for exact matches
+      }
+
+      // If this node is an array element with ID-key, try converting to numeric path
+      if (actualNumericIndex !== undefined && normalizedPathForDiff.includes('[') && normalizedPathForDiff.includes('=')) {
+        // Extract the base path and convert ID-based segment to numeric
+        const lastBracket = normalizedPathForDiff.lastIndexOf('[');
+        if (lastBracket > -1) {
+          const beforeBracket = normalizedPathForDiff.substring(0, lastBracket);
+          const afterBracket = normalizedPathForDiff.substring(normalizedPathForDiff.indexOf(']') + 1);
+          const numericPath = `${beforeBracket}[${actualNumericIndex}]${afterBracket}`;
+          
+          if (numericPath === diff.numericPath) {
+            if (diff.type === 'added' && jsonSide === 'right') {
+              classes.push('json-added');
+            } else if (diff.type === 'removed' && jsonSide === 'left') {
+              classes.push('json-deleted');
+            } else if (diff.type === 'changed') {
+              classes.push('json-changed');
+            }
+            console.log(`[JsonNode VId:${viewerId}] ✅ ID-TO-NUMERIC MATCH: "${normalizedPathForDiff}" -> "${numericPath}" -> ${diff.type}`);
+            return classes; // Return immediately for exact matches
+          }
+        }
       }
     }
 
     // If no exact match, check if this node is a PARENT of any diff
+    for (const diff of relevantDiffs) {
+      if (!diff.numericPath) continue;
+
+      // Check direct parent relationship
+      const isDirectParent = (
+        normalizedPathForDiff && 
+        (diff.numericPath.startsWith(normalizedPathForDiff + '.') || 
+         diff.numericPath.startsWith(normalizedPathForDiff + '['))
+      );
+
+      if (isDirectParent) {
+        classes.push('json-parent-changed');
+        return classes; // Return immediately
+      }
+
+      // Check ID-key based parent relationship
+      if (actualNumericIndex !== undefined && normalizedPathForDiff.includes('[') && normalizedPathForDiff.includes('=')) {
+        const lastBracket = normalizedPathForDiff.lastIndexOf('[');
+        if (lastBracket > -1) {
+          const beforeBracket = normalizedPathForDiff.substring(0, lastBracket);
+          const afterBracket = normalizedPathForDiff.substring(normalizedPathForDiff.indexOf(']') + 1);
+          const numericPath = `${beforeBracket}[${actualNumericIndex}]${afterBracket}`;
+          
+          const isNumericParent = (
+            diff.numericPath.startsWith(numericPath + '.') || 
+            diff.numericPath.startsWith(numericPath + '[')
+          );
+          
+          if (isNumericParent) {
+            classes.push('json-parent-changed');
+            return classes; // Return immediately
+          }
+        }
+      }
+
+      // Root node check
+      if (normalizedPathForDiff === '' && diff.numericPath && diff.numericPath !== '') {
+        classes.push('json-parent-changed');
+        return classes; // Return immediately
+      }
+    }
+
+    return classes;
+  };
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
