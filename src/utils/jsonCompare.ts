@@ -285,29 +285,32 @@ function compareArraysWithIdKey(
     const entry2 = map2.get(id);
 
     if (!entry1) {
-      const newPath = path === "root" ? `[${entry2.index}]` : `${path}[${entry2.index}]`;
+      // Use ID-key format for displayPath, numeric index for numericPath
+      const displayPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       const newNumericPath = numericPath === "root" ? `[${entry2.index}]` : `${numericPath}[${entry2.index}]`;
       result.push({
-        displayPath: newPath,
+        displayPath: displayPath,
         numericPath: newNumericPath,
         type: "added",
         value2: entry2.item,
         idKeyUsed: idKey,
       });
     } else if (!entry2) {
-      const newPath = path === "root" ? `[${entry1.index}]` : `${path}[${entry1.index}]`;
+      // Use ID-key format for displayPath, numeric index for numericPath
+      const displayPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       const newNumericPath = numericPath === "root" ? `[${entry1.index}]` : `${numericPath}[${entry1.index}]`;
       result.push({
-        displayPath: newPath,
+        displayPath: displayPath,
         numericPath: newNumericPath,
         type: "removed",
         value1: entry1.item,
         idKeyUsed: idKey,
       });
     } else {
-      const newPath = path === "root" ? `[${entry1.index}]` : `${path}[${entry1.index}]`;
+      // Use ID-key format for displayPath, numeric index for numericPath
+      const displayPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       const newNumericPath = numericPath === "root" ? `[${entry1.index}]` : `${numericPath}[${entry1.index}]`;
-      compareRecursively(entry1.item, entry2.item, newPath, newNumericPath, result, idKeysUsed);
+      compareRecursively(entry1.item, entry2.item, displayPath, newNumericPath, result, idKeysUsed);
     }
   }
 }

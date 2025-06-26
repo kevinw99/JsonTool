@@ -239,57 +239,61 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     const classes: string[] = [];
 
-    // Debug logging to trace path matching
-    if (normalizedPathForDiff.includes('entityId')) {
-      console.log(`[JsonNode VId:${viewerId}] 🔍 ENTITY DEBUG - Checking diff status for path: "${normalizedPathForDiff}"`);
-      if (relevantDiffs.length > 0) {
-        console.log(`[JsonNode VId:${viewerId}] 🔍 Available diff paths:`, relevantDiffs.map(d => `${d.numericPath} (${d.type})`));
+    // Helper function to convert ID-based path to numeric path
+    const convertIdPathToNumericPath = (idPath: string): string => {
+      if (actualNumericIndex !== undefined && idPath.includes('[') && idPath.includes('=')) {
+        const lastBracket = idPath.lastIndexOf('[');
+        if (lastBracket > -1) {
+          const parentPath = idPath.substring(0, lastBracket);
+          const remainingPath = idPath.substring(idPath.indexOf(']') + 1);
+          return `${parentPath}[${actualNumericIndex}]${remainingPath}`;
+        }
       }
-    }
+      return idPath;
+    };
 
-    // Check for direct matches first
+    // Convert current node's path to numeric for comparison
+    const numericPathForComparison = convertIdPathToNumericPath(normalizedPathForDiff);
+
+    // Check for EXACT matches first (this node IS the diff)
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
-      if (normalizedPathForDiff === diff.numericPath) {
+      // Check both the original path and the converted numeric path
+      if (normalizedPathForDiff === diff.numericPath || numericPathForComparison === diff.numericPath) {
         if (diff.type === 'added' && jsonSide === 'right') {
           classes.push('json-added');
-          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match ADDED: "${normalizedPathForDiff}"`);
         } else if (diff.type === 'removed' && jsonSide === 'left') {
           classes.push('json-deleted');
-          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match REMOVED: "${normalizedPathForDiff}"`);
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
-          console.log(`[JsonNode VId:${viewerId}] ✅ Direct match CHANGED: "${normalizedPathForDiff}" from "${diff.value1}" to "${diff.value2}"`);
         }
+        console.log(`[JsonNode VId:${viewerId}] ✅ EXACT MATCH: "${normalizedPathForDiff}" (numeric: "${numericPathForComparison}") matches diff "${diff.numericPath}" -> ${diff.type}`);
+        return classes; // Return immediately for exact matches
       }
     }
 
-    // If no direct match, check for parent-changed status
-    if (classes.length === 0) {
-      for (const diff of relevantDiffs) {
-        if (!diff.numericPath) continue;
+    // If no exact match, check if this node is a PARENT of any diff
+    for (const diff of relevantDiffs) {
+      if (!diff.numericPath) continue;
 
-        // Check if this node is a parent of a changed node
-        if (normalizedPathForDiff && normalizedPathForDiff !== '') { 
-          // For object properties: check if diff path starts with "parent.key."
-          const pathToCheck = normalizedPathForDiff + '.';
-          // For array items: check if diff path starts with "parent.key["
-          const arrayPathToCheck = normalizedPathForDiff + '[';
+      // Check if diff path starts with this node's path (making this node a parent)
+      const isParentOfDiff = (
+        diff.numericPath.startsWith(normalizedPathForDiff + '.') ||
+        diff.numericPath.startsWith(normalizedPathForDiff + '[') ||
+        diff.numericPath.startsWith(numericPathForComparison + '.') ||
+        diff.numericPath.startsWith(numericPathForComparison + '[')
+      );
 
-          if (diff.numericPath.startsWith(pathToCheck) || diff.numericPath.startsWith(arrayPathToCheck)) {
-            classes.push('json-parent-changed');
-            // console.log(`[JsonNode VId:${viewerId}] Parent match: "${normalizedPathForDiff}" contains change in "${diff.numericPath}"`);
-            break; // Only need to add this once
-          }
-        } else if (normalizedPathForDiff === '') {
-          // This is the root node - check if any diffs exist at all
-          if (diff.numericPath && diff.numericPath !== '') {
-            classes.push('json-parent-changed');
-            // console.log(`[JsonNode VId:${viewerId}] Root parent match: root contains change in "${diff.numericPath}"`);
-            break; // Only need to add this once
-          }
-        }
+      if (isParentOfDiff) {
+        classes.push('json-parent-changed');
+        return classes; // Return immediately for parent matches
+      }
+
+      // Special case for root node
+      if (normalizedPathForDiff === '' && diff.numericPath !== '') {
+        classes.push('json-parent-changed');
+        return classes;
       }
     }
 
