@@ -45,7 +45,7 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
           <button 
             className="save-files-button"
             onClick={onSaveFiles}
-            title="Save current files as sample1.json and sample2.json"
+            title="Save current files with their actual filenames to the public directory"
           >
             💾 Save Files
           </button>

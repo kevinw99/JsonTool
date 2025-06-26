@@ -166,14 +166,20 @@ function App() {
         }
       }
 
-      const response = await fetch('http://localhost:3001/api/save-samples', {
+      // Get the actual filenames, fallback to sample names if not available
+      const filename1 = file1.fileName || 'sample1.json';
+      const filename2 = file2.fileName || 'sample2.json';
+
+      const response = await fetch('/api/save-samples', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           file1: file1Content,
-          file2: file2Content
+          file2: file2Content,
+          filename1: filename1,
+          filename2: filename2
         })
       });
 
