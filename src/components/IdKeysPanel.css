@@ -152,10 +152,13 @@
   white-space: nowrap;
   min-width: 0; /* Allow shrinking */
   text-align: left; /* Ensure left alignment */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .occurrence-path:hover {
   background: #e8f0fe;
+  color: #007bff;
 }
 
 .key-label {
@@ -204,6 +207,33 @@
 
 .occurrences-count {
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.occurrences-container {
+  position: relative;
+}
+
+.show-occurrences-button {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.show-occurrences-button:hover {
+  color: #0056b3;
+  background-color: #f8f9fa;
+}
+
+.show-occurrences-button:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
 }
 
 .occurrences-details {

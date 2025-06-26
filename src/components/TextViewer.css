@@ -33,13 +33,15 @@
   margin: 0;
   padding: 12px;
   overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre; /* Use 'pre' instead of 'pre-wrap' to preserve exact formatting */
   font-size: 13px;
   line-height: 1.4;
   background-color: #fff;
   color: #333;
   border: none;
+  text-align: left; /* Ensure left alignment */
+  font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace; /* Ensure monospace font */
+  tab-size: 2; /* Set tab size to 2 spaces for better JSON indentation */
 }
 
 .text-content:focus {

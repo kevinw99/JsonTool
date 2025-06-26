@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
 import './IdKeysPanel.css';
@@ -91,7 +91,21 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
 
 export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }) => {
   const { goToDiff, setPersistentHighlightPath } = useJsonViewerSync();
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  
   const consolidatedIdKeys = consolidateIdKeys(idKeysUsed || []);
+
+  const toggleExpanded = (index: number) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
 
   const buildNumericPath = (displayPath: string): string => {
     console.log('[IdKeysPanel] 🔍 Building numeric path for display path:', displayPath);
@@ -168,6 +182,28 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     goToDiff(numericPath);
   };
 
+  const handleOccurrenceClick = (originalPath: string) => {
+    console.log('[IdKeysPanel] 🖱️ Occurrence clicked:', originalPath);
+    console.log('[IdKeysPanel] 📊 Available JSON data:', jsonData ? 'Available' : 'Not available');
+    
+    // For specific occurrences, we need to build the path differently
+    // The originalPath already contains the specific array index
+    let numericPath = originalPath;
+    
+    // Add root prefix if missing
+    if (!numericPath.startsWith('root.')) {
+      numericPath = `root.${numericPath}`;
+    }
+    
+    console.log('[IdKeysPanel] 🎯 Calling goToDiff with occurrence path:', numericPath);
+    
+    // Set persistent highlight for border highlighting that persists until next navigation
+    setPersistentHighlightPath(numericPath);
+    
+    // Call goToDiff which will handle expansion and highlighting
+    goToDiff(numericPath);
+  };
+
   if (!idKeysUsed || idKeysUsed.length === 0) {
     return (
       <div className="id-keys-panel">
@@ -210,26 +246,34 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
               </div>
               <div className="occurrences-section">
                 {consolidatedIdKey.occurrences.length > 1 && (
-                  <details className="occurrences-details">
-                    <summary>
-                      ▶ Show all occurrences ({consolidatedIdKey.occurrences.length})
-                    </summary>
-                    <div className="occurrences-dropdown">
-                      {consolidatedIdKey.occurrences.map((occurrence, occIndex) => (
-                        <div key={occIndex} className="occurrence-item">
-                          <code 
-                            className="occurrence-path"
-                            title={occurrence.originalPath.length > 60 ? occurrence.originalPath : undefined}
-                          >
-                            {occurrence.originalPath}
-                          </code>
-                          <span className="occurrence-sizes">
-                            ({occurrence.arraySize1} ↔ {occurrence.arraySize2})
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
+                  <div className="occurrences-container">
+                    <button 
+                      className="show-occurrences-button"
+                      onClick={() => toggleExpanded(index)}
+                      aria-expanded={expandedItems.has(index)}
+                    >
+                      {expandedItems.has(index) ? '▼' : '▶'} 
+                      {expandedItems.has(index) ? 'Hide' : 'Show'} all occurrences ({consolidatedIdKey.occurrences.length})
+                    </button>
+                    {expandedItems.has(index) && (
+                      <div className="occurrences-dropdown">
+                        {consolidatedIdKey.occurrences.map((occurrence, occIndex) => (
+                          <div key={occIndex} className="occurrence-item">
+                            <code 
+                              className="occurrence-path clickable"
+                              title={occurrence.originalPath.length > 60 ? occurrence.originalPath : undefined}
+                              onClick={() => handleOccurrenceClick(occurrence.originalPath)}
+                            >
+                              {occurrence.originalPath}
+                            </code>
+                            <span className="occurrence-sizes">
+                              ({occurrence.arraySize1} ↔ {occurrence.arraySize2})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
                 {consolidatedIdKey.occurrences.length === 1 && (
                   <span className="single-occurrence">
