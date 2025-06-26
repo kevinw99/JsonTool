@@ -330,31 +330,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     return classes;
   };
-    for (const diff of relevantDiffs) {
-      if (!diff.numericPath) continue;
-
-      // Check if diff path starts with this node's path (making this node a parent)
-      const isParentOfDiff = (
-        diff.numericPath.startsWith(normalizedPathForDiff + '.') ||
-        diff.numericPath.startsWith(normalizedPathForDiff + '[') ||
-        diff.numericPath.startsWith(numericPathForComparison + '.') ||
-        diff.numericPath.startsWith(numericPathForComparison + '[')
-      );
-
-      if (isParentOfDiff) {
-        classes.push('json-parent-changed');
-        return classes; // Return immediately for parent matches
-      }
-
-      // Special case for root node
-      if (normalizedPathForDiff === '' && diff.numericPath !== '') {
-        classes.push('json-parent-changed');
-        return classes;
-      }
-    }
-
-    return classes;
-  };
   
   const diffStatusClasses = getNodeDiffStatus(); // This returns an array of classes
   const diffStatus = diffStatusClasses.join(' '); // Join for compatibility with existing code
