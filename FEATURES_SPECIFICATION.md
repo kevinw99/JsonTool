@@ -13,9 +13,11 @@ This document defines the exact requ### ✅ FIXED (Recently Completed)
    - ✅ Solution: Simplified exact match and parent match logic with proper ID-key to numeric conversion
 
 3. **File persistence on reload**
-   - ✅ Added: Files now auto-save to localStorage when loaded
-   - ✅ Added: On reload, tries to restore saved files first, falls back to sample1.json/sample2.json
-   - ✅ Added: 7-day expiration for saved files to prevent stale datand expected behavior for all features in the JSON comparison tool to prevent regressions and ensure consistent functionality.
+   - ✅ Fixed: Now saves only filenames (not content) to localStorage
+   - ✅ Fixed: Reloads files by filename from public directory on page refresh
+   - ✅ Fixed: Falls back to sample1.json/sample2.json if saved files not found
+   - ✅ Fixed: Auto-saves filenames when files are dropped/loaded
+   - ✅ Fixed: 7-day expiration for saved filenames to prevent stale data
 
 ## Core Features
 
