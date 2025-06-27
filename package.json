@@ -25,6 +25,8 @@
     "auto-start": "node auto-capture.js start",
     "auto-scan": "node auto-capture.js scan",
     "auto-status": "node auto-capture.js status",
+    "auto-insights": "node auto-capture.js insights",
+    "auto-reset": "node auto-capture.js reset-stats",
     "auto-bg": "./auto-chat.sh start",
     "auto-stop": "./auto-chat.sh stop",
     "auto-logs": "./auto-chat.sh logs"

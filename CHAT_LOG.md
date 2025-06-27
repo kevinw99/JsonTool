@@ -196,6 +196,34 @@
 **Status**: 🚧 In Progress  
 
 
+### Request #21 - ✨ Feature
+**Date**: 2025-06-27  
+**Request**: "Complete request #17: Created auto-capture system that monitors git comm..."  
+**Commit**: [`35e95c0`](https://github.com/user/repo/commit/35e95c0)  
+**Files**: .auto-chat-state.json, .chat-state.json, CHAT_LOG.md  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #22 - 🎨 UI/UX
+**Date**: 2025-06-27  
+**Request**: "Enhanced smart filtering: distinguish one-time questions from development requests"  
+**Commit**: [`45fbdb5`](https://github.com/user/repo/commit/45fbdb5)  
+**Files**: auto-capture.js  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #23 - 🎨 UI/UX
+**Date**: 2025-06-27  
+**Request**: "Enhanced smart filtering: distinguish one-time questions from development requests"  
+**Commit**: [`45fbdb5`](https://github.com/user/repo/commit/45fbdb5)  
+**Files**: auto-capture.js  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
@@ -267,3 +295,4 @@ git commit -m "description"
 **Priority**: medium  
 **Status**: 🚧 In Progress  
 
+npm run auto-bg     # Start auto-capture service in background
