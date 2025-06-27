@@ -32,6 +32,15 @@
   white-space: nowrap; /* Prevent wrapping to maintain alignment */
   /* Remove overflow: hidden to not interfere with scroll container */
   min-width: 0; /* Allow shrinking */
+
+  /* Force background painting */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  /* Ensure proper compositing */
+  will-change: background-color;
+  /* Force repaint on some browsers */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* The expander arrow (►/▼). It's pulled into the parent's padding. */
@@ -105,25 +114,41 @@
 
 /* Type A: Parent of a Diff (light blue background for parent's content line) */
 .json-node.json-parent-changed > .json-node-content {
-  background-color: #e6f3ff; /* Light blue background for parent's content line including spaces */
+  background-color: #b3d9ff; /* Much stronger blue background */
   width: fit-content; /* Make background only span the content width */
+  /* Force hardware acceleration and ensure proper rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Type B: Property Added/Deleted (highlights the node's own content line) */
 .json-node.json-added > .json-node-content {
-  background-color: #d4edda; /* Green background for content line including spaces */
+  background-color: #90ee90; /* Much stronger green background */
   width: fit-content; /* Make background only span the content width */
+  /* Force hardware acceleration and ensure proper rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .json-node.json-deleted > .json-node-content {
-  background-color: #f8d7da; /* Red background for content line including spaces */
+  background-color: #ffb3ba; /* Much stronger red background */
   width: fit-content; /* Make background only span the content width */
+  /* Force hardware acceleration and ensure proper rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Type C: Value Changed (highlights the node's own content line) */
 .json-node.json-changed > .json-node-content {
-  background-color: #fff3cd; /* Yellow background for content line including spaces */
+  background-color: #ffeb99; /* Much stronger yellow background */
   width: fit-content; /* Make background only span the content width */
+  /* Force hardware acceleration and ensure proper rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Flash animation for highlighting target elements */
@@ -134,25 +159,25 @@
 
 @keyframes flashHighlight {
   0% {
-    background-color: #fff3cd;
+    background-color: #ffeb99;
     border-color: #ffeaa7;
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
     transform: scale(1);
   }
   25% {
-    background-color: #fff3cd;
+    background-color: #ffeb99;
     border-color: #ffc107;
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
     transform: scale(1.02);
   }
   50% {
-    background-color: #fff3cd;
+    background-color: #ffeb99;
     border-color: #ffc107;
     box-shadow: 0 0 20px rgba(255, 193, 7, 1);
     transform: scale(1.02);
   }
   75% {
-    background-color: #fff3cd;
+    background-color: #ffeb99;
     border-color: #ffeaa7;
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
     transform: scale(1.01);
@@ -225,5 +250,54 @@
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     flex-shrink: 1 !important;
+  }
+}
+
+/* Additional CSS rules for Safari and Chrome background issues */
+@supports (backdrop-filter: blur(1px)) {
+  .json-node.json-parent-changed > .json-node-content,
+  .json-node.json-added > .json-node-content,
+  .json-node.json-deleted > .json-node-content,
+  .json-node.json-changed > .json-node-content {
+    /* Force layer creation for proper background rendering */
+    isolation: isolate;
+  }
+}
+
+/* More aggressive fix for browsers that don't render light backgrounds */
+@media (prefers-color-scheme: light) {
+  .json-node.json-parent-changed > .json-node-content {
+    background-color: #6bb6ff !important; /* Even stronger blue */
+  }
+  
+  .json-node.json-added > .json-node-content {
+    background-color: #66dd66 !important; /* Even stronger green */
+  }
+  
+  .json-node.json-deleted > .json-node-content {
+    background-color: #ff6666 !important; /* Even stronger red */
+  }
+  
+  .json-node.json-changed > .json-node-content {
+    background-color: #ffdd44 !important; /* Even stronger yellow */
+  }
+}
+
+/* Dark mode compatibility */
+@media (prefers-color-scheme: dark) {
+  .json-node.json-parent-changed > .json-node-content {
+    background-color: #1a4480 !important; /* Dark blue */
+  }
+  
+  .json-node.json-added > .json-node-content {
+    background-color: #1a4d1a !important; /* Dark green */
+  }
+  
+  .json-node.json-deleted > .json-node-content {
+    background-color: #4d1a1a !important; /* Dark red */
+  }
+  
+  .json-node.json-changed > .json-node-content {
+    background-color: #4d4d1a !important; /* Dark yellow */
   }
 }

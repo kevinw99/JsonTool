@@ -11,6 +11,7 @@ import { TabbedBottomPanel } from './components/TabbedBottomPanel'
 import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone'
 import { FileHeader } from './components/FileHeader'
+import { FileSelector } from './components/FileSelector'
 import { GlobalDropZone } from './components/GlobalDropZone'
 import './components/JsonLayout.css'
 import type { JsonValue } from './components/JsonTreeView'
@@ -92,9 +93,132 @@ function App() {
     return primaryKey;
   };
 
-  // Helper function to save filenames to localStorage (only if files are from public dir)
-  const saveFilenameToStorage = (file1Data: FileData, file2Data: FileData) => {
+  // Helper function to save a single filename to localStorage
+  const saveFilenameToStorage = (fileKey: 'file1' | 'file2', fileName: string) => {
     try {
+      console.log(`🔧 saveFilenameToStorage called with: ${fileKey} = ${fileName}`);
+      
+      // Get existing saved state or create a new one
+      const existingSaved = localStorage.getItem('jsontool-saved-filenames');
+      let fileState: any = existingSaved ? JSON.parse(existingSaved) : {};
+      
+      // Update the specific file
+      if (fileKey === 'file1') {
+        fileState.file1Name = fileName;
+      } else {
+        fileState.file2Name = fileName;
+      }
+      fileState.timestamp = Date.now();
+      
+      localStorage.setItem('jsontool-saved-filenames', JSON.stringify(fileState));
+      console.log(`✅ ${fileKey} filename saved to localStorage:`, fileState);
+      
+      // Verify the save worked
+      const verification = localStorage.getItem('jsontool-saved-filenames');
+      console.log('🔍 Verification - localStorage now contains:', verification);
+    } catch (e) {
+      console.warn(`Failed to save ${fileKey} filename to localStorage:`, e);
+    }
+  };
+
+  // Helper function to save filenames to localStorage (only if files are from public dir)
+  // Helper function to get available JSON files from public directory
+  const getPublicJsonFiles = (): string[] => {
+    // This would ideally be dynamic, but for now we'll hardcode the known files
+    return [
+      'sample1.json',
+      'sample2.json', 
+      'Test1RG_request_BM.json',
+      'Test1RG_request_SUT.json',
+      'Test1NRG_contributions_optimizer_mvpbm_Response_decompressedDebugOutputBM.json',
+      'Test1NRG_contributions_optimizer_mvpbm_Response_decompressedDebugOutputSUT.json'
+    ];
+  };
+
+  // Helper function to load a specific file from public directory
+  const loadFileFromPublic = async (fileName: string): Promise<FileData | null> => {
+    try {
+      console.log(`🔄 Loading file from public directory: ${fileName}`);
+      const response = await fetch(`/${fileName}`);
+      if (!response.ok) {
+        console.log(`❌ Failed to fetch ${fileName}: ${response.status} ${response.statusText}`);
+        return null;
+      }
+      const data = await response.json();
+      console.log(`✅ Successfully loaded ${fileName}`);
+      return {
+        content: data,
+        isTextMode: false,
+        fileName: fileName
+      };
+    } catch (error) {
+      console.log(`❌ Error loading ${fileName}:`, error);
+      return null;
+    }
+  };
+
+  // Handle file selection from public directory
+  const handleFileSelect = (viewer: 'file1' | 'file2') => async (fileName: string) => {
+    const fileData = await loadFileFromPublic(fileName);
+    if (!fileData) {
+      setError(`Failed to load ${fileName} from public directory`);
+      return;
+    }
+
+    if (viewer === 'file1') {
+      setFile1(fileData);
+      if (file2 && !file2.isTextMode) {
+        // Re-run comparison with new file1
+        const comparisonResult = jsonCompare(fileData.content as JsonValue, file2.content as JsonValue);
+        const updatedFile1 = { ...fileData, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...file2, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
+        setDiffs(comparisonResult.diffs);
+        setIdKeysUsed(comparisonResult.idKeysUsed);
+        saveFilenamesFromData(updatedFile1, updatedFile2);
+      } else if (file2) {
+        if (fileData.fileName) {
+          saveFilenameToStorage('file1', fileData.fileName);
+        }
+        if (file2.fileName) {
+          saveFilenameToStorage('file2', file2.fileName);
+        }
+      }
+    } else {
+      setFile2(fileData);
+      if (file1 && !file1.isTextMode) {
+        // Re-run comparison with new file2
+        const comparisonResult = jsonCompare(file1.content as JsonValue, fileData.content as JsonValue);
+        const updatedFile1 = { ...file1, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...fileData, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
+        setDiffs(comparisonResult.diffs);
+        setIdKeysUsed(comparisonResult.idKeysUsed);
+        saveFilenamesFromData(updatedFile1, updatedFile2);
+      } else if (file1) {
+        if (file1.fileName) {
+          saveFilenameToStorage('file1', file1.fileName);
+        }
+        if (fileData.fileName) {
+          saveFilenameToStorage('file2', fileData.fileName);
+        }
+      }
+    }
+    setError(null);
+  };
+
+  // Function to save both filenames from FileData objects
+  const saveFilenamesFromData = (file1Data: FileData, file2Data: FileData) => {
+    try {
+      console.log('🔧 saveFilenamesFromData called with:', {
+        file1Name: file1Data.fileName,
+        file2Name: file2Data.fileName,
+        file1HasContent: !!file1Data.content,
+        file2HasContent: !!file2Data.content
+      });
+      
       // Only save if both files have names (indicating they were loaded from public dir or uploaded)
       if (file1Data.fileName && file2Data.fileName) {
         const fileState = {
@@ -103,7 +227,16 @@ function App() {
           timestamp: Date.now()
         };
         localStorage.setItem('jsontool-saved-filenames', JSON.stringify(fileState));
-        console.log('Filenames saved to localStorage:', fileState);
+        console.log('✅ Filenames saved to localStorage:', fileState);
+        
+        // Verify the save worked
+        const verification = localStorage.getItem('jsontool-saved-filenames');
+        console.log('🔍 Verification - localStorage now contains:', verification);
+      } else {
+        console.log('❌ Not saving filenames - one or both files missing fileName:', {
+          file1Name: file1Data.fileName,
+          file2Name: file2Data.fileName
+        });
       }
     } catch (e) {
       console.warn('Failed to save filenames to localStorage:', e);
@@ -114,26 +247,45 @@ function App() {
   const loadFilesByNames = async (): Promise<{ file1: FileData, file2: FileData } | null> => {
     try {
       const saved = localStorage.getItem('jsontool-saved-filenames');
-      if (!saved) return null;
+      console.log('🔍 Checking localStorage for saved filenames:', saved);
+      
+      if (!saved) {
+        console.log('❌ No saved filenames found in localStorage');
+        return null;
+      }
       
       const fileState = JSON.parse(saved);
+      console.log('📋 Found saved filenames:', fileState);
       
       // Check if saved filenames are recent (within 7 days)
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
       if (Date.now() - fileState.timestamp > oneWeek) {
+        console.log('❌ Saved filenames expired (older than 7 days), removing...');
         localStorage.removeItem('jsontool-saved-filenames');
         return null;
       }
       
+      console.log('🔄 Attempting to load files from public directory...');
+      console.log(`- File 1: /${fileState.file1Name}`);
+      console.log(`- File 2: /${fileState.file2Name}`);
+      
       // Try to load both files from public directory
       const [file1Response, file2Response] = await Promise.all([
-        fetch(`/${fileState.file1Name}`).catch(() => null),
-        fetch(`/${fileState.file2Name}`).catch(() => null)
+        fetch(`/${fileState.file1Name}`).catch(err => {
+          console.log(`❌ Failed to fetch ${fileState.file1Name}:`, err);
+          return null;
+        }),
+        fetch(`/${fileState.file2Name}`).catch(err => {
+          console.log(`❌ Failed to fetch ${fileState.file2Name}:`, err);
+          return null;
+        })
       ]);
       
       // If either file fails to load, remove from storage and return null
       if (!file1Response?.ok || !file2Response?.ok) {
-        console.log('One or both saved files not found in public directory, falling back to samples');
+        console.log('❌ One or both saved files not found in public directory, falling back to samples');
+        console.log(`- File 1 response: ${file1Response?.status} ${file1Response?.statusText}`);
+        console.log(`- File 2 response: ${file2Response?.status} ${file2Response?.statusText}`);
         localStorage.removeItem('jsontool-saved-filenames');
         return null;
       }
@@ -143,7 +295,7 @@ function App() {
         file2Response.json()
       ]);
       
-      console.log('Successfully loaded files from public directory:', fileState.file1Name, fileState.file2Name);
+      console.log('✅ Successfully loaded files from public directory:', fileState.file1Name, fileState.file2Name);
       
       return {
         file1: {
@@ -158,7 +310,7 @@ function App() {
         }
       };
     } catch (e) {
-      console.warn('Failed to load files by names:', e);
+      console.warn('❌ Failed to load files by names:', e);
       localStorage.removeItem('jsontool-saved-filenames');
       return null;
     }
@@ -190,7 +342,7 @@ function App() {
       setError(null); // Clear any previous errors
       
       // Auto-save the sample filenames so they persist on reload
-      saveFilenameToStorage(file1Data, file2Data);
+      saveFilenamesFromData(file1Data, file2Data);
       console.log('Sample files loaded and filenames saved');
     } catch (e) {
       setError('Failed to load sample JSON files.')
@@ -201,9 +353,14 @@ function App() {
   // Initial loading effect - try to load saved filenames first, then fall back to samples
   useEffect(() => {
     const loadInitialFiles = async () => {
+      console.log('🚀 Starting initial file loading...');
       const savedFiles = await loadFilesByNames();
       if (savedFiles) {
-        console.log('Loading previously saved files from public directory');
+        console.log('✅ Loading previously saved files from public directory');
+        console.log('📁 Loaded files:', { 
+          file1Name: savedFiles.file1.fileName, 
+          file2Name: savedFiles.file2.fileName 
+        });
         setFile1(savedFiles.file1);
         setFile2(savedFiles.file2);
         
@@ -215,19 +372,24 @@ function App() {
               savedFiles.file2.content as JsonValue
             );
             // Update files with processed content that includes any IDs
-            setFile1({ ...savedFiles.file1, content: comparisonResult.processedJson1 });
-            setFile2({ ...savedFiles.file2, content: comparisonResult.processedJson2 });
+            const updatedFile1 = { ...savedFiles.file1, content: comparisonResult.processedJson1 };
+            const updatedFile2 = { ...savedFiles.file2, content: comparisonResult.processedJson2 };
+            setFile1(updatedFile1);
+            setFile2(updatedFile2);
             setDiffs(comparisonResult.diffs);
             setIdKeysUsed(comparisonResult.idKeysUsed);
-            console.log('Restored files with diffs:', comparisonResult.diffs.length, 'differences found');
+            console.log('✅ Restored files with diffs:', comparisonResult.diffs.length, 'differences found');
+            
+            // Don't re-save the same filenames we just loaded
+            console.log('ℹ️ Skipping filename save during initial restore');
           } catch (e) {
-            console.error('Error comparing restored files:', e);
+            console.error('❌ Error comparing restored files:', e);
             setError('Error comparing restored files');
           }
         }
         setError(null);
       } else {
-        console.log('No saved files found, loading default samples');
+        console.log('❌ No saved files found, loading default samples');
         loadSamples();
       }
     };
@@ -311,13 +473,27 @@ function App() {
   // Handle filename changes
   const handleFileName1Change = (newName: string) => {
     if (file1) {
-      setFile1({ ...file1, fileName: newName });
+      const updatedFile1 = { ...file1, fileName: newName };
+      setFile1(updatedFile1);
+      // Auto-save filenames when changed
+      if (file2) {
+        saveFilenamesFromData(updatedFile1, file2);
+      } else {
+        saveFilenameToStorage('file1', newName);
+      }
     }
   };
 
   const handleFileName2Change = (newName: string) => {
     if (file2) {
-      setFile2({ ...file2, fileName: newName });
+      const updatedFile2 = { ...file2, fileName: newName };
+      setFile2(updatedFile2);
+      // Auto-save filenames when changed
+      if (file1) {
+        saveFilenamesFromData(file1, updatedFile2);
+      } else {
+        saveFilenameToStorage('file2', newName);
+      }
     }
   };
 
@@ -343,10 +519,25 @@ function App() {
 
   // Handler for multiple files dropped at once
   const handleMultipleFilesDrop = (files: Array<{ content: JsonValue | string; isTextMode: boolean; fileName?: string }>) => {
+    console.log('🎯 handleMultipleFilesDrop called with files:', files.map(f => ({ 
+      fileName: f.fileName, 
+      isTextMode: f.isTextMode, 
+      hasContent: !!f.content 
+    })));
+    
     if (files.length >= 2) {
       // Load first two files into left and right viewers
       setFile1(files[0]);
       setFile2(files[1]);
+      
+      // Save filenames to localStorage
+      console.log('💾 Saving filenames to localStorage from handleMultipleFilesDrop');
+      if (files[0].fileName) {
+        saveFilenameToStorage('file1', files[0].fileName);
+      }
+      if (files[1].fileName) {
+        saveFilenameToStorage('file2', files[1].fileName);
+      }
       
       // If both are valid JSON, compare them
       if (!files[0].isTextMode && !files[1].isTextMode) {
@@ -373,52 +564,123 @@ function App() {
 
   // Smart file drop handler that automatically assigns files to left/right based on availability
   const handleSmartFileDrop = (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
+    console.log('🎯 handleSmartFileDrop called with:', {
+      fileName: data.fileName,
+      isTextMode: data.isTextMode,
+      hasContent: !!data.content,
+      currentFiles: { file1Name: file1?.fileName, file2Name: file2?.fileName }
+    });
+    
     // If both viewers are empty, put the file in the left viewer
     if (!file1 && !file2) {
+      console.log('📍 Both viewers empty, placing in left viewer');
       setFile1(data);
+      // Save only the left filename since right is still empty
+      if (data.fileName) {
+        console.log('💾 Saving filename to localStorage (left only)');
+        saveFilenameToStorage('file1', data.fileName);
+      }
       return;
     }
     
     // If only left viewer is empty, put it there
     if (!file1) {
+      console.log('📍 Left viewer empty, placing there and comparing with file2');
       setFile1(data);
       if (!data.isTextMode && file2 && !file2.isTextMode) {
         const comparisonResult = jsonCompare(data.content as JsonValue, file2.content as JsonValue);
-        setFile1({ ...data, content: comparisonResult.processedJson1 });
-        setFile2({ ...file2, content: comparisonResult.processedJson2 });
+        const updatedFile1 = { ...data, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...file2, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
+        console.log('💾 About to save filenames from handleSmartFileDrop (left empty case)');
+        if (updatedFile1.fileName) {
+          saveFilenameToStorage('file1', updatedFile1.fileName);
+        }
+        if (updatedFile2.fileName) {
+          saveFilenameToStorage('file2', updatedFile2.fileName);
+        }
+      } else if (file2) {
+        console.log('💾 About to save filenames from handleSmartFileDrop (left empty, no comparison case)');
+        if (data.fileName) {
+          saveFilenameToStorage('file1', data.fileName);
+        }
+        if (file2.fileName) {
+          saveFilenameToStorage('file2', file2.fileName);
+        }
       }
       return;
     }
     
     // If only right viewer is empty, put it there
     if (!file2) {
+      console.log('📍 Right viewer empty, placing there and comparing with file1');
       setFile2(data);
       if (!data.isTextMode && file1 && !file1.isTextMode) {
         const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
-        setFile1({ ...file1, content: comparisonResult.processedJson1 });
-        setFile2({ ...data, content: comparisonResult.processedJson2 });
+        const updatedFile1 = { ...file1, content: comparisonResult.processedJson1 };
+        const updatedFile2 = { ...data, content: comparisonResult.processedJson2 };
+        setFile1(updatedFile1);
+        setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
+        console.log('💾 About to save filenames from handleSmartFileDrop (right empty case)');
+        if (updatedFile1.fileName) {
+          saveFilenameToStorage('file1', updatedFile1.fileName);
+        }
+        if (updatedFile2.fileName) {
+          saveFilenameToStorage('file2', updatedFile2.fileName);
+        }
+      } else if (file1) {
+        console.log('💾 About to save filenames from handleSmartFileDrop (right empty, no comparison case)');
+        if (file1.fileName) {
+          saveFilenameToStorage('file1', file1.fileName);
+        }
+        if (data.fileName) {
+          saveFilenameToStorage('file2', data.fileName);
+        }
       }
       return;
     }
     
     // If both viewers are occupied, replace the right viewer (newer file)
+    console.log('📍 Both viewers occupied, replacing right viewer');
     setFile2(data);
     if (!data.isTextMode && file1 && !file1.isTextMode) {
       const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
-      setFile1({ ...file1, content: comparisonResult.processedJson1 });
-      setFile2({ ...data, content: comparisonResult.processedJson2 });
+      const updatedFile1 = { ...file1, content: comparisonResult.processedJson1 };
+      const updatedFile2 = { ...data, content: comparisonResult.processedJson2 };
+      setFile1(updatedFile1);
+      setFile2(updatedFile2);
       setDiffs(comparisonResult.diffs);
       setIdKeysUsed(comparisonResult.idKeysUsed);
+      console.log('💾 About to save filenames from handleSmartFileDrop (both occupied case)');
+      if (updatedFile1.fileName) {
+        saveFilenameToStorage('file1', updatedFile1.fileName);
+      }
+      if (updatedFile2.fileName) {
+        saveFilenameToStorage('file2', updatedFile2.fileName);
+      }
+    } else if (file1) {
+      console.log('💾 About to save filenames from handleSmartFileDrop (both occupied, no comparison case)');
+      if (file1.fileName) {
+        saveFilenameToStorage('file1', file1.fileName);
+      }
+      if (data.fileName) {
+        saveFilenameToStorage('file2', data.fileName);
+      }
     }
   };
 
   // Handle global file drops (when files are dropped anywhere on the app)
   const handleGlobalFileDrop = (files: File[]) => {
+    console.log('🌍 handleGlobalFileDrop called with:', files.map(f => f.name));
+    
     const processFile = (file: File, index: number) => {
+      console.log(`📄 Processing file ${index + 1}: ${file.name}`);
+      
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -433,12 +695,21 @@ function App() {
                 fileName: file.name 
               };
               
+              console.log(`✅ Successfully parsed JSON file: ${file.name}`);
+              
               // If this is the first file and we have no files loaded, put it in left viewer
               if (index === 0 && !file1 && !file2) {
+                console.log(`📍 First file, no existing files - setting as file1`);
                 setFile1(data);
+                // Save filename to localStorage
+                if (data.fileName) {
+                  console.log('💾 Saving filename to localStorage (first file in handleGlobalFileDrop)');
+                  saveFilenameToStorage('file1', data.fileName);
+                }
               }
               // If this is the second file or we already have one file, use smart drop logic
               else {
+                console.log(`📍 Using smart drop logic for: ${file.name}`);
                 handleSmartFileDrop(data);
               }
             } catch (jsonError) {
@@ -469,9 +740,17 @@ function App() {
   };
 
   const handleFileDrop = (viewer: 'file1' | 'file2') => (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
+    console.log(`📁 handleFileDrop called for ${viewer} with:`, {
+      fileName: data.fileName,
+      isTextMode: data.isTextMode,
+      hasContent: !!data.content
+    });
+    
     if (viewer === 'file1') {
       const newFile1 = data;
       setFile1(newFile1);
+      console.log('📝 Set file1 to:', { fileName: newFile1.fileName });
+      
       if (!data.isTextMode && file2 && !file2.isTextMode) {
         const comparisonResult = jsonCompare(data.content as JsonValue, file2.content as JsonValue);
         const updatedFile1 = { ...data, content: comparisonResult.processedJson1 };
@@ -481,14 +760,35 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         // Auto-save filenames when files are processed (only if they have names)
-        saveFilenameToStorage(updatedFile1, updatedFile2);
+        console.log('💾 About to save filenames after JSON comparison (file1 case)');
+        if (updatedFile1.fileName) {
+          saveFilenameToStorage('file1', updatedFile1.fileName);
+        }
+        if (updatedFile2.fileName) {
+          saveFilenameToStorage('file2', updatedFile2.fileName);
+        }
       } else if (file2) {
         // Auto-save filenames even if not both JSON files (only if they have names)
-        saveFilenameToStorage(newFile1, file2);
+        console.log('💾 About to save filenames without JSON comparison (file1 case)');
+        if (newFile1.fileName) {
+          saveFilenameToStorage('file1', newFile1.fileName);
+        }
+        if (file2.fileName) {
+          saveFilenameToStorage('file2', file2.fileName);
+        }
+      } else {
+        // Save just file1 name if file2 is null
+        if (newFile1.fileName) {
+          console.log('💾 Saving only file1 filename');
+          saveFilenameToStorage('file1', newFile1.fileName);
+        }
+        console.log('⏸️ file2 is null, saved file1 only');
       }
     } else {
       const newFile2 = data;
       setFile2(newFile2);
+      console.log('📝 Set file2 to:', { fileName: newFile2.fileName });
+      
       if (!data.isTextMode && file1 && !file1.isTextMode) {
         const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
         const updatedFile1 = { ...file1, content: comparisonResult.processedJson1 };
@@ -498,17 +798,36 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         // Auto-save filenames when files are processed (only if they have names)
-        saveFilenameToStorage(updatedFile1, updatedFile2);
+        console.log('💾 About to save filenames after JSON comparison (file2 case)');
+        if (updatedFile1.fileName) {
+          saveFilenameToStorage('file1', updatedFile1.fileName);
+        }
+        if (updatedFile2.fileName) {
+          saveFilenameToStorage('file2', updatedFile2.fileName);
+        }
       } else if (file1) {
         // Auto-save filenames even if not both JSON files (only if they have names)
-        saveFilenameToStorage(file1, newFile2);
+        console.log('💾 About to save filenames without JSON comparison (file2 case)');
+        if (file1.fileName) {
+          saveFilenameToStorage('file1', file1.fileName);
+        }
+        if (newFile2.fileName) {
+          saveFilenameToStorage('file2', newFile2.fileName);
+        }
+      } else {
+        // Save just file2 name if file1 is null
+        if (newFile2.fileName) {
+          console.log('💾 Saving only file2 filename');
+          saveFilenameToStorage('file2', newFile2.fileName);
+        }
+        console.log('⏸️ file1 is null, saved file2 only');
       }
     }
   };
 
   const toggleSyncScroll = () => {
-    setSyncScroll(!syncScroll)
-  }
+    setSyncScroll(!syncScroll);
+  };
 
   // Inner component to access context
   const MainContent = () => {
@@ -550,11 +869,19 @@ function App() {
                     onMultipleFilesDrop={handleMultipleFilesDrop}
                   >
                     <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
-                      <FileHeader 
-                        fileName={file1?.fileName}
-                        onFileNameChange={handleFileName1Change}
-                        side="left"
-                      />
+                      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 5px'}}>
+                        <FileHeader 
+                          fileName={file1?.fileName}
+                          onFileNameChange={handleFileName1Change}
+                          side="left"
+                        />
+                        <FileSelector
+                          availableFiles={getPublicJsonFiles()}
+                          onFileSelect={handleFileSelect('file1')}
+                          side="left"
+                          currentFileName={file1?.fileName}
+                        />
+                      </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file1.isTextMode ? (
                           <TextViewer 
@@ -586,11 +913,19 @@ function App() {
                     onMultipleFilesDrop={handleMultipleFilesDrop}
                   >
                     <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
-                      <FileHeader 
-                        fileName={file2?.fileName}
-                        onFileNameChange={handleFileName2Change}
-                        side="right"
-                      />
+                      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 5px'}}>
+                        <FileHeader 
+                          fileName={file2?.fileName}
+                          onFileNameChange={handleFileName2Change}
+                          side="right"
+                        />
+                        <FileSelector
+                          availableFiles={getPublicJsonFiles()}
+                          onFileSelect={handleFileSelect('file2')}
+                          side="right"
+                          currentFileName={file2?.fileName}
+                        />
+                      </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file2.isTextMode ? (
                           <TextViewer 
@@ -674,11 +1009,19 @@ function App() {
                   onMultipleFilesDrop={handleMultipleFilesDrop}
                 >
                   <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
-                    <FileHeader 
-                      fileName={file1?.fileName}
-                      onFileNameChange={handleFileName1Change}
-                      side="left"
-                    />
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 5px'}}>
+                      <FileHeader 
+                        fileName={file1?.fileName}
+                        onFileNameChange={handleFileName1Change}
+                        side="left"
+                      />
+                      <FileSelector
+                        availableFiles={getPublicJsonFiles()}
+                        onFileSelect={handleFileSelect('file1')}
+                        side="left"
+                        currentFileName={file1?.fileName}
+                      />
+                    </div>
                     <div style={{
                       flex: 1, 
                       display: 'flex', 
@@ -705,11 +1048,19 @@ function App() {
                   onMultipleFilesDrop={handleMultipleFilesDrop}
                 >
                   <div className="json-viewer-column" style={{height: "100%", display: 'flex', flexDirection: 'column'}}>
-                    <FileHeader 
-                      fileName={file2?.fileName}
-                      onFileNameChange={handleFileName2Change}
-                      side="right"
-                    />
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 5px'}}>
+                      <FileHeader 
+                        fileName={file2?.fileName}
+                        onFileNameChange={handleFileName2Change}
+                        side="right"
+                      />
+                      <FileSelector
+                        availableFiles={getPublicJsonFiles()}
+                        onFileSelect={handleFileSelect('file2')}
+                        side="right"
+                        currentFileName={file2?.fileName}
+                      />
+                    </div>
                     <div style={{
                       flex: 1, 
                       display: 'flex', 
@@ -801,7 +1152,7 @@ function App() {
         </div>
       </JsonViewerSyncProvider>
     </GlobalDropZone>
-  )
+  );
 }
 
 export default App

@@ -426,6 +426,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     ...diffStatusClasses, // Spread the array of diff classes
   ].filter(Boolean).join(' ');
 
+  // Debug logging for CSS visibility issues
+  if (DEBUG_CSS_HIGHLIGHTING && diffStatusClasses.length > 0) {
+    console.log(`[JsonTreeView Debug] Path: ${path}, Classes: ${diffStatusClasses.join(', ')}, Final nodeClasses: ${nodeClasses}`);
+  }
+
   // Create content-specific classes
   const contentClasses = [
     'json-node-content',
@@ -622,3 +627,28 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
     </div>
   );
 };
+
+// Debug flag for CSS visibility issues
+const DEBUG_CSS_HIGHLIGHTING = true;
+
+// Debug function for CSS visibility issues - attach to window for console access
+if (typeof window !== 'undefined') {
+  (window as any).debugCSSHighlighting = () => {
+    const diffNodes = document.querySelectorAll('.json-node.json-changed, .json-node.json-added, .json-node.json-deleted, .json-node.json-parent-changed');
+    console.log(`Found ${diffNodes.length} nodes with diff classes:`);
+    diffNodes.forEach((node, index) => {
+      const element = node as HTMLElement;
+      const computedStyle = window.getComputedStyle(element.querySelector('.json-node-content') || element);
+      console.log(`Node ${index + 1}:`, {
+        element: element,
+        classes: element.className,
+        backgroundColor: computedStyle.backgroundColor,
+        borderLeft: computedStyle.borderLeft,
+        transform: computedStyle.transform,
+        isolation: computedStyle.isolation,
+        willChange: (computedStyle as any).willChange
+      });
+    });
+    return diffNodes;
+  };
+}
