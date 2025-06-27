@@ -157,7 +157,8 @@
 **Commit**: [`85d0a7e`](https://github.com/user/repo/commit/85d0a7e)  
 **Files**: .chat-state.json, CHAT_LOG.md  
 **Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
+**Status**: ✅ Completed  
+**Solution**: Created auto-capture system that monitors git commits and automatically detects/logs chat requests with zero manual intervention required. Includes background service, git hooks, and smart pattern detection.  
 
 
 ### Request #18 - 💬 General
@@ -175,6 +176,23 @@
 **Commit**: [`7b35e9e`](https://github.com/user/repo/commit/7b35e9e)  
 **Files**: .chat-state.json, CHAT_LOG.md, chat-logger.js...  
 **Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #20 - 💬 General
+**Date**: 2025-06-27  
+**Request**: "Before request #17"  
+**Commit**: [`4f1ff2d`](https://github.com/user/repo/commit/4f1ff2d)  
+**Files**: .auto-chat-state.json, AUTO_CAPTURE_README.md, CHAT_LOG.md...  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #17 - 💬 General
+**Date**: 2025-06-27  
+**Request**: "So I still need to run npm run log request for each request? I am thinking the tool should capture my request automatically in the chat session"  
+**Commit**: [`4f1ff2db`](https://github.com/user/repo/commit/4f1ff2db)  
+**Priority**: medium  
 **Status**: 🚧 In Progress  
 
 
