@@ -320,19 +320,19 @@ function App() {
   const loadSamples = async () => {
     try {
       const [j1, j2] = await Promise.all([
-        fetch('/sample1.json').then(r => r.json()),
-        fetch('/sample2.json').then(r => r.json())
+        fetch('/simple1.json').then(r => r.json()),
+        fetch('/simple2.json').then(r => r.json())
       ])
       const comparisonResult: JsonCompareResult = jsonCompare(j1, j2);
       const file1Data = { 
         content: comparisonResult.processedJson1, 
         isTextMode: false, 
-        fileName: 'sample1.json' 
+        fileName: 'simple1.json' 
       };
       const file2Data = { 
         content: comparisonResult.processedJson2, 
         isTextMode: false, 
-        fileName: 'sample2.json' 
+        fileName: 'simple2.json' 
       };
       
       setFile1(file1Data);

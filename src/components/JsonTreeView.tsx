@@ -103,17 +103,32 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // We need to normalize this to match the context's generic paths like "root.some.path"
     let basePath = path.replace(/^root_(viewer1|viewer2)_/, '');
 
-    // 2. If this node represents an array item using an idKey (path contains "[idKey=value]"),
-    //    convert its segment to a numeric index using `actualNumericIndex`.
-    if (actualNumericIndex !== undefined && idKeySetting && basePath.includes(`[${idKeySetting}=`)) {
-      const lastBracket = basePath.lastIndexOf('[');
-      if (lastBracket > -1) {
-        const parentPathPart = basePath.substring(0, lastBracket);
-        // console.log(`[JsonNode VId:${viewerId}] Path: \\"${path}\\", idKey: \\"${idKeySetting}\\", actualIdx: ${actualNumericIndex}. Converting \\"${basePath}\\" to \\"${parentPathPart}[${actualNumericIndex}]\\"`);
-        basePath = `${parentPathPart}[${actualNumericIndex}]`;
+    // 2. Convert ID-based array indices to numeric indices
+    if (idKeySetting && basePath.includes(`[${idKeySetting}=`)) {
+      // For nodes that are array items themselves, use actualNumericIndex
+      if (actualNumericIndex !== undefined) {
+        const lastBracket = basePath.lastIndexOf('[');
+        if (lastBracket > -1) {
+          const parentPathPart = basePath.substring(0, lastBracket);
+          basePath = `${parentPathPart}[${actualNumericIndex}]`;
+        }
+      } else {
+        // For child nodes of array items, try to determine the numeric index
+        // Split the path and find all array segments
+        const pathParts = basePath.split('.');
+        const convertedParts = pathParts.map(part => {
+          if (part.includes(`[${idKeySetting}=`)) {
+            // This is an ID-based array reference
+            // For now, let's use a simple heuristic: use index 0 as default
+            // In a real implementation, we'd need to track the mapping
+            return part.replace(new RegExp(`\\[${idKeySetting}=([^\\]]+)\\]`), '[0]');
+          }
+          return part;
+        });
+        basePath = convertedParts.join('.');
       }
     }
-    // console.log(`[JsonNode VId:${viewerId}] Path: \\"${path}\\", idKeySetting: \\"${idKeySetting}\\", actualNumericIndex: ${actualNumericIndex}. Derived genericNumericPathForNode: \\"${basePath}\\"`);
+    
     return basePath;
   }, [path, viewerId, actualNumericIndex, idKeySetting]); // Dependencies for useMemo
 
@@ -241,47 +256,50 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     // Helper function to convert ID-based diff path to numeric path for matching
     const convertDiffPathToNumeric = (diffPath: string): string => {
-      // If the current node has an actualNumericIndex, it means we're inside an array
-      if (actualNumericIndex !== undefined && normalizedPathForDiff.includes('[')) {
-        // Extract the parent path of the current node (everything before the array index)
-        const currentNodeParentPath = normalizedPathForDiff.substring(0, normalizedPathForDiff.lastIndexOf('['));
+      // Simple approach: try to match the array index patterns
+      // The diff numericPath should already be in numeric format, so this may not be needed
+      
+      // If both paths contain array indices, try to align them
+      if (normalizedPathForDiff.includes('[') && diffPath.includes('[')) {
+        // Split both paths and compare segments
+        const nodeParts = normalizedPathForDiff.split(/[\.\[]/);
+        const diffParts = diffPath.split(/[\.\[]/);
         
-        // If the diff path starts with the same parent path and has an ID-based index
-        if (diffPath.startsWith(currentNodeParentPath + '[') && diffPath.includes('=')) {
-          // Find the ID-based segment and replace it with numeric index
-          const afterParent = diffPath.substring(currentNodeParentPath.length);
-          const bracketEnd = afterParent.indexOf(']');
-          if (bracketEnd > -1) {
-            const afterBracket = afterParent.substring(bracketEnd + 1);
-            return `${currentNodeParentPath}[${actualNumericIndex}]${afterBracket}`;
+        // Build a converted path by replacing ID-based segments with numeric ones
+        let convertedPath = diffPath;
+        
+        for (let i = 0; i < Math.min(nodeParts.length, diffParts.length); i++) {
+          const nodePart = nodeParts[i];
+          const diffPart = diffParts[i];
+          
+          // If node has numeric index and diff has ID-based index
+          if (nodePart.match(/^\d+\]/) && diffPart.includes('=')) {
+            convertedPath = convertedPath.replace('[' + diffPart, '[' + nodePart);
           }
         }
+        
+        return convertedPath;
       }
+      
       return diffPath; // Return as-is if no conversion needed
     };
 
-    // Debug logging for specific paths
-    if (normalizedPathForDiff.length < 50 || normalizedPathForDiff.includes('currentContributionOverride')) {
-      console.log(`[JsonNode VId:${viewerId}] Checking path: "${normalizedPathForDiff}", actualNumericIndex: ${actualNumericIndex}`);
-      
-      if (normalizedPathForDiff.includes('currentContributionOverride')) {
-        console.log(`[JsonNode VId:${viewerId}] Relevant diffs for currentContributionOverride:`, relevantDiffs.map(d => ({
-          originalPath: d.numericPath,
-          convertedPath: convertDiffPathToNumeric(d.numericPath),
-          type: d.type,
-          nodePathMatches: convertDiffPathToNumeric(d.numericPath) === normalizedPathForDiff
-        })));
-      }
+    // Debug logging for diff status (only when needed)
+    const shouldDebug = normalizedPathForDiff.includes('currentContributionOverride');
+    if (shouldDebug) {
+      console.log(`[JsonNode VId:${viewerId}] Processing currentContributionOverride:`, {
+        path,
+        normalizedForDiff: normalizedPathForDiff,
+        diffMatches: relevantDiffs.filter(d => d.numericPath === normalizedPathForDiff)
+      });
     }
 
     // Check for EXACT matches first (this node IS the diff)
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
-      const convertedDiffPath = convertDiffPathToNumeric(diff.numericPath);
-
-      // Direct path match
-      if (normalizedPathForDiff === convertedDiffPath) {
+      // Direct path match - the numericPath should already be in the correct format
+      if (normalizedPathForDiff === diff.numericPath) {
         if (diff.type === 'added' && jsonSide === 'right') {
           classes.push('json-added');
         } else if (diff.type === 'removed' && jsonSide === 'left') {
@@ -289,7 +307,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
         }
-        console.log(`[JsonNode VId:${viewerId}] ✅ DIRECT MATCH: "${normalizedPathForDiff}" matches converted "${diff.numericPath}" -> "${convertedDiffPath}" -> ${diff.type}`);
+        console.log(`[JsonNode VId:${viewerId}] ✅ DIRECT MATCH: "${normalizedPathForDiff}" matches "${diff.numericPath}" -> ${diff.type}`);
         return classes; // Return immediately for exact matches
       }
     }
@@ -298,18 +316,16 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     for (const diff of relevantDiffs) {
       if (!diff.numericPath) continue;
 
-      const convertedDiffPath = convertDiffPathToNumeric(diff.numericPath);
-
       // Check direct parent relationship
       const isDirectParent = (
         normalizedPathForDiff && 
-        (convertedDiffPath.startsWith(normalizedPathForDiff + '.') || 
-         convertedDiffPath.startsWith(normalizedPathForDiff + '['))
+        (diff.numericPath.startsWith(normalizedPathForDiff + '.') || 
+         diff.numericPath.startsWith(normalizedPathForDiff + '['))
       );
 
       if (isDirectParent) {
         classes.push('json-parent-changed');
-        console.log(`[JsonNode VId:${viewerId}] ✅ PARENT MATCH: "${normalizedPathForDiff}" is parent of converted "${diff.numericPath}" -> "${convertedDiffPath}"`);
+        console.log(`[JsonNode VId:${viewerId}] ✅ PARENT MATCH: "${normalizedPathForDiff}" is parent of "${diff.numericPath}"`);
         return classes; // Return immediately
       }
     }

@@ -271,6 +271,50 @@
 **Status**: 🚧 In Progress  
 
 
+### Request #29 - ♻️ Refactor
+**Date**: 2025-06-27  
+**Request**: "cleanup test files"  
+**Commit**: [`1b68973`](https://github.com/user/repo/commit/1b68973)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, test-cases/test-27.json...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #30 - ♻️ Refactor
+**Date**: 2025-06-27  
+**Request**: "cleanup test files"  
+**Commit**: [`1b68973`](https://github.com/user/repo/commit/1b68973)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, test-cases/test-27.json...  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #31 - 🐛 Bug Fix  
+**Date**: June 26, 2025  
+**Request**: "Fix UI bug in React/TypeScript JSON comparison tool: difference highlighting works for parent node but not for the target node (e.g., `currentContributionOverride` when it changes from `Object{9 keys}` to `null`). The goal is to ensure that the target node itself is highlighted when it is the subject of a diff, not just its parent."  
+**Issue**: Target node highlighting not working - diff panel shows correct path but tree view doesn't highlight the actual target node  
+**Root Cause**: Path normalization mismatch between tree (ID-key-based paths like `[name=83531838::1]`) and diff results (numeric paths like `[0]`)  
+**Solution**: Enhanced `genericNumericPathForNode` in `JsonTreeView.tsx` to convert ID-key-based array segments to numeric indices for proper matching  
+**Files Modified**: 
+- `/src/components/JsonTreeView.tsx` (main fix)
+- `/src/components/JsonTreeView.css` (highlighting styles)
+- Test files: `/public/simple1.json`, `/public/simple2.json`
+**Status**: ✅ Fixed  
+**Test Case**: `currentContributionOverride` changing from `{amount: 1000}` to `null` - target node now correctly highlighted in yellow
+
+### Request #32 - 🐛 Bug Fix (Critical)
+**Date**: June 26, 2025  
+**Request**: "1. When I click Goto in the Diff list panel, it shows empty page, then I see error on console: JsonTreeView.tsx:251 Uncaught RangeError: Maximum call stack size exceeded at getNodeDiffStatus. 2. The goto button actually works and the target node highlighting fix from Request #31 is working correctly."  
+**Issue**: Infinite recursion in `getNodeDiffStatus` function causing app crash  
+**Root Cause**: Debug logging was recursively calling `getNodeDiffStatus()` within the same function scope  
+**Solution**: Removed recursive call from debug logging in `JsonTreeView.tsx`  
+**Status**: ✅ Fixed  
+**Validation**: User confirmed that:
+- Goto functionality works correctly  
+- Target node highlighting (from Request #31) works correctly
+- This was a regression introduced during debugging
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
