@@ -21,7 +21,13 @@
     "sub": "node smart-logger.js sub",
     "ref": "node smart-logger.js ref",
     "find": "node smart-logger.js find",
-    "done": "node smart-logger.js complete"
+    "done": "node smart-logger.js complete",
+    "auto-start": "node auto-capture.js start",
+    "auto-scan": "node auto-capture.js scan",
+    "auto-status": "node auto-capture.js status",
+    "auto-bg": "./auto-chat.sh start",
+    "auto-stop": "./auto-chat.sh stop",
+    "auto-logs": "./auto-chat.sh logs"
   },
   "dependencies": {
     "react": "^19.1.0",
