@@ -142,6 +142,14 @@
 **Status**: ✅ Completed
 **Update**: Fixed ES module compatibility in chat-logger.js, screenshot.js, and workflow.js. Updated import statements and CLI detection. All logging scripts now working correctly with comprehensive chat request tracking, screenshot automation, and regression prevention.
 
+### Request #16 - 🎨 UI/UX
+**Date**: 2025-06-27  
+**Request**: "I don't want to have to run something for each request. when are the command run chat:* need to be run? I like to have a easy (the least typing required) numbering system so I can requickly refer past request."  
+**Commit**: [`7b35e9e9`](https://github.com/user/repo/commit/7b35e9e9)  
+**Priority**: medium  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
