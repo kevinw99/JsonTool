@@ -11,7 +11,17 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "chat:start": "node workflow.js start",
+    "chat:complete": "node workflow.js complete",
+    "chat:search": "node workflow.js search",
+    "chat:report": "node workflow.js report",
+    "screenshot": "node screenshot.js",
+    "log": "node smart-logger.js auto",
+    "sub": "node smart-logger.js sub",
+    "ref": "node smart-logger.js ref",
+    "find": "node smart-logger.js find",
+    "done": "node smart-logger.js complete"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -32,6 +42,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "jsdom": "^26.1.0",
+    "puppeteer": "^21.11.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
