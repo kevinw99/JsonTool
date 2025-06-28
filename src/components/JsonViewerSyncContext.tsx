@@ -30,7 +30,11 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   diffResults: DiffResult[]; 
   viewerId1: string; // Still needed for root path construction if JsonNode needs it initially, though generic paths are preferred
   viewerId2: string; 
-  toggleShowDiffsOnly: () => void; 
+  toggleShowDiffsOnly: () => void;
+  // Context menu actions
+  forceSortedArrays: Set<string>; // Paths of arrays that should be forcibly sorted
+  toggleArraySorting: (arrayPath: string) => void;
+  syncToCounterpart: (nodePath: string, viewerId: string) => void;
 }
 
 export const JsonViewerSyncContext = createContext<JsonViewerSyncContextProps | undefined>(undefined);
@@ -93,6 +97,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     });
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
     const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
+
+    // Context menu related state
+    const [forceSortedArrays, setForceSortedArraysState] = useState<Set<string>>(new Set());
 
     const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
       _setViewMode(mode);
@@ -476,6 +483,34 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setShowDiffsOnlyState(prev => !prev);
     }, []);
 
+    // Context menu action methods
+    const toggleArraySorting = useCallback((arrayPath: string) => {
+      setForceSortedArraysState(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(arrayPath)) {
+          newSet.delete(arrayPath);
+          console.log(`[Context] ❌ Removed array from forced sorting: "${arrayPath}"`);
+        } else {
+          newSet.add(arrayPath);
+          console.log(`[Context] ✅ Added array to forced sorting: "${arrayPath}"`);
+        }
+        return newSet;
+      });
+    }, []);
+
+    const syncToCounterpart = useCallback((nodePath: string, viewerId: string) => {
+      // Normalize the path to remove viewer-specific prefix
+      let normalizedPath = nodePath.replace(/^root_(viewer1|viewer2)_/, '');
+      
+      // Determine the target viewer
+      const targetViewerId = viewerId === 'viewer1' ? 'viewer2' : 'viewer1';
+      
+      console.log(`[Context] Syncing from ${viewerId} to ${targetViewerId}, path: "${normalizedPath}"`);
+      
+      // Use the existing goToDiff method to navigate to the path in both viewers
+      goToDiff(normalizedPath);
+    }, [goToDiff]);
+
     // Wildcard pattern matching function
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {
       // Convert pattern to regex:
@@ -616,6 +651,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             viewerId1, 
             viewerId2,
             toggleShowDiffsOnly,
+            // Context menu actions
+            forceSortedArrays,
+            toggleArraySorting,
+            syncToCounterpart,
         }}>
             {children}
         </JsonViewerSyncContext.Provider>

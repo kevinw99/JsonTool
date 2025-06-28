@@ -366,3 +366,40 @@ export function jsonCompare(json1: any, json2: any): JsonCompareResult {
     idKeysUsed,
   };
 }
+
+// Function to detect ID keys in a single JSON structure (for standalone file analysis)
+export function detectIdKeysInSingleJson(data: any, basePath: string = ""): IdKeyInfo[] {
+  const idKeys: IdKeyInfo[] = [];
+  
+  function traverse(obj: any, currentPath: string) {
+    if (Array.isArray(obj)) {
+      // Reuse the existing findIdKey logic by creating a duplicate array for comparison
+      const idKey = findIdKey(obj, obj); // Use same array for both parameters
+      if (idKey) {
+        idKeys.push({
+          arrayPath: currentPath,
+          idKey: idKey,
+          isComposite: idKey.includes('+'),
+          arraySize1: obj.length,
+          arraySize2: obj.length
+        });
+      }
+      
+      // Continue traversing array elements
+      obj.forEach((item, index) => {
+        if (typeof item === 'object' && item !== null) {
+          traverse(item, `${currentPath}[${index}]`);
+        }
+      });
+    } else if (typeof obj === 'object' && obj !== null) {
+      // Traverse object properties
+      Object.keys(obj).forEach(key => {
+        const newPath = currentPath ? `${currentPath}.${key}` : key;
+        traverse(obj[key], newPath);
+      });
+    }
+  }
+  
+  traverse(data, basePath);
+  return idKeys;
+}

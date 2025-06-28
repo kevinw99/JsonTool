@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useContext, useMemo, useState } from 'react';
 import './JsonTreeView.css';
 import './ResponsiveFix.css';
 import { JsonViewerSyncContext } from './JsonViewerSyncContext';
+import { ContextMenu } from './ContextMenu/ContextMenu';
+import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult } from '../utils/jsonCompare';
 
 // Utility hook to get the previous value of a variable
@@ -91,10 +93,21 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     persistentHighlightPath, // For persistent border highlighting
     diffResults: diffResultsData,
     showDiffsOnly: showDiffsOnlyContext, 
-    ignoredDiffs, 
+    ignoredDiffs,
+    forceSortedArrays, // New property for forced array sorting
+    toggleArraySorting, // Method to toggle array sorting
+    syncToCounterpart, // Method to sync nodes
+    toggleIgnoreDiff, // Method to ignore diffs
   } = context;
   
   const nodeRef = useRef<HTMLDivElement>(null);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    actions: ContextMenuAction[];
+  } | null>(null);
 
   // Calculate the generic numeric path for this node, to be used with context state (expandedPaths, highlightPath)
   const genericNumericPathForNode = useMemo(() => {
@@ -254,36 +267,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     const classes: string[] = [];
 
-    // Helper function to convert ID-based diff path to numeric path for matching
-    const convertDiffPathToNumeric = (diffPath: string): string => {
-      // Simple approach: try to match the array index patterns
-      // The diff numericPath should already be in numeric format, so this may not be needed
-      
-      // If both paths contain array indices, try to align them
-      if (normalizedPathForDiff.includes('[') && diffPath.includes('[')) {
-        // Split both paths and compare segments
-        const nodeParts = normalizedPathForDiff.split(/[\.\[]/);
-        const diffParts = diffPath.split(/[\.\[]/);
-        
-        // Build a converted path by replacing ID-based segments with numeric ones
-        let convertedPath = diffPath;
-        
-        for (let i = 0; i < Math.min(nodeParts.length, diffParts.length); i++) {
-          const nodePart = nodeParts[i];
-          const diffPart = diffParts[i];
-          
-          // If node has numeric index and diff has ID-based index
-          if (nodePart.match(/^\d+\]/) && diffPart.includes('=')) {
-            convertedPath = convertedPath.replace('[' + diffPart, '[' + nodePart);
-          }
-        }
-        
-        return convertedPath;
-      }
-      
-      return diffPath; // Return as-is if no conversion needed
-    };
-
     // Debug logging for diff status (only when needed)
     const shouldDebug = normalizedPathForDiff.includes('currentContributionOverride');
     if (shouldDebug) {
@@ -413,6 +396,58 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         onNodeToggle(genericNumericPathForNode);
     }
   };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const actions: ContextMenuAction[] = [];
+    
+    // Ignore action - add this node's path to ignored patterns
+    actions.push({
+      label: `Ignore "${nodeKey || 'this node'}"`,
+      icon: '🚫',
+      action: () => {
+        if (normalizedPathForDiff) {
+          toggleIgnoreDiff(normalizedPathForDiff);
+          console.log(`[ContextMenu] Ignored diff at path: "${normalizedPathForDiff}"`);
+        }
+      }
+    });
+
+    // Sort action - only available for arrays
+    if (isArray && hasChildren) {
+      const isCurrentlySorted = forceSortedArrays.has(genericNumericPathForNode);
+      actions.push({
+        label: isCurrentlySorted ? 'Disable Sorting' : 'Sort Array',
+        icon: isCurrentlySorted ? '🔄' : '🔽',
+        action: () => {
+          console.log(`[ContextMenu] Toggling array sorting for: "${genericNumericPathForNode}"`);
+          toggleArraySorting(genericNumericPathForNode);
+        }
+      });
+    }
+
+    // Sync action - navigate to counterpart in other viewer
+    actions.push({
+      label: 'Sync to Counterpart',
+      icon: '↔️',
+      action: () => {
+        syncToCounterpart(path, viewerId);
+        console.log(`[ContextMenu] Syncing to counterpart for: "${path}"`);
+      }
+    });
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      actions
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
   
   const formatValue = (val: JsonValue): string => {
     if (val === null) return 'null';
@@ -456,6 +491,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         style={{ '--level': level } as React.CSSProperties}
         data-path={genericNumericPathForNode}
         data-original-path={path}
+        onContextMenu={handleContextMenu}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
@@ -474,37 +510,124 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         {isExpanded && hasChildren && (
           <div className="json-node-children">
             {(() => {
-              // Sort array by ID key if idKeySetting is provided
+              // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
+              const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
+              const isForced = forceSortedArrays.has(genericNumericPathForNode);
+              
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
               
-              if (idKeySetting) {
+              if (shouldSort) {
+                const sortReason = idKeySetting ? `ID key "${idKeySetting}"` : 'forced via context menu';
+                console.log(`[JsonTreeView] 🔍 Sorting array: ${sortReason} (${arrData.length} items)`);
+                
+                // Debug: Show first item structure only if forced sorting and no ID key
+                if (isForced && !idKeySetting && arrData.length > 0) {
+                  const firstItem = arrData[0];
+                  if (typeof firstItem === 'object' && firstItem !== null && !Array.isArray(firstItem)) {
+                    console.log(`[JsonTreeView] 🔍 Available fields:`, Object.keys(firstItem as JsonObject).slice(0, 5));
+                  }
+                }
+                
+                // IMPORTANT: Log before and after sorting to verify it's working
+                console.log(`[JsonTreeView] 🚨 BEFORE SORTING:`, arrData.map((item, i) => 
+                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
+                    ? `[${i}]: {${idKeySetting}: "${(item as JsonObject)[idKeySetting]}"}`
+                    : `[${i}]: ${typeof item}`
+                ).slice(0, 3));
+                
                 // Create array of {item, originalIndex} pairs
                 const itemsWithOriginalIndex = arrData.map((item, originalIndex) => ({
                   item,
                   originalIndex
                 }));
                 
-                // Sort by ID key value
-                itemsWithOriginalIndex.sort((a, b) => {
-                  const aHasId = typeof a.item === 'object' && a.item !== null && !Array.isArray(a.item) && idKeySetting in a.item;
-                  const bHasId = typeof b.item === 'object' && b.item !== null && !Array.isArray(b.item) && idKeySetting in b.item;
-                  
-                  if (!aHasId && !bHasId) return 0;
-                  if (!aHasId) return 1; // Items without ID key go to end
-                  if (!bHasId) return -1; // Items without ID key go to end
-                  
-                  const aId = String((a.item as JsonObject)[idKeySetting]);
-                  const bId = String((b.item as JsonObject)[idKeySetting]);
-                  
-                  return aId.localeCompare(bId);
+                // Show what keys are available in items for debugging
+                const sampleKeys = new Set<string>();
+                itemsWithOriginalIndex.slice(0, 3).forEach(({ item }) => {
+                  if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                    Object.keys(item).forEach(key => sampleKeys.add(key));
+                  }
                 });
+                console.log(`[JsonTreeView] Sample keys in items: ${Array.from(sampleKeys).join(', ')}`);
+                
+                const beforeOrder = itemsWithOriginalIndex.map(({ item, originalIndex }) => {
+                  if (typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item) {
+                    return `${originalIndex}:${(item as JsonObject)[idKeySetting]}`;
+                  }
+                  return `${originalIndex}:${JSON.stringify(item).substring(0, 30)}...`;
+                });
+                console.log(`[JsonTreeView] Before sort: [${beforeOrder.join(', ')}]`);
+                
+                console.log(`[JsonTreeView] Original order:`, itemsWithOriginalIndex.map(({item, originalIndex}) =>
+                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
+                    ? `[${originalIndex}]: ${(item as JsonObject)[idKeySetting]}`
+                    : `[${originalIndex}]: no-id`
+                ).slice(0, 3));
+                
+                // Sort by ID key value if available, otherwise by string representation
+                itemsWithOriginalIndex.sort((a, b) => {
+                  if (idKeySetting) {
+                    const aHasId = typeof a.item === 'object' && a.item !== null && !Array.isArray(a.item) && idKeySetting in a.item;
+                    const bHasId = typeof b.item === 'object' && b.item !== null && !Array.isArray(b.item) && idKeySetting in b.item;
+                    
+                    // If both have the ID key, sort by it
+                    if (aHasId && bHasId) {
+                      const aId = String((a.item as JsonObject)[idKeySetting]);
+                      const bId = String((b.item as JsonObject)[idKeySetting]);
+                      return aId.localeCompare(bId);
+                    }
+                    
+                    // If neither has the ID key, fall back to JSON string comparison
+                    if (!aHasId && !bHasId) {
+                      const aStr = JSON.stringify(a.item);
+                      const bStr = JSON.stringify(b.item);
+                      return aStr.localeCompare(bStr);
+                    }
+                    
+                    // Items with ID key come first
+                    if (aHasId && !bHasId) return -1;
+                    if (!aHasId && bHasId) return 1;
+                    
+                    return 0; // Should never reach here
+                  } else {
+                    // Fallback sorting by JSON string representation
+                    const aStr = JSON.stringify(a.item);
+                    const bStr = JSON.stringify(b.item);
+                    return aStr.localeCompare(bStr);
+                  }
+                });
+                
+                const afterOrder = itemsWithOriginalIndex.map(({ item, originalIndex }) => {
+                  if (typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item) {
+                    return `${originalIndex}:${(item as JsonObject)[idKeySetting]}`;
+                  }
+                  return `${originalIndex}:${JSON.stringify(item).substring(0, 30)}...`;
+                });
+                console.log(`[JsonTreeView] After sort: [${afterOrder.join(', ')}]`);
+                
+                console.log(`[JsonTreeView] Sorted order:`, itemsWithOriginalIndex.map(({item, originalIndex}) =>
+                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
+                    ? `[${originalIndex}]: ${(item as JsonObject)[idKeySetting]}`
+                    : `[${originalIndex}]: no-id`
+                ).slice(0, 3));
                 
                 // Extract sorted data and build index map
                 sortedData = itemsWithOriginalIndex.map(({ item }) => item);
                 itemsWithOriginalIndex.forEach(({ originalIndex }, sortedIndex) => {
                   sortedIndexMap.set(sortedIndex, originalIndex);
                 });
+                
+                // IMPORTANT: Log after sorting to verify it's working  
+                console.log(`[JsonTreeView] 🚨 AFTER SORTING:`, sortedData.map((item, i) => 
+                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
+                    ? `[${i}]: {${idKeySetting}: "${(item as JsonObject)[idKeySetting]}"}`
+                    : `[${i}]: ${typeof item}`
+                ).slice(0, 3));
+                
+                if (isForced) {
+                  console.log(`[JsonTreeView] ✅ Force-sorted array complete`);
+                }
               } else {
                 // No sorting, create identity mapping
                 arrData.forEach((_, index) => {
@@ -538,6 +661,14 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
             </div>
           </div>
         )}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={contextMenu.actions}
+            onClose={closeContextMenu}
+          />
+        )}
       </div>
     );
   } else if (isObject && data) {
@@ -550,6 +681,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         style={{ '--level': level } as React.CSSProperties}
         data-path={genericNumericPathForNode}
         data-original-path={path}
+        onContextMenu={handleContextMenu}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
           <span className={`expander ${isExpanded ? 'expanded' : 'collapsed'} ${hasChildren ? '' : 'no-children'}`}>
@@ -590,6 +722,14 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
             </div>
           </div>
         )}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={contextMenu.actions}
+            onClose={closeContextMenu}
+          />
+        )}
       </div>
     );
   } else {
@@ -601,12 +741,21 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         style={{ '--level': level } as React.CSSProperties}
         data-path={genericNumericPathForNode}
         data-original-path={path}
+        onContextMenu={handleContextMenu}
       >
         <div className={contentClasses}>
           <span className="expander no-children" />
           <span className={`json-key ${diffStatus}`}>{nodeKey !== undefined ? `${nodeKey}:` : ''}</span>
           <span className="json-value">{formatValue(data)}</span>
         </div>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={contextMenu.actions}
+            onClose={closeContextMenu}
+          />
+        )}
       </div>
     );
   }

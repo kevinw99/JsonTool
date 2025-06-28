@@ -1,0 +1,28 @@
+{
+  "id": 38,
+  "request": "Debug sync scroll issue: Manual scrolling not working\n\n- Added extensive debug logging to SyncScroll component\n- Temporarily disabled CSS smooth scrolling behavior\n- Fixed App component to use JsonViewerSyncContext syncEnabled state\n- Added AppHeader component for proper context access\n- Investigation shows scroll events may not be triggered on SyncScroll container\n\nIssue: Manual scrolling doesn't sync between viewers, only goto navigation works\nNext: Need to identify which element is actually receiving scroll events (styling)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-06-27T18:14:43.595Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

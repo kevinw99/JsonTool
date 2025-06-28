@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { jsonCompare } from './utils/jsonCompare'
+import { jsonCompare, detectIdKeysInSingleJson } from './utils/jsonCompare'
 import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompare'
 import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
@@ -60,7 +60,12 @@ function App() {
 
   // Helper function to get the primary ID key from detected ID keys
   const getPrimaryIdKey = (idKeysUsed: IdKeyInfo[]): string | null => {
-    if (!idKeysUsed || idKeysUsed.length === 0) return null;
+    console.log(`[getPrimaryIdKey] Called with ${idKeysUsed?.length || 0} ID keys:`, idKeysUsed);
+    
+    if (!idKeysUsed || idKeysUsed.length === 0) {
+      console.log(`[getPrimaryIdKey] ❌ No ID keys found`);
+      return null;
+    }
     
     // Count frequency of each ID key
     const keyFrequency = new Map<string, number>();
@@ -68,6 +73,8 @@ function App() {
       const count = keyFrequency.get(info.idKey) || 0;
       keyFrequency.set(info.idKey, count + 1);
     });
+    
+    console.log(`[getPrimaryIdKey] Key frequency map:`, Object.fromEntries(keyFrequency));
     
     // Get the most frequent non-composite ID key (prefer simple keys over composite ones)
     let primaryKey: string | null = null;
@@ -88,6 +95,15 @@ function App() {
           maxCount = count;
         }
       }
+    }
+    
+    console.log(`[getPrimaryIdKey] ✅ Selected primary key: "${primaryKey}" with count ${maxCount}`);
+    
+    // 🚀 VISUAL ALERT to make detection obvious in browser
+    if (primaryKey) {
+      console.log(`🎯🎯🎯 PRIMARY ID KEY DETECTED: "${primaryKey}" 🎯🎯🎯`);
+    } else {
+      console.log(`❌❌❌ NO PRIMARY ID KEY DETECTED ❌❌❌`);
     }
     
     return primaryKey;
@@ -128,6 +144,10 @@ function App() {
     return [
       'sample1.json',
       'sample2.json', 
+      'sort-test-1.json',
+      'sort-test-2.json',
+      'test-sync-1.json',
+      'test-sync-2.json',
       'Test1RG_request_BM.json',
       'Test1RG_request_SUT.json',
       'Test1NRG_contributions_optimizer_mvpbm_Response_decompressedDebugOutputBM.json',
@@ -177,12 +197,16 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         saveFilenamesFromData(updatedFile1, updatedFile2);
-      } else if (file2) {
-        if (fileData.fileName) {
-          saveFilenameToStorage('file1', fileData.fileName);
-        }
-        if (file2.fileName) {
-          saveFilenameToStorage('file2', file2.fileName);
+      } else {
+        // Single file loaded - detect ID keys for visual sorting
+        detectAndSetIdKeysForSingleFile(fileData);
+        if (file2) {
+          if (fileData.fileName) {
+            saveFilenameToStorage('file1', fileData.fileName);
+          }
+          if (file2.fileName) {
+            saveFilenameToStorage('file2', file2.fileName);
+          }
         }
       }
     } else {
@@ -197,12 +221,16 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         saveFilenamesFromData(updatedFile1, updatedFile2);
-      } else if (file1) {
-        if (file1.fileName) {
-          saveFilenameToStorage('file1', file1.fileName);
-        }
-        if (fileData.fileName) {
-          saveFilenameToStorage('file2', fileData.fileName);
+      } else {
+        // Single file loaded - detect ID keys for visual sorting
+        detectAndSetIdKeysForSingleFile(fileData);
+        if (file1) {
+          if (file1.fileName) {
+            saveFilenameToStorage('file1', file1.fileName);
+          }
+          if (fileData.fileName) {
+            saveFilenameToStorage('file2', fileData.fileName);
+          }
         }
       }
     }
@@ -894,6 +922,7 @@ function App() {
                             viewerId="viewer1"
                             jsonSide='left'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
+                            idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                           />
                         )}
@@ -938,6 +967,7 @@ function App() {
                             viewerId="viewer2"
                             jsonSide='right'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
+                            idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                           />
                         )}
@@ -1112,8 +1142,77 @@ function App() {
     );
   }
 
+  // Helper function to detect ID keys in a single file
+  const detectAndSetIdKeysForSingleFile = (fileData: FileData) => {
+    if (fileData.isTextMode) return;
+    
+    try {
+      const detectedIdKeys = detectIdKeysInSingleJson(fileData.content as JsonValue);
+      console.log(`[detectAndSetIdKeysForSingleFile] Detected ${detectedIdKeys.length} ID keys:`, detectedIdKeys);
+      
+      if (detectedIdKeys.length > 0) {
+        setIdKeysUsed(detectedIdKeys);
+      } else {
+        setIdKeysUsed([]);
+      }
+    } catch (err) {
+      console.warn('Failed to detect ID keys in single file:', err);
+      setIdKeysUsed([]);
+    }
+  };
+
+  // NOTE: Auto-load test files disabled for manual testing
+  // useEffect(() => {
+  //   const autoLoadTestFiles = async () => {
+  //     try {
+  //       // Wait a bit for the app to initialize
+  //       await new Promise(resolve => setTimeout(resolve, 1000));
+        
+  //       console.log('🚀 Auto-loading test files for sorting verification...');
+        
+  //       // Load both test files
+  //       await handlePublicFileSelection('sort-test-1.json', 'file1');
+  //       await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+  //       await handlePublicFileSelection('sort-test-2.json', 'file2');
+        
+  //       console.log('✅ Test files loaded');
+  //     } catch (err) {
+  //       console.error('❌ Failed to auto-load test files:', err);
+  //     }
+  //   };
+    
+  //   // Only run auto-load if no files are currently loaded
+  //   if (!file1 && !file2) {
+  //     autoLoadTestFiles();
+  //   }
+  // }, []); // Run only once on mount
+
+  // DEBUG: Show current ID key setting in UI
+  const currentIdKeySetting = getPrimaryIdKey(idKeysUsed);
+  const debugInfo = {
+    idKeysUsed: idKeysUsed.length,
+    primaryIdKey: currentIdKeySetting,
+    file1HasArrays: file1 && !file1.isTextMode ? JSON.stringify(file1.content).includes('[') : false,
+    file2HasArrays: file2 && !file2.isTextMode ? JSON.stringify(file2.content).includes('[') : false
+  };
+
   return (
     <GlobalDropZone onFileDrop={handleGlobalFileDrop}>
+      {/* DEBUG: Show ID key status */}
+      <div style={{
+        position: 'fixed', 
+        top: 0, 
+        right: 0, 
+        background: 'rgba(0,0,0,0.8)', 
+        color: 'white', 
+        padding: '10px', 
+        fontSize: '12px',
+        zIndex: 9999,
+        fontFamily: 'monospace'
+      }}>
+        ID Keys: {debugInfo.idKeysUsed} | Primary: {debugInfo.primaryIdKey || 'none'} | Arrays: {debugInfo.file1HasArrays ? 'L' : ''}
+        {debugInfo.file2HasArrays ? 'R' : ''}
+      </div>
       <JsonViewerSyncProvider
         initialViewMode="tree"
         initialShowDiffsOnly={false}
