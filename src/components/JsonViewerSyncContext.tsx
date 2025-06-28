@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { DiffResult } from '../utils/jsonCompare'; 
 
@@ -7,7 +7,8 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   showDiffsOnly: boolean;
   showColoredDiff: boolean;
   expandedPaths: Set<string>; // Stores generic numeric paths (e.g., "root.some.array[0]")
-  ignoredDiffs: Set<string>; 
+  ignoredDiffs: Set<string>; // All effectively ignored diffs (includes patterns)
+  rawIgnoredDiffs: Set<string>; // Only explicitly ignored diffs (for UI display)
   ignoredPatterns: Map<string, string>; // Map<id, pattern> for ignored patterns
   setViewMode: (mode: 'text' | 'tree') => void;
   setShowDiffsOnly: (show: boolean) => void;
@@ -18,6 +19,8 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   setSyncEnabled: (enabled: boolean) => void;
   toggleIgnoreDiff: (diffPath: string) => void; 
   addIgnoredPattern: (pattern: string) => void;
+  addIgnoredPatternFromRightClick: (path: string) => string;
+  removeIgnoredPatternByPath: (path: string) => void;
   removeIgnoredPattern: (id: string) => void;
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: string) => boolean;
@@ -587,6 +590,29 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       });
     }, [saveIgnoredPatternsToStorage]);
 
+    const addIgnoredPatternFromRightClick = useCallback((path: string) => {
+      // Create a pattern that matches the path and all its children
+      // For arrays, we need to match both path.* and path[*] patterns
+      const pattern = `${path}*`; // This will match path.anything, path[anything], etc.
+      const id = `rightclick_${path}`;
+      setIgnoredPatternsState(prev => {
+        const newMap = new Map(prev).set(id, pattern);
+        saveIgnoredPatternsToStorage(newMap);
+        return newMap;
+      });
+      return id;
+    }, [saveIgnoredPatternsToStorage]);
+
+    const removeIgnoredPatternByPath = useCallback((path: string) => {
+      const id = `rightclick_${path}`;
+      setIgnoredPatternsState(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        saveIgnoredPatternsToStorage(newMap);
+        return newMap;
+      });
+    }, [saveIgnoredPatternsToStorage]);
+
     const removeIgnoredPattern = useCallback((id: string) => {
       setIgnoredPatternsState(prev => {
         const newMap = new Map(prev);
@@ -619,43 +645,82 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
       
       return ignored;
-    }, [ignoredDiffs, diffResults, isPathIgnoredByPattern]);
+    }, [ignoredDiffs, diffResults, isPathIgnoredByPattern, ignoredPatterns]); // Added ignoredPatterns as dependency
+
+    // Memoize the context value to prevent unnecessary re-renders
+    const contextValue = useMemo(() => ({
+        viewMode,
+        showDiffsOnly,
+        showColoredDiff,
+        expandedPaths,
+        ignoredDiffs: effectiveIgnoredDiffs(),
+        rawIgnoredDiffs: ignoredDiffs,
+        ignoredPatterns,
+        setViewMode: memoizedSetViewMode,
+        setShowDiffsOnly: setShowDiffsOnlyState, 
+        setShowColoredDiff: memoizedSetShowColoredDiff,
+        toggleExpand,
+        setExpandAll,
+        syncEnabled,
+        setSyncEnabled,
+        toggleIgnoreDiff,
+        addIgnoredPattern,
+        addIgnoredPatternFromRightClick,
+        removeIgnoredPatternByPath,
+        removeIgnoredPattern,
+        updateIgnoredPattern,
+        isPathIgnoredByPattern,
+        goToDiff,
+        highlightPath,
+        setHighlightPath: memoizedSetHighlightPath,
+        persistentHighlightPath,
+        setPersistentHighlightPath,
+        clearAllIgnoredDiffs,
+        diffResults,
+        viewerId1, 
+        viewerId2,
+        toggleShowDiffsOnly,
+        // Context menu actions
+        forceSortedArrays,
+        toggleArraySorting,
+        syncToCounterpart,
+    }), [
+        viewMode,
+        showDiffsOnly,
+        showColoredDiff,
+        expandedPaths,
+        ignoredDiffs, // This is the key dependency
+        ignoredPatterns,
+        memoizedSetViewMode,
+        setShowDiffsOnlyState,
+        memoizedSetShowColoredDiff,
+        toggleExpand,
+        setExpandAll,
+        syncEnabled,
+        setSyncEnabled,
+        toggleIgnoreDiff,
+        addIgnoredPattern,
+        removeIgnoredPattern,
+        updateIgnoredPattern,
+        isPathIgnoredByPattern,
+        goToDiff,
+        highlightPath,
+        memoizedSetHighlightPath,
+        persistentHighlightPath,
+        setPersistentHighlightPath,
+        clearAllIgnoredDiffs,
+        diffResults,
+        viewerId1,
+        viewerId2,
+        toggleShowDiffsOnly,
+        forceSortedArrays,
+        toggleArraySorting,
+        syncToCounterpart,
+        effectiveIgnoredDiffs,
+    ]);
 
     return (
-        <JsonViewerSyncContext.Provider value={{
-            viewMode,
-            showDiffsOnly,
-            showColoredDiff,
-            expandedPaths,
-            ignoredDiffs: effectiveIgnoredDiffs(),
-            ignoredPatterns,
-            setViewMode: memoizedSetViewMode,
-            setShowDiffsOnly: setShowDiffsOnlyState, 
-            setShowColoredDiff: memoizedSetShowColoredDiff,
-            toggleExpand,
-            setExpandAll,
-            syncEnabled,
-            setSyncEnabled,
-            toggleIgnoreDiff,
-            addIgnoredPattern,
-            removeIgnoredPattern,
-            updateIgnoredPattern,
-            isPathIgnoredByPattern,
-            goToDiff,
-            highlightPath,
-            setHighlightPath: memoizedSetHighlightPath,
-            persistentHighlightPath,
-            setPersistentHighlightPath,
-            clearAllIgnoredDiffs,
-            diffResults,
-            viewerId1, 
-            viewerId2,
-            toggleShowDiffsOnly,
-            // Context menu actions
-            forceSortedArrays,
-            toggleArraySorting,
-            syncToCounterpart,
-        }}>
+        <JsonViewerSyncContext.Provider value={contextValue}>
             {children}
         </JsonViewerSyncContext.Provider>
     );

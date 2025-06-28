@@ -12,8 +12,17 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
     viewMode, 
     setViewMode, 
     showColoredDiff,
-    setShowColoredDiff
+    setShowColoredDiff,
+    rawIgnoredDiffs,
+    ignoredPatterns,
+    toggleIgnoreDiff,
+    removeIgnoredPatternByPath,
+    clearAllIgnoredDiffs
   } = useJsonViewerSync();
+
+  // Count patterns created from right-click actions (they have specific IDs)
+  const rightClickIgnoredCount = Array.from(ignoredPatterns.keys()).filter(id => id.startsWith('rightclick_')).length;
+  const ignoredCount = rightClickIgnoredCount;
 
   const toggleViewMode = () => {
     setViewMode(viewMode === 'text' ? 'tree' : 'text');
@@ -49,6 +58,53 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
           >
             💾 Save Files
           </button>
+        )}
+        {ignoredCount > 0 && (
+          <div className="ignored-diffs-section">
+            <span className="ignored-diffs-count">
+              🚫 {ignoredCount} ignored diff{ignoredCount === 1 ? '' : 's'}
+            </span>
+            <button 
+              className="clear-ignored-button"
+              onClick={() => {
+                // Clear all right-click ignored patterns
+                Array.from(ignoredPatterns.keys())
+                  .filter(id => id.startsWith('rightclick_'))
+                  .forEach(id => {
+                    const path = id.replace('rightclick_', '');
+                    removeIgnoredPatternByPath(path);
+                  });
+              }}
+              title="Clear all ignored diffs"
+            >
+              Clear All
+            </button>
+            <details className="ignored-diffs-details">
+              <summary>Show ignored paths</summary>
+              <div className="ignored-diffs-list">
+                {Array.from(ignoredPatterns.entries())
+                  .filter(([id]) => id.startsWith('rightclick_'))
+                  .map(([id, pattern]) => {
+                    // Extract path from ID
+                    const path = id.replace('rightclick_', '');
+                    return (
+                      <div key={id} className="ignored-diff-item">
+                        <span className="ignored-path" title={pattern}>
+                          {pattern.length > 30 ? `...${pattern.slice(-30)}` : pattern}
+                        </span>
+                        <button 
+                          className="unignore-button"
+                          onClick={() => removeIgnoredPatternByPath(path)}
+                          title={`Unignore: ${pattern}`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            </details>
+          </div>
         )}
       </div>
     </div>

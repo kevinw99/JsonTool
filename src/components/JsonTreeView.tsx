@@ -94,10 +94,15 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     diffResults: diffResultsData,
     showDiffsOnly: showDiffsOnlyContext, 
     ignoredDiffs,
+    rawIgnoredDiffs,
     forceSortedArrays, // New property for forced array sorting
     toggleArraySorting, // Method to toggle array sorting
     syncToCounterpart, // Method to sync nodes
     toggleIgnoreDiff, // Method to ignore diffs
+    addIgnoredPattern, // Method to add ignored patterns
+    addIgnoredPatternFromRightClick, // Method to add patterns from right-click
+    removeIgnoredPatternByPath, // Method to remove patterns by path
+    isPathIgnoredByPattern, // Method to check if path is ignored by pattern
   } = context;
   
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -404,13 +409,21 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const actions: ContextMenuAction[] = [];
     
     // Ignore action - add this node's path to ignored patterns
+    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(normalizedPathForDiff);
     actions.push({
-      label: `Ignore "${nodeKey || 'this node'}"`,
-      icon: '🚫',
+      label: isCurrentlyIgnored ? 'Unignore this diff' : 'Ignore this diff',
+      icon: isCurrentlyIgnored ? '✅' : '🚫',
       action: () => {
         if (normalizedPathForDiff) {
-          toggleIgnoreDiff(normalizedPathForDiff);
-          console.log(`[ContextMenu] Ignored diff at path: "${normalizedPathForDiff}"`);
+          if (isCurrentlyIgnored) {
+            // Remove the pattern for this path
+            removeIgnoredPatternByPath(normalizedPathForDiff);
+            console.log(`[ContextMenu] Removed ignore pattern for path: "${normalizedPathForDiff}"`);
+          } else {
+            // Add as a pattern to get full filtering behavior
+            addIgnoredPatternFromRightClick(normalizedPathForDiff);
+            console.log(`[ContextMenu] Added ignore pattern for path: "${normalizedPathForDiff}"`);
+          }
         }
       }
     });

@@ -11,10 +11,22 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
 }) => {
   const { 
     ignoredPatterns,
+    rawIgnoredDiffs,
     addIgnoredPattern,
     removeIgnoredPattern,
     updateIgnoredPattern,
+    removeIgnoredPatternByPath,
+    toggleIgnoreDiff,
   } = useJsonViewerSync();
+  
+  // Get right-click ignored patterns (these show as "ignored diffs")
+  const rightClickIgnored = Array.from(ignoredPatterns.entries())
+    .filter(([id]) => id.startsWith('rightclick_'))
+    .map(([id, pattern]) => ({
+      id,
+      path: id.replace('rightclick_', ''),
+      pattern
+    }));
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>('');
@@ -61,23 +73,49 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
   return (
     <div className="ignored-panel-container" style={{ height }}>
       <div className="ignored-panel-content">
-        {ignoredPatterns.size === 0 ? (
-          <div className="no-ignored">
-            No ignored patterns. Click "Ignore" on any difference to add it here.
+        {/* Explicitly ignored diffs section */}
+        {rightClickIgnored.length > 0 && (
+          <div className="ignored-section">
+            <h4 className="section-title">🚫 Ignored Diffs ({rightClickIgnored.length})</h4>
+            <ul className="ignored-items-list">
+              {rightClickIgnored.map(({ id, path, pattern }) => (
+                <li key={id} className="ignored-item">
+                  <span className="ignored-path" title={pattern}>
+                    {pattern.length > 50 ? `...${pattern.slice(-50)}` : pattern}
+                  </span>
+                  <button 
+                    className="unignore-button"
+                    onClick={() => removeIgnoredPatternByPath(path)}
+                    title={`Unignore: ${pattern}`}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <ul className="ignored-patterns-list">
-            {Array.from(ignoredPatterns.entries()).map(([id, pattern]) => (
-              <li key={id} className="ignored-pattern-item">
-                <div className="pattern-content">
-                  {editingId === id ? (
-                    <div className="edit-pattern-group">
-                      <input
-                        type="text"
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        onKeyDown={(e) => handleKeyPress(e, 'save')}
-                        className="edit-pattern-input"
+        )}
+        
+        {/* Ignored patterns section */}
+        <div className="ignored-section">
+          <h4 className="section-title">📝 Ignored Patterns ({Array.from(ignoredPatterns.keys()).filter(id => !id.startsWith('rightclick_')).length})</h4>
+          {Array.from(ignoredPatterns.entries()).filter(([id]) => !id.startsWith('rightclick_')).length === 0 ? (
+            <div className="no-ignored">
+              No ignored patterns. Click "Ignore" on any difference to add it here.
+            </div>
+          ) : (
+            <ul className="ignored-patterns-list">
+              {Array.from(ignoredPatterns.entries()).filter(([id]) => !id.startsWith('rightclick_')).map(([id, pattern]) => (
+                <li key={id} className="ignored-pattern-item">
+                  <div className="pattern-content">
+                    {editingId === id ? (
+                      <div className="edit-pattern-group">
+                        <input
+                          type="text"
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onKeyDown={(e) => handleKeyPress(e, 'save')}
+                          className="edit-pattern-input"
                         autoFocus
                       />
                       <div className="edit-pattern-actions">
@@ -122,7 +160,8 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
             ))}
           </ul>
         )}
-
+        </div>
+        
         <div className="add-pattern-section">
           <div className="add-pattern-input-group">
             <input

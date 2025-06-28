@@ -23,12 +23,17 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
   onTabChange,
   jsonData
 }) => {
-  const { ignoredPatterns, ignoredDiffs, isPathIgnoredByPattern } = useJsonViewerSync();
+  const { ignoredPatterns, ignoredDiffs, rawIgnoredDiffs, isPathIgnoredByPattern } = useJsonViewerSync();
   
   // Calculate non-ignored diffs count
   const nonIgnoredDiffsCount = diffs?.filter(diff => 
     diff.numericPath && !ignoredDiffs.has(diff.numericPath) && !isPathIgnoredByPattern(diff.numericPath)
   ).length || 0;
+  
+  // Calculate total ignored count (manual patterns + right-click patterns)
+  const rightClickIgnoredCount = Array.from(ignoredPatterns.keys()).filter(id => id.startsWith('rightclick_')).length;
+  const manualPatternsCount = Array.from(ignoredPatterns.keys()).filter(id => !id.startsWith('rightclick_')).length;
+  const totalIgnoredCount = rightClickIgnoredCount + manualPatternsCount;
   
   return (
     <div className="tabbed-bottom-panel" style={{ height }}>
@@ -49,7 +54,7 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
           className={`tab-button ${activeTab === 'ignored' ? 'active' : ''}`}
           onClick={() => onTabChange('ignored')}
         >
-          Ignored ({ignoredPatterns.size})
+          Ignored ({totalIgnoredCount})
         </button>
       </div>
       <div className="tab-content">
