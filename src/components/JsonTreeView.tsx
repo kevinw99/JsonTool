@@ -4,7 +4,7 @@ import './ResponsiveFix.css';
 import { JsonViewerSyncContext } from './JsonViewerSyncContext';
 import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
-import type { DiffResult } from '../utils/jsonCompare';
+import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -57,6 +57,7 @@ interface JsonNodeProps {
   actualNumericIndex?: number; // Added to store the true numeric index for array items
   showDiffsOnly?: boolean; // Added prop
   onNodeToggle?: (path: string) => void; // Added prop
+  isCompareMode?: boolean; // Added prop to indicate if we're comparing two files
 }
 
 export const JsonNode: React.FC<JsonNodeProps> = ({ 
@@ -71,6 +72,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   actualNumericIndex, // Destructure here
   showDiffsOnly, // Destructure added prop
   onNodeToggle, // Destructure added prop
+  isCompareMode = false, // Destructure added prop with default value
 }) => {
   // If data is null at the root (level 0) or anywhere, and it's not explicitly part of a key-value pair where null is the value,
   // we might want to render nothing or a placeholder. 
@@ -94,12 +96,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     diffResults: diffResultsData,
     showDiffsOnly: showDiffsOnlyContext, 
     ignoredDiffs,
-    rawIgnoredDiffs,
     forceSortedArrays, // New property for forced array sorting
     toggleArraySorting, // Method to toggle array sorting
     syncToCounterpart, // Method to sync nodes
-    toggleIgnoreDiff, // Method to ignore diffs
-    addIgnoredPattern, // Method to add ignored patterns
     addIgnoredPatternFromRightClick, // Method to add patterns from right-click
     removeIgnoredPatternByPath, // Method to remove patterns by path
     isPathIgnoredByPattern, // Method to check if path is ignored by pattern
@@ -441,15 +440,17 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       });
     }
 
-    // Sync action - navigate to counterpart in other viewer
-    actions.push({
-      label: 'Sync to Counterpart',
-      icon: '↔️',
-      action: () => {
-        syncToCounterpart(path, viewerId);
-        console.log(`[ContextMenu] Syncing to counterpart for: "${path}"`);
-      }
-    });
+    // Sync action - navigate to counterpart in other viewer (only in compare mode)
+    if (isCompareMode) {
+      actions.push({
+        label: 'Sync to Counterpart',
+        icon: '↔️',
+        action: () => {
+          syncToCounterpart(path, viewerId);
+          console.log(`[ContextMenu] Syncing to counterpart for: "${path}"`);
+        }
+      });
+    }
 
     setContextMenu({
       x: e.clientX,
@@ -665,6 +666,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                     actualNumericIndex={originalIndex}
                     showDiffsOnly={showDiffsOnly}
                     onNodeToggle={onNodeToggle}
+                    isCompareMode={isCompareMode}
                   />
                 );
               });
@@ -727,6 +729,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   idKeySetting={idKeySetting}
                   showDiffsOnly={showDiffsOnly}
                   onNodeToggle={onNodeToggle}
+                  isCompareMode={isCompareMode}
                 />
               );
             })}
@@ -779,10 +782,12 @@ interface JsonTreeViewProps {
   viewerId: string;
   jsonSide: 'left' | 'right';
   idKeySetting: string | null;
+  idKeysUsed?: IdKeyInfo[]; // Added to match App.tsx usage
   showDiffsOnly?: boolean;
+  isCompareMode?: boolean; // New prop to indicate if we're comparing two files
 }
 
-export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, showDiffsOnly }) => {
+export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, idKeysUsed, showDiffsOnly, isCompareMode = false }) => {
   return (
     <div className="json-tree-view responsive-no-wrap">
       <JsonNode
@@ -793,6 +798,7 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
         jsonSide={jsonSide}
         idKeySetting={idKeySetting}
         showDiffsOnly={showDiffsOnly}
+        isCompareMode={isCompareMode}
       />
     </div>
   );

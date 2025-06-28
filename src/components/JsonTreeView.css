@@ -301,3 +301,39 @@
     background-color: #4d4d1a !important; /* Dark yellow */
   }
 }
+
+/* Sync feedback animation */
+.json-sync-feedback {
+  position: relative;
+}
+
+.json-sync-feedback::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.3) 50%, 
+    transparent 100%);
+  animation: syncPulse 1.5s ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes syncPulse {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}

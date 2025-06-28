@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice.new@example.com",
+      "profile": {
+        "age": 31,
+        "city": "New York",
+        "preferences": {
+          "theme": "dark",
+          "notifications": true,
+          "language": "en"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bob Smith",
+      "email": "bob@example.com",
+      "profile": {
+        "age": 25,
+        "city": "San Francisco",
+        "preferences": {
+          "theme": "light",
+          "notifications": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Carol Davis",
+      "email": "carol@example.com",
+      "profile": {
+        "age": 28,
+        "city": "Chicago",
+        "preferences": {
+          "theme": "auto",
+          "notifications": true
+        }
+      }
+    }
+  ],
+  "settings": {
+    "version": "1.1.0",
+    "features": {
+      "sync": true,
+      "backup": true,
+      "analytics": false
+    }
+  }
+}

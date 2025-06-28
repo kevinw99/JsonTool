@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "profile": {
+        "age": 30,
+        "city": "New York",
+        "preferences": {
+          "theme": "dark",
+          "notifications": true
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bob Smith",
+      "email": "bob@example.com",
+      "profile": {
+        "age": 25,
+        "city": "Los Angeles",
+        "preferences": {
+          "theme": "light",
+          "notifications": false
+        }
+      }
+    }
+  ],
+  "settings": {
+    "version": "1.0.0",
+    "features": {
+      "sync": true,
+      "backup": false
+    }
+  }
+}

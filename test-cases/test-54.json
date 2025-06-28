@@ -1,0 +1,28 @@
+{
+  "id": 54,
+  "request": "Implement robust ignore diff functionality with pattern-based filtering\n\n- Add right-click context menu to ignore/unignore specific diffs\n- Implement pattern-based ignore system that creates {path}* patterns\n- Add ViewControls panel to display and manage ignored diffs with count and unignore buttons\n- Update IgnoredPanel to show both explicitly ignored diffs and manual patterns\n- Fix bottom tab ignored count to reflect total ignored items\n- Remove debug overlay from top-right corner showing ID Keys info\n- Integrate ignore functionality with existing DiffList filtering and visual highlighting\n- Ensure ignored diffs disappear from diff list and lose visual highlighting\n- Add proper state synchronization across all components\n- Support unignoring from both ViewControls and IgnoredPanel with ✕ buttons\n- Add 'Clear All' functionality to remove all ignored patterns\n\nKey changes:\n- JsonTreeView: Add context menu with ignore/unignore actions using addIgnoredPatternFromRightClick()\n- JsonViewerSyncContext: Add pattern-based ignore system with proper memoization and dependencies\n- ViewControls: Show ignored diff count and management UI for right-click ignored items\n- IgnoredPanel: Separate display of ignored diffs vs manual patterns with proper unignore actions\n- TabbedBottomPanel: Update ignored count calculation to include all pattern types\n- DiffList: Use existing pattern-based filtering for proper diff hiding\n- App.tsx: Remove persistent debug overlay\n\nThe ignore system now works exactly like manually adding patterns - ignoring 'legacyContributionsFlowsRequestsResponses' creates pattern 'legacyContributionsFlowsRequestsResponses*' which filters all matching diffs and removes visual highlighting. (JSON tree navigation, styling, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-06-28T05:44:51.916Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { DiffResult } from '../utils/jsonCompare'; 
 
@@ -104,6 +104,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     // Context menu related state
     const [forceSortedArrays, setForceSortedArraysState] = useState<Set<string>>(new Set());
 
+    // Ref to track sync scroll state for temporary disabling during alignment
+    const syncScrollRef = useRef<boolean>(true);
+
     const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
       _setViewMode(mode);
     }, []);
@@ -121,6 +124,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       setExpandedPathsState(prev => new Set(prev).add('root')); 
       setShowDiffsOnlyState(initialShowDiffsOnly); 
     }, [initialShowDiffsOnly]); // Dependencies simplified
+
+    // Keep syncScrollRef synchronized with syncEnabled
+    useEffect(() => {
+      syncScrollRef.current = syncEnabled;
+    }, [syncEnabled]);
 
     const toggleExpand = useCallback((genericPath: string) => {
       // genericPath is the generic numeric path, e.g., "root.some.path" or "root.array[0]"
@@ -508,11 +516,119 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       // Determine the target viewer
       const targetViewerId = viewerId === 'viewer1' ? 'viewer2' : 'viewer1';
       
-      console.log(`[Context] Syncing from ${viewerId} to ${targetViewerId}, path: "${normalizedPath}"`);
+      console.log(`[Context] 🔄 Syncing from ${viewerId} to ${targetViewerId}, path: "${normalizedPath}"`);
       
-      // Use the existing goToDiff method to navigate to the path in both viewers
+      // First, highlight the target node in both viewers
       goToDiff(normalizedPath);
-    }, [goToDiff]);
+      
+      // Then, add a small delay to ensure navigation completes, and perform vertical alignment
+      setTimeout(() => {
+        console.log(`[Context] 🎯 Starting vertical alignment for sync operation`);
+        
+        // Find the target elements in both viewers using more precise selectors
+        const pathWithRoot = normalizedPath.startsWith('root.') ? normalizedPath : `root.${normalizedPath}`;
+        
+        // Try multiple selector strategies to find the elements
+        let viewer1Element: HTMLElement | null = null;
+        let viewer2Element: HTMLElement | null = null;
+        
+        const selectors = [
+          `[data-path="root_viewer1_${pathWithRoot}"]`,
+          `[data-path="root_viewer2_${pathWithRoot}"]`,
+          `[data-path*="viewer1"][data-path*="${pathWithRoot}"]`,
+          `[data-path*="viewer2"][data-path*="${pathWithRoot}"]`
+        ];
+        
+        // Find viewer1 element
+        for (const selector of [selectors[0], selectors[2]]) {
+          const element = document.querySelector(selector) as HTMLElement;
+          if (element) {
+            viewer1Element = element;
+            break;
+          }
+        }
+        
+        // Find viewer2 element
+        for (const selector of [selectors[1], selectors[3]]) {
+          const element = document.querySelector(selector) as HTMLElement;
+          if (element) {
+            viewer2Element = element;
+            break;
+          }
+        }
+        
+        console.log(`[Context] 🔍 Found elements - Viewer1: ${viewer1Element ? 'YES' : 'NO'}, Viewer2: ${viewer2Element ? 'YES' : 'NO'}`);
+        
+        if (viewer1Element && viewer2Element) {
+          
+          const container1 = viewer1Element.closest('.json-viewer-scroll-container') as HTMLElement;
+          const container2 = viewer2Element.closest('.json-viewer-scroll-container') as HTMLElement;
+          
+          if (container1 && container2) {
+            // Calculate the vertical position of both elements
+            const rect1 = viewer1Element.getBoundingClientRect();
+            const rect2 = viewer2Element.getBoundingClientRect();
+            const containerRect1 = container1.getBoundingClientRect();
+            const containerRect2 = container2.getBoundingClientRect();
+            
+            console.log(`[Context] 📐 Alignment calculation:`, {
+              viewer1: { top: rect1.top, containerTop: containerRect1.top },
+              viewer2: { top: rect2.top, containerTop: containerRect2.top }
+            });
+            
+            // Calculate the offset needed to align both elements at the center of their containers
+            const centerOffset1 = containerRect1.height / 2;
+            const centerOffset2 = containerRect2.height / 2;
+            
+            const targetScrollTop1 = container1.scrollTop + (rect1.top - containerRect1.top) - centerOffset1 + (rect1.height / 2);
+            const targetScrollTop2 = container2.scrollTop + (rect2.top - containerRect2.top) - centerOffset2 + (rect2.height / 2);
+            
+            console.log(`[Context] 🎯 Target scroll positions - Viewer1: ${targetScrollTop1}, Viewer2: ${targetScrollTop2}`);
+            
+            // Temporarily disable sync to prevent interference
+            const wasEnabled = syncScrollRef.current;
+            if (syncScrollRef.current) {
+              syncScrollRef.current = false;
+            }
+            
+            // Scroll both containers to center the target elements
+            container1.scrollTo({
+              top: Math.max(0, targetScrollTop1),
+              behavior: 'smooth'
+            });
+            
+            container2.scrollTo({
+              top: Math.max(0, targetScrollTop2),
+              behavior: 'smooth'
+            });
+            
+            // Add visual feedback to both elements
+            viewer1Element.classList.add('json-sync-feedback');
+            viewer2Element.classList.add('json-sync-feedback');
+            
+            // Re-enable sync after scrolling completes and remove visual feedback
+            setTimeout(() => {
+              if (wasEnabled && syncScrollRef.current !== null) {
+                syncScrollRef.current = wasEnabled;
+              }
+              
+              // Remove visual feedback
+              viewer1Element.classList.remove('json-sync-feedback');
+              viewer2Element.classList.remove('json-sync-feedback');
+              
+              console.log(`[Context] ✅ Sync to counterpart completed - viewers should now be aligned`);
+            }, 1600); // Slightly longer to match animation duration
+            
+          } else {
+            console.warn(`[Context] ⚠️ Could not find scroll containers for alignment`);
+          }
+        } else {
+          console.warn(`[Context] ⚠️ Could not find target elements in both viewers for alignment`);
+          // Provide user feedback that target node doesn't exist in counterpart
+          console.log(`[Context] 💬 Target node "${normalizedPath}" may not exist in the counterpart viewer`);
+        }
+      }, 1500); // Wait for goToDiff navigation to complete
+    }, [goToDiff, syncScrollRef]);
 
     // Wildcard pattern matching function
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {

@@ -924,6 +924,7 @@ function App() {
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
+                            isCompareMode={true}
                           />
                         )}
                       </div>
@@ -969,6 +970,7 @@ function App() {
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
+                            isCompareMode={true}
                           />
                         )}
                       </div>
