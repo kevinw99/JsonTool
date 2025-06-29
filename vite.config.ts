@@ -7,14 +7,14 @@ import path from 'path'
 const jsonSavePlugin = () => {
   return {
     name: 'json-save',
-    configureServer(server) {
-      server.middlewares.use('/api/save-samples', (req, res, next) => {
+    configureServer(server: any) {
+      server.middlewares.use('/api/save-samples', (req: any, res: any, next: any) => {
         if (req.method !== 'POST') {
           return next()
         }
 
         let body = ''
-        req.on('data', chunk => {
+        req.on('data', (chunk: any) => {
           body += chunk.toString()
         })
 
@@ -34,7 +34,7 @@ const jsonSavePlugin = () => {
             const file2Name = filename2 || 'sample2.json'
 
             // Ensure filenames have .json extension
-            const ensureJsonExtension = (filename) => {
+            const ensureJsonExtension = (filename: any) => {
               return filename.endsWith('.json') ? filename : `${filename}.json`
             }
 
@@ -65,13 +65,13 @@ const jsonSavePlugin = () => {
               files: [finalFile1Name, finalFile2Name]
             }))
             
-          } catch (error) {
+          } catch (error: unknown) {
             console.error('Error saving files:', error)
             res.statusCode = 500
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ 
               error: 'Failed to save files', 
-              details: error.message 
+              details: error instanceof Error ? error.message : 'Unknown error' 
             }))
           }
         })

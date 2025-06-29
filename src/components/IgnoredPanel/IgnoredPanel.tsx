@@ -11,12 +11,12 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
 }) => {
   const { 
     ignoredPatterns,
-    rawIgnoredDiffs,
+    // rawIgnoredDiffs,
     addIgnoredPattern,
     removeIgnoredPattern,
     updateIgnoredPattern,
     removeIgnoredPatternByPath,
-    toggleIgnoreDiff,
+    // toggleIgnoreDiff,
   } = useJsonViewerSync();
   
   // Get right-click ignored patterns (these show as "ignored diffs")

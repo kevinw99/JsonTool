@@ -13,11 +13,11 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
     setViewMode, 
     showColoredDiff,
     setShowColoredDiff,
-    rawIgnoredDiffs,
+    // rawIgnoredDiffs,
     ignoredPatterns,
-    toggleIgnoreDiff,
+    // toggleIgnoreDiff,
     removeIgnoredPatternByPath,
-    clearAllIgnoredDiffs
+    // clearAllIgnoredDiffs
   } = useJsonViewerSync();
 
   // Count patterns created from right-click actions (they have specific IDs)

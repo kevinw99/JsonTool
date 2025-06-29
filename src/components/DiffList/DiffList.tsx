@@ -15,7 +15,7 @@ export const DiffList: React.FC<DiffListProps> = ({
 }) => {
   const { 
     ignoredDiffs,
-    toggleIgnoreDiff,
+    // toggleIgnoreDiff,
     addIgnoredPattern,
     isPathIgnoredByPattern,
     goToDiff,

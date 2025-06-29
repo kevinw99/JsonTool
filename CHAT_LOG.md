@@ -534,7 +534,151 @@ Key changes:
 
 The sync feature now follows the documented specification - only shows when comparing two files and enables cross-viewer navigation for easy node comparison. (JSON tree navigation, feature completion)"  
 **Status**: ✅ Completed  
-**Files**: src/components/JsonTreeView.tsx, src/App.tsx, test-data-1.json, test-data-2.json  
+**Files**: src/components/JsonTreeView.tsx, src/App.tsx, test-data-1.json, test-data-2.json
+
+### Request #57 - 🐛 Bug Fix
+**Date**: 2025-06-28  
+**Request**: "I see the basic is working . but as you can see in the screen, the node is not align vertically, they are off by a bit, can you improve?"  
+**Issue**: Vertical misalignment between JSON viewers when using "Sync to Counterpart" - nodes appeared offset making comparison difficult  
+**Root Cause**: Basic sync implementation didn't account for precise vertical positioning and scroll sync interference  
+**Solution**: Enhanced vertical alignment algorithm with multiple improvements:
+- **Precise Positioning**: Calculate center point of both containers for pixel-perfect alignment
+- **Sync Interference Prevention**: Temporarily disable scroll sync during alignment operation
+- **Visual Feedback**: Added blue pulse animation to show which nodes are being synced
+- **Robust Element Finding**: Multiple selector strategies for reliable target element location
+- **Better Scrolling**: Smooth scroll to exact center positions using container calculations
+**Files Modified**:
+- `/src/components/JsonViewerSyncContext.tsx` (enhanced syncToCounterpart method)
+- `/src/components/JsonTreeView.css` (added sync feedback animation)
+**Key Improvements**:
+1. **Center Calculation**: `centerOffset = containerHeight / 2` for both viewers
+2. **Scroll Coordination**: Both containers scroll to center their target nodes simultaneously
+3. **Sync State Management**: `syncScrollRef` prevents scroll sync interference during alignment
+4. **Visual Feedback**: 1.5s blue pulse animation shows sync operation in progress
+5. **Element Selection**: Multiple selector fallbacks ensure reliable element finding
+**Status**: ✅ Fixed  
+**Validation**: Nodes now align perfectly vertically between viewers with visual feedback during sync  
+**Commit**: [`f7a0266`](https://github.com/user/repo/commit/f7a0266)  
+
+
+### Request #57 - 🐛 Bug Fix
+**Date**: 2025-06-28  
+**Request**: "improve 'Sync to Counterpart' vertical alignment
+
+- Enhanced syncToCounterpart with precise vertical alignment calculation
+- Add temporary sync scroll disable during alignment to prevent interference
+- Implement visual feedback with blue pulse animation for synced nodes
+- Improved element selection with multiple selector strategies
+- Center both target nodes in their respective viewers for perfect alignment
+- Add syncScrollRef for proper sync state management during operations
+
+Key improvements:
+- Better vertical positioning using container center calculations
+- Robust element finding with fallback selectors
+- Visual feedback animation (1.5s blue pulse) to show sync operation
+- Temporary sync disable prevents scroll conflicts during alignment
+- More precise scrollTop calculations for consistent alignment
+
+Resolves vertical misalignment issue where synced nodes appeared offset.
+The sync feature now provides pixel-perfect vertical alignment between viewers.
+
+Related: Request #56 - Sync to Counterpart feature enhancement (JSON tree navigation, styling, main app)"  
+**Commit**: [`f7a0266`](https://github.com/user/repo/commit/f7a0266)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, DEVELOPMENT_SPECS.md...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #58 - 🐛 Bug Fix
+**Date**: 2025-06-28  
+**Request**: "improve 'Sync to Counterpart' vertical alignment
+
+- Enhanced syncToCounterpart with precise vertical alignment calculation
+- Add temporary sync scroll disable during alignment to prevent interference
+- Implement visual feedback with blue pulse animation for synced nodes
+- Improved element selection with multiple selector strategies
+- Center both target nodes in their respective viewers for perfect alignment
+- Add syncScrollRef for proper sync state management during operations
+
+Key improvements:
+- Better vertical positioning using container center calculations
+- Robust element finding with fallback selectors
+- Visual feedback animation (1.5s blue pulse) to show sync operation
+- Temporary sync disable prevents scroll conflicts during alignment
+- More precise scrollTop calculations for consistent alignment
+
+Resolves vertical misalignment issue where synced nodes appeared offset.
+The sync feature now provides pixel-perfect vertical alignment between viewers.
+
+Related: Request #56 - Sync to Counterpart feature enhancement (JSON tree navigation, styling, main app)"  
+**Commit**: [`f7a0266`](https://github.com/user/repo/commit/f7a0266)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, DEVELOPMENT_SPECS.md...  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #59 - 🚨 Critical Bug
+**Date**: 2025-06-28  
+**Request**: "implement deterministic 'Sync to Counterpart' with perfect alignment
+
+- Force perfect alignment every time regardless of previous scroll state
+- Add multi-attempt alignment verification with 5px precision tolerance
+- Use immediate scroll positioning (no animation) to eliminate timing issues
+- Add alignment state tracking to maintain sync determinism
+- Implement robust element finding with multiple selector strategies
+- Keep scroll sync disabled longer (2s) to prevent immediate drift
+- Add precise center calculation using container/element geometry
+- Verify alignment accuracy and retry up to 3 times if needed
+
+Key improvements for deterministic behavior:
+1. FORCE mode: Always disables scroll sync before alignment
+2. Immediate scrolling: No smooth animations that cause timing issues
+3. Precision verification: Retries if alignment error > 5 pixels
+4. State persistence: Tracks last perfect alignment for consistency
+5. Robust timing: Multiple attempts with proper delays
+6. Extended sync disable: Prevents drift immediately after alignment
+
+Fixes: 'Sync to Counterpart' now always forces perfect alignment
+Resolves: Inconsistent alignment behavior after scrolling operations
+
+Related: Request #57 - Deterministic sync alignment enhancement"  
+**Commit**: [`40c54e9`](https://github.com/user/repo/commit/40c54e9)  
+**Files**: src/components/JsonViewerSyncContext.tsx  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #60 - 🐛 Bug Fix
+**Date**: 2025-06-28  
+**Request**: "implement deterministic 'Sync to Counterpart' with perfect alignment
+
+- Force perfect alignment every time regardless of previous scroll state
+- Add multi-attempt alignment verification with 5px precision tolerance
+- Use immediate scroll positioning (no animation) to eliminate timing issues
+- Add alignment state tracking to maintain sync determinism
+- Implement robust element finding with multiple selector strategies
+- Keep scroll sync disabled longer (2s) to prevent immediate drift
+- Add precise center calculation using container/element geometry
+- Verify alignment accuracy and retry up to 3 times if needed
+
+Key improvements for deterministic behavior:
+1. FORCE mode: Always disables scroll sync before alignment
+2. Immediate scrolling: No smooth animations that cause timing issues
+3. Precision verification: Retries if alignment error > 5 pixels
+4. State persistence: Tracks last perfect alignment for consistency
+5. Robust timing: Multiple attempts with proper delays
+6. Extended sync disable: Prevents drift immediately after alignment
+
+Fixes: 'Sync to Counterpart' now always forces perfect alignment
+Resolves: Inconsistent alignment behavior after scrolling operations
+
+Related: Request #57 - Deterministic sync alignment enhancement"  
+**Commit**: [`40c54e9`](https://github.com/user/repo/commit/40c54e9)  
+**Files**: src/components/JsonViewerSyncContext.tsx  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
 
 
 ## Key Patterns & Regressions Identified

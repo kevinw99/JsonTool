@@ -39,38 +39,38 @@ const mockJsonData = {
 
 const mockIdKeysUsed: IdKeyInfo[] = [
   {
-    path: 'boomerForecastV3Requests.household.accounts[]',
+    arrayPath: 'boomerForecastV3Requests.household.accounts[]',
     idKey: 'id',
-    occurrences: [
-      { path: 'boomerForecastV3Requests.household.accounts[]', count: 2 }
-    ]
+    isComposite: false,
+    arraySize1: 2,
+    arraySize2: 2
   },
   {
-    path: 'boomerForecastV3Requests.household.jobs[]',
+    arrayPath: 'boomerForecastV3Requests.household.jobs[]',
     idKey: 'id', 
-    occurrences: [
-      { path: 'boomerForecastV3Requests.household.jobs[]', count: 2 }
-    ]
+    isComposite: false,
+    arraySize1: 2,
+    arraySize2: 2
   },
   {
-    path: 'boomerForecastV3Requests.household.taxRates[]',
+    arrayPath: 'boomerForecastV3Requests.household.taxRates[]',
     idKey: 'year',
-    occurrences: [
-      { path: 'boomerForecastV3Requests.household.taxRates[]', count: 2 }
-    ]
+    isComposite: false,
+    arraySize1: 2,
+    arraySize2: 2
   },
   {
-    path: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
-    idKey: null,
-    occurrences: [
-      { path: 'boomerForecastV3Requests.parameters.accountParams.contributions[]', count: 1 }
-    ]
+    arrayPath: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
+    idKey: '',
+    isComposite: false,
+    arraySize1: 1,
+    arraySize2: 1
   }
 ];
 
 // Test component that uses the navigation context
 const TestNavigationComponent = () => {
-  const { goToDiff, expandedPaths, highlightPath } = useJsonViewerSync();
+  const { /* goToDiff, */ expandedPaths, highlightPath } = useJsonViewerSync();
   
   return (
     <div>
@@ -85,7 +85,7 @@ const TestNavigationComponent = () => {
           data={mockJsonData}
           viewerId="viewer1"
           jsonSide="left"
-          idKeySetting={null}
+          idKeySetting={''}
           showDiffsOnly={false}
         />
       </div>
@@ -402,9 +402,11 @@ describe('Navigation Feature Tests', () => {
       };
 
       const simpleIdKeys: IdKeyInfo[] = [{
-        path: 'simpleArray[]',
-        idKey: null,
-        occurrences: [{ path: 'simpleArray[]', count: 2 }]
+        arrayPath: 'simpleArray[]',
+        idKey: '',
+        isComposite: false,
+        arraySize1: 2,
+        arraySize2: 2
       }];
 
       const SimpleTestComponent = () => {

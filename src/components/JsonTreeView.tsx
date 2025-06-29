@@ -787,7 +787,7 @@ interface JsonTreeViewProps {
   isCompareMode?: boolean; // New prop to indicate if we're comparing two files
 }
 
-export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, idKeysUsed, showDiffsOnly, isCompareMode = false }) => {
+export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
   return (
     <div className="json-tree-view responsive-no-wrap">
       <JsonNode

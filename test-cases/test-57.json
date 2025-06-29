@@ -1,0 +1,28 @@
+{
+  "id": 57,
+  "request": "improve 'Sync to Counterpart' vertical alignment\n\n- Enhanced syncToCounterpart with precise vertical alignment calculation\n- Add temporary sync scroll disable during alignment to prevent interference\n- Implement visual feedback with blue pulse animation for synced nodes\n- Improved element selection with multiple selector strategies\n- Center both target nodes in their respective viewers for perfect alignment\n- Add syncScrollRef for proper sync state management during operations\n\nKey improvements:\n- Better vertical positioning using container center calculations\n- Robust element finding with fallback selectors\n- Visual feedback animation (1.5s blue pulse) to show sync operation\n- Temporary sync disable prevents scroll conflicts during alignment\n- More precise scrollTop calculations for consistent alignment\n\nResolves vertical misalignment issue where synced nodes appeared offset.\nThe sync feature now provides pixel-perfect vertical alignment between viewers.\n\nRelated: Request #56 - Sync to Counterpart feature enhancement (JSON tree navigation, styling, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-06-28T06:53:09.648Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

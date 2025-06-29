@@ -5,10 +5,10 @@ import { jsonCompare } from '../utils/jsonCompare'
 describe('ID Keys Navigation Feature - Unit Tests', () => {
   it('should consolidate ID keys correctly', () => {
     const mockIdKeys = [
-      { arrayPath: 'boomerForecastV3Requests[0]', idKey: 'household.householdId', numberOfComparisons: 2 },
-      { arrayPath: 'boomerForecastV3Requests[1]', idKey: 'household.householdId', numberOfComparisons: 2 },
-      { arrayPath: 'boomerForecastV3Requests[0].items[0]', idKey: 'id', numberOfComparisons: 3 },
-      { arrayPath: 'boomerForecastV3Requests[0].items[1]', idKey: 'id', numberOfComparisons: 3 },
+      { arrayPath: 'boomerForecastV3Requests[0]', idKey: 'household.householdId', numberOfComparisons: 2, isComposite: false, arraySize1: 0, arraySize2: 0 },
+      { arrayPath: 'boomerForecastV3Requests[1]', idKey: 'household.householdId', numberOfComparisons: 2, isComposite: false, arraySize1: 0, arraySize2: 0 },
+      { arrayPath: 'boomerForecastV3Requests[0].items[0]', idKey: 'id', numberOfComparisons: 3, isComposite: false, arraySize1: 0, arraySize2: 0 },
+      { arrayPath: 'boomerForecastV3Requests[0].items[1]', idKey: 'id', numberOfComparisons: 3, isComposite: false, arraySize1: 0, arraySize2: 0 },
     ]
 
     const consolidated = consolidateIdKeys(mockIdKeys)
@@ -29,8 +29,8 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
 
   it('should handle undefined array paths', () => {
     const mockIdKeys = [
-      { arrayPath: undefined as any, idKey: 'id', numberOfComparisons: 1 },
-      { arrayPath: 'valid[0]', idKey: 'id', numberOfComparisons: 1 },
+      { arrayPath: undefined as any, idKey: 'id', numberOfComparisons: 1, isComposite: false, arraySize1: 0, arraySize2: 0 },
+      { arrayPath: 'valid[0]', idKey: 'id', numberOfComparisons: 1, isComposite: false, arraySize1: 0, arraySize2: 0 },
     ]
 
     const consolidated = consolidateIdKeys(mockIdKeys)

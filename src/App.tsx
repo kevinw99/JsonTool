@@ -32,7 +32,7 @@ function App() {
   const [syncScroll, setSyncScroll] = useState<boolean>(true)
   
   // Queue for handling multiple file drops
-  const [pendingFiles, setPendingFiles] = useState<Array<{content: JsonValue | string, isTextMode: boolean, fileName?: string}>>([])
+  // const [pendingFiles, setPendingFiles] = useState<Array<{content: JsonValue | string, isTextMode: boolean, fileName?: string}>>([])
   
   // Load divider position from localStorage, default to 70
   const [dividerPosition, setDividerPosition] = useState<number>(() => {
@@ -1190,13 +1190,13 @@ function App() {
   // }, []); // Run only once on mount
 
   // DEBUG: Show current ID key setting in UI
-  const currentIdKeySetting = getPrimaryIdKey(idKeysUsed);
-  const debugInfo = {
-    idKeysUsed: idKeysUsed.length,
-    primaryIdKey: currentIdKeySetting,
-    file1HasArrays: file1 && !file1.isTextMode ? JSON.stringify(file1.content).includes('[') : false,
-    file2HasArrays: file2 && !file2.isTextMode ? JSON.stringify(file2.content).includes('[') : false
-  };
+  // const currentIdKeySetting = getPrimaryIdKey(idKeysUsed);
+  // const debugInfo = {
+  //   idKeysUsed: idKeysUsed.length,
+  //   primaryIdKey: currentIdKeySetting,
+  //   file1HasArrays: file1 && !file1.isTextMode ? JSON.stringify(file1.content).includes('[') : false,
+  //   file2HasArrays: file2 && !file2.isTextMode ? JSON.stringify(file2.content).includes('[') : false
+  // };
 
   return (
     <GlobalDropZone onFileDrop={handleGlobalFileDrop}>

@@ -23,7 +23,7 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
   onTabChange,
   jsonData
 }) => {
-  const { ignoredPatterns, ignoredDiffs, rawIgnoredDiffs, isPathIgnoredByPattern } = useJsonViewerSync();
+  const { ignoredPatterns, ignoredDiffs, /* rawIgnoredDiffs, */ isPathIgnoredByPattern } = useJsonViewerSync();
   
   // Calculate non-ignored diffs count
   const nonIgnoredDiffsCount = diffs?.filter(diff => 

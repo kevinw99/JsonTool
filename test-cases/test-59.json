@@ -1,0 +1,20 @@
+{
+  "id": 59,
+  "request": "implement deterministic 'Sync to Counterpart' with perfect alignment\n\n- Force perfect alignment every time regardless of previous scroll state\n- Add multi-attempt alignment verification with 5px precision tolerance\n- Use immediate scroll positioning (no animation) to eliminate timing issues\n- Add alignment state tracking to maintain sync determinism\n- Implement robust element finding with multiple selector strategies\n- Keep scroll sync disabled longer (2s) to prevent immediate drift\n- Add precise center calculation using container/element geometry\n- Verify alignment accuracy and retry up to 3 times if needed\n\nKey improvements for deterministic behavior:\n1. FORCE mode: Always disables scroll sync before alignment\n2. Immediate scrolling: No smooth animations that cause timing issues\n3. Precision verification: Retries if alignment error > 5 pixels\n4. State persistence: Tracks last perfect alignment for consistency\n5. Robust timing: Multiple attempts with proper delays\n6. Extended sync disable: Prevents drift immediately after alignment\n\nFixes: 'Sync to Counterpart' now always forces perfect alignment\nResolves: Inconsistent alignment behavior after scrolling operations\n\nRelated: Request #57 - Deterministic sync alignment enhancement",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-06-28T07:09:04.763Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render /*, screen, fireEvent, waitFor */ } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../App';
 
@@ -92,13 +92,13 @@ describe('ID Key Generation from Real Data', () => {
     const sample1 = await loadSampleFile('sample1.json');
     
     // Expected ID key paths based on the real data structure
-    const expectedPaths = [
-      'legacySavingsSlidersInputAccountIds[0]', // "63610677::1"
-      'legacySavingsSlidersResponse.savingsSliders[0].accountId', // "63610677::1"
-      'legacySavingsSlidersResponse.savingsSliders[0].externalId', // "52FF5C94-A4E8-44E8-A40C-B60A1A1DEDCA"
-      'userGUID', // "5656A5E7-22C8-48A7-A142-1129DE1796A5"
-      'planningGoalId', // "2828637"
-    ];
+    // const expectedPaths = [
+    //   'legacySavingsSlidersInputAccountIds[0]', // "63610677::1"
+    //   'legacySavingsSlidersResponse.savingsSliders[0].accountId', // "63610677::1"
+    //   'legacySavingsSlidersResponse.savingsSliders[0].externalId', // "52FF5C94-A4E8-44E8-A40C-B60A1A1DEDCA"
+    //   'userGUID', // "5656A5E7-22C8-48A7-A142-1129DE1796A5"
+    //   'planningGoalId', // "2828637"
+    // ];
     
     // These paths should exist in the data
     expect(sample1.legacySavingsSlidersInputAccountIds[0]).toBe('63610677::1');

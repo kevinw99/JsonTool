@@ -1,15 +1,15 @@
 import React, { useRef, useEffect } from 'react';
-import { FilteredJsonViewer } from './FilteredJsonViewer';
+// import { FilteredJsonViewer } from './FilteredJsonViewer';
 import { JsonDiffViewer } from './JsonDiffViewer';
 import { JsonViewer } from './JsonViewer';
-import type { DiffResult } from '../jsonCompare';
-import { JsonViewerSyncProvider, useJsonViewerSync } from './JsonViewerSyncContext';
+// import type { DiffResult } from '../jsonCompare';
+// import { JsonViewerSyncProvider, useJsonViewerSync } from './JsonViewerSyncContext';
 import './SyncedJsonViewers.css';
 
 interface SyncedJsonViewersProps {
   json1: any;
   json2: any;
-  diffs: DiffResult[];
+  diffs: any[];
   viewMode: 'normal' | 'diff';
   syncScroll: boolean;
   height?: number;

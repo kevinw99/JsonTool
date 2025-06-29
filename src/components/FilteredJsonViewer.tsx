@@ -33,6 +33,14 @@ export const FilteredJsonViewer: React.FC<FilteredJsonViewerProps> = ({
             <DiffFilteredJsonView
               originalJson={json}
               diffResults={diffResults}
+              jsonData={json}
+              diffs={diffResults}
+              viewerId={viewerId}
+              expandedPaths={new Set()}
+              setExpandedPaths={() => {}}
+              highlightPath={''}   
+              renderPath=""
+              idKey=""
               height="100%"
             />
           ) : (
@@ -61,13 +69,13 @@ export const FilteredJsonViewer: React.FC<FilteredJsonViewerProps> = ({
         ) : (
           <div className="tree-view-container" style={{ flexGrow: 1, overflow: 'auto' }}> {/* Ensure this takes up space and scrolls */}
             <JsonTreeView 
-              json={showDiffsOnly ? 
+              data={showDiffsOnly ? 
                 (diffResults.length > 0 ? 
                   filterJsonByDiffs(json, diffResults) || {} : json) 
                 : json}
               viewerId={viewerId}
-              diffResults={diffResults}
-              isOriginal={viewerId === 'viewer1'}
+              jsonSide={viewerId === 'viewer1' ? 'left' : 'right'}
+              idKeySetting={null}
             />
           </div>
         )}
