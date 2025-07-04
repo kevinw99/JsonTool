@@ -1489,6 +1489,7 @@ function App() {
         initialSyncEnabled={syncScroll} 
         diffResults={diffs}
         jsonData={{ left: sortedFile1Data || file1?.content, right: sortedFile2Data || file2?.content }}
+        idKeysUsed={idKeysUsed}
       >
         <div className="App">
           <header className="app-header">

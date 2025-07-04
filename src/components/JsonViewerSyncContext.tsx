@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { DiffResult } from '../utils/jsonCompare'; 
+import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
+import { buildHighlightingMaps, debugHighlightingInfo, type HighlightingInfo } from '../utils/HighlightingProcessor'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -31,6 +32,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   setPersistentHighlightPath: (path: string | null) => void;
   clearAllIgnoredDiffs: () => void;
   diffResults: DiffResult[]; 
+  highlightingInfo: HighlightingInfo | null; // New: preprocessed highlighting maps
   viewerId1: string; // Still needed for root path construction if JsonNode needs it initially, though generic paths are preferred
   viewerId2: string; 
   toggleShowDiffsOnly: () => void;
@@ -56,6 +58,7 @@ interface JsonViewerSyncProviderProps {
   viewerId1?: string; 
   viewerId2?: string; 
   jsonData?: { left: any; right: any }; // Add JSON data for ID-based correlation
+  idKeysUsed?: IdKeyInfo[]; // Add ID keys for path conversion
 }
 
 export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
@@ -66,7 +69,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
   diffResults = [], 
   viewerId1 = "viewer1", // Default viewer IDs
   viewerId2 = "viewer2",
-  jsonData // JSON data for ID-based correlation
+  jsonData, // JSON data for ID-based correlation
+  idKeysUsed = [] // ID keys for path conversion
 }) => {
     const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
     const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
@@ -107,6 +111,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     });
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
     const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
+    
+    // New: State for preprocessed highlighting information
+    const [highlightingInfo, setHighlightingInfo] = useState<HighlightingInfo | null>(null);
 
     // Context menu related state
     const [forceSortedArrays, setForceSortedArraysState] = useState<Set<string>>(new Set());
@@ -144,6 +151,32 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     useEffect(() => {
       syncScrollRef.current = syncEnabled;
     }, [syncEnabled]);
+
+    // New: Build highlighting maps when diffResults change
+    useEffect(() => {
+      if (diffResults && diffResults.length > 0) {
+        // Create context for path conversion
+        const context = {
+          jsonData: jsonData?.left || jsonData?.right,
+          idKeysUsed: idKeysUsed
+        };
+        const info = buildHighlightingMaps(diffResults, context);
+        setHighlightingInfo(info);
+        
+        // Enhanced debug logging
+        console.log('🎨 Built highlighting info:', {
+          exactDiffs: info.exactDiffs.size,
+          parentContainers: info.parentContainers.size,
+          addedPaths: info.addedPaths.size,
+          changedPaths: info.changedPaths.size
+        });
+        
+        // Uncomment for detailed debugging
+        // debugHighlightingInfo(info);
+      } else {
+        setHighlightingInfo(null);
+      }
+    }, [diffResults, jsonData, idKeysUsed]);
 
     const toggleExpand = useCallback((genericPath: string) => {
       // genericPath is the generic numeric path, e.g., "root.some.path" or "root.array[0]"
@@ -1385,6 +1418,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setPersistentHighlightPath,
         clearAllIgnoredDiffs,
         diffResults,
+        highlightingInfo, // New: preprocessed highlighting maps
         viewerId1, 
         viewerId2,
         toggleShowDiffsOnly,
@@ -1423,6 +1457,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setPersistentHighlightPath,
         clearAllIgnoredDiffs,
         diffResults,
+        highlightingInfo, // New dependency
         viewerId1,
         viewerId2,
         toggleShowDiffsOnly,

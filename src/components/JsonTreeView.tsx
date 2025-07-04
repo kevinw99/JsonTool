@@ -5,6 +5,8 @@ import { JsonViewerSyncContext } from './JsonViewerSyncContext';
 import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
+import { getDiffHighlightingClass } from '../utils/HighlightingProcessor';
+import { type PathConversionContext } from '../utils/PathConverter';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -94,6 +96,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     highlightPath, // Assumed to be numerically indexed for array segments from context
     persistentHighlightPath, // For persistent border highlighting
     diffResults: diffResultsData,
+    highlightingInfo, // New: preprocessed highlighting maps
     showDiffsOnly: showDiffsOnlyContext, 
     ignoredDiffs,
     forceSortedArrays, // New property for forced array sorting
@@ -263,53 +266,58 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   }, [isPendingScroll, isExpanded, hasChildren]);
   
   const getNodeDiffStatus = (): string[] => {
-    if (!diffResultsData || diffResultsData.length === 0) return [];
-
-    const relevantDiffs = diffResultsData.filter((diff: DiffResult) => 
-      diff.numericPath && !ignoredDiffs.has(diff.numericPath)
-    );
+    // Early return if no highlighting info available
+    if (!highlightingInfo) return [];
 
     const classes: string[] = [];
 
+    // Build PathConversionContext for comprehensive path variations
+    const pathContext: PathConversionContext = {
+      jsonData: data, // Use the current node's data context
+      idKeysUsed: idKeySetting ? [{ 
+        arrayPath: '', // Will be determined by PathConverter internally
+        idKey: idKeySetting, 
+        isComposite: false, 
+        arraySize1: 0, 
+        arraySize2: 0 
+      }] : []
+    };
 
-    // Check for EXACT matches first (this node IS the diff)
-    for (const diff of relevantDiffs) {
-      if (!diff.numericPath) continue;
+    // Step 1: Get basic path variations for this node (we'll implement proper normalization later)
+    const allPathVariations = [
+      normalizedPathForDiff, 
+      `root.${normalizedPathForDiff}`,
+      normalizedPathForDiff.replace(/^root\./, '')
+    ].filter(Boolean);
 
-      // Direct path match - the numericPath should already be in the correct format
-      if (normalizedPathForDiff === diff.numericPath) {
-        if (diff.type === 'added' && jsonSide === 'right') {
-          classes.push('json-added');
-        } else if (diff.type === 'removed' && jsonSide === 'left') {
-          classes.push('json-deleted');
-        } else if (diff.type === 'changed') {
-          classes.push('json-changed');
+    // Step 2: O(1) exact match lookup using all path variations
+    for (const pathVariation of allPathVariations) {
+      const exactDiff = highlightingInfo.exactDiffs.get(pathVariation);
+      if (exactDiff && !ignoredDiffs.has(exactDiff.numericPath) && jsonSide) {
+        const highlightClass = getDiffHighlightingClass(exactDiff.type, jsonSide);
+        if (highlightClass) {
+          classes.push(highlightClass);
+          return classes;
         }
-        return classes; // Return immediately for exact matches
+      }
+
+      // Also check display path diffs
+      const displayDiff = highlightingInfo.displayPathToDiff.get(pathVariation);
+      if (displayDiff && !ignoredDiffs.has(displayDiff.numericPath) && jsonSide) {
+        const highlightClass = getDiffHighlightingClass(displayDiff.type, jsonSide);
+        if (highlightClass) {
+          classes.push(highlightClass);
+          return classes;
+        }
       }
     }
 
-    // If no exact match, check if this node is a PARENT of any diff
-    for (const diff of relevantDiffs) {
-      if (!diff.numericPath) continue;
-
-      // Check direct parent relationship
-      const isDirectParent = (
-        normalizedPathForDiff && 
-        (diff.numericPath.startsWith(normalizedPathForDiff + '.') || 
-         diff.numericPath.startsWith(normalizedPathForDiff + '['))
-      );
-
-      if (isDirectParent) {
+    // Step 3: O(1) parent container lookup using all path variations
+    for (const pathVariation of allPathVariations) {
+      if (highlightingInfo.parentContainers.has(pathVariation)) {
         classes.push('json-parent-changed');
-        return classes; // Return immediately
+        return classes;
       }
-    }
-
-    // Root node check - if this is the root node and there are any diffs, mark as parent
-    if (normalizedPathForDiff === '' && relevantDiffs.length > 0) {
-      classes.push('json-parent-changed');
-      return classes;
     }
 
     return classes;
@@ -464,7 +472,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           isCompareMode,
           idKeySetting,
           forceSortedArrays,
-          actualNumericIndex
+          actualNumericIndex,
+          highlightingInfo,
+          ignoredDiffs
         });
       }
     });
@@ -771,6 +781,8 @@ const debugNodeInfo = (nodeData: {
   hasChildren: boolean;
   diffInfo: any;
   isExpanded: boolean;
+  highlightingInfo: any;
+  ignoredDiffs: Set<string>;
   viewerId: string;
   isCompareMode: boolean;
   idKeySetting: string | null;
@@ -798,6 +810,70 @@ const debugNodeInfo = (nodeData: {
     isCompareMode: nodeData.isCompareMode,
     viewerId: nodeData.viewerId
   });
+
+  // 🎨 HIGHLIGHTING DEBUG INFORMATION
+  if (nodeData.highlightingInfo && nodeData.normalizedPathForDiff) {
+    const normalizedPath = nodeData.normalizedPathForDiff;
+    
+    // Build PathConversionContext for comprehensive debug analysis
+    const debugPathContext: PathConversionContext = {
+      jsonData: nodeData.value,
+      idKeysUsed: nodeData.idKeySetting ? [{ 
+        arrayPath: '', 
+        idKey: nodeData.idKeySetting, 
+        isComposite: false, 
+        arraySize1: 0, 
+        arraySize2: 0 
+      }] : []
+    };
+
+    // Get basic path variations for debugging (we'll implement proper normalization later)
+    const pathVariations = [
+      normalizedPath, 
+      `root.${normalizedPath}`,
+      normalizedPath.replace(/^root\./, '')
+    ].filter(Boolean);
+    
+    console.log('🎨 Highlighting Analysis:', {
+      currentHighlightClasses: nodeData.diffInfo.classes,
+      normalizedPath: normalizedPath,
+      pathVariations: pathVariations
+    });
+    
+    // Check exact diff matches
+    const exactMatches = pathVariations.map(path => ({
+      path,
+      numericMatch: nodeData.highlightingInfo.exactDiffs.get(path),
+      displayMatch: nodeData.highlightingInfo.displayPathToDiff.get(path)
+    })).filter(result => result.numericMatch || result.displayMatch);
+    
+    console.log('🎯 Exact Diff Matches:', exactMatches);
+    
+    // Check parent container status
+    const parentMatches = pathVariations.filter(path => 
+      nodeData.highlightingInfo.parentContainers.has(path)
+    );
+    
+    console.log('👨‍👩‍👧‍👦 Parent Container Matches:', parentMatches);
+    
+    // Show all available diffs for comparison
+    const allExactDiffs = Array.from(nodeData.highlightingInfo.exactDiffs.entries()).slice(0, 10);
+    const allParentContainers = Array.from(nodeData.highlightingInfo.parentContainers).slice(0, 10);
+    
+    console.log('📋 Available Exact Diffs (first 10):', allExactDiffs);
+    console.log('📋 Available Parent Containers (first 10):', allParentContainers);
+    
+    // Path correlation debugging
+    const correlationResults = pathVariations.map(path => ({
+      path,
+      inExactDiffs: nodeData.highlightingInfo.exactDiffs.has(path),
+      inDisplayDiffs: nodeData.highlightingInfo.displayPathToDiff.has(path),
+      inParentContainers: nodeData.highlightingInfo.parentContainers.has(path),
+      isIgnored: nodeData.ignoredDiffs.has(path)
+    }));
+    
+    console.log('🔗 Path Correlation Results:', correlationResults);
+  }
 
   // 🎯 CORRELATION DEBUGGING - Key information for investigating sync issues
   const arrayItemMatch = nodeData.genericNumericPathForNode.match(/^(.*)\[(\d+)\](.*)$/);
