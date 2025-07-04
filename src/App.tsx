@@ -924,7 +924,7 @@ function App() {
     let isScrolling = false;
     
     const handleScroll = (event: Event) => {
-      console.log('[Scroll Event] Received from:', event.target);
+//       //console.log('[Scroll Event] Received from:', event.target);
       
       const source = event.target as HTMLElement;
       
@@ -938,20 +938,20 @@ function App() {
         if (parent) {
           scrollContainer = parent as HTMLElement;
         } else {
-          console.log('[Scroll Event] Could not find scroll container, ignoring');
+          //console.log('[Scroll Event] Could not find scroll container, ignoring');
           return;
         }
       }
       
-      console.log('[Scroll Event] Valid container, scrollTop:', scrollContainer.scrollTop);
+      //console.log('[Scroll Event] Valid container, scrollTop:', scrollContainer.scrollTop);
       
       if (isScrolling) {
-        console.log('[Scroll Event] Already scrolling, ignoring');
+        //console.log('[Scroll Event] Already scrolling, ignoring');
         return;
       }
       
       if (programmaticScrollRef.current) {
-        console.log('[Scroll Event] Programmatic scroll in progress, ignoring');
+        //console.log('[Scroll Event] Programmatic scroll in progress, ignoring');
         return;
       }
       
@@ -959,7 +959,7 @@ function App() {
       
       // Find both viewers and sync them
       const allViewers = document.querySelectorAll('.json-viewer-scroll-container');
-      console.log('[Scroll Event] Found', allViewers.length, 'viewers to sync');
+      //console.log('[Scroll Event] Found', allViewers.length, 'viewers to sync');
       
       allViewers.forEach((viewer, idx) => {
         if (viewer !== scrollContainer) {

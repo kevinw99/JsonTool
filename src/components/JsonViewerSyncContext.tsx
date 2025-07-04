@@ -45,6 +45,9 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   enableSyncScrolling: () => void;
   // Test function for viewport debugging
   testViewportDetection: () => void;
+  // PathConverter context data
+  jsonData?: { left: any; right: any };
+  idKeysUsed?: IdKeyInfo[];
 }
 
 export const JsonViewerSyncContext = createContext<JsonViewerSyncContextProps | undefined>(undefined);
@@ -682,17 +685,15 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, []);
 
     const syncToCounterpart = useCallback((nodePath: string, viewerId: string) => {
-      console.log('[Context] 🎯 Sync to Counterpart clicked - checking for ID-based correlation');
-      console.log('[Context] 📍 Input nodePath:', nodePath);
-      console.log('[Context] 📍 Input viewerId:', viewerId);
+      console.log('[HIGHLIGHT] 🎯 Sync to Counterpart - Input:', nodePath, 'from', viewerId);
       
       // Normalize the path to remove viewer-specific prefix
       let normalizedPath = nodePath.replace(/^root_(viewer1|viewer2)_/, '');
-      console.log('[Context] 📍 Normalized path:', normalizedPath);
+      console.log('[HIGHLIGHT] 📍 Normalized path:', normalizedPath);
       
       // Check if we have JSON data for ID-based correlation
       if (jsonData) {
-        console.log('[Context] 🔍 Have JSON data - converting numeric to display path');
+        console.log('[HIGHLIGHT] 🔍 Converting numeric to display path for correlation');
         // Convert numeric path to display path
         const displayPath = convertNumericToDisplayPath(normalizedPath, jsonData.left);
         if (displayPath && displayPath !== normalizedPath && displayPath.includes('[') && displayPath.includes('=')) {
@@ -1431,6 +1432,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         enableSyncScrolling,
         // Test function
         testViewportDetection,
+        // PathConverter context data
+        jsonData,
+        idKeysUsed,
     }), [
         viewMode,
         showDiffsOnly,
@@ -1468,6 +1472,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         enableSyncScrolling,
         testViewportDetection,
         effectiveIgnoredDiffs,
+        jsonData,
+        idKeysUsed,
     ]);
 
     return (

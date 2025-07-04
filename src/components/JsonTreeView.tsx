@@ -6,7 +6,7 @@ import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { getDiffHighlightingClass } from '../utils/HighlightingProcessor';
-import { type PathConversionContext } from '../utils/PathConverter';
+import { type PathConversionContext, normalizePathForComparison } from '../utils/PathConverter';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -105,6 +105,8 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     addIgnoredPatternFromRightClick, // Method to add patterns from right-click
     removeIgnoredPatternByPath, // Method to remove patterns by path
     isPathIgnoredByPattern, // Method to check if path is ignored by pattern
+    jsonData, // PathConverter context data
+    idKeysUsed, // PathConverter context data
   } = context;
   
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -267,28 +269,18 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   
   const getNodeDiffStatus = (): string[] => {
     // Early return if no highlighting info available
-    if (!highlightingInfo) return [];
+    if (!highlightingInfo || !normalizedPathForDiff) return [];
 
     const classes: string[] = [];
 
-    // Build PathConversionContext for comprehensive path variations
+    // Build PathConversionContext for comprehensive path variations  
     const pathContext: PathConversionContext = {
-      jsonData: data, // Use the current node's data context
-      idKeysUsed: idKeySetting ? [{ 
-        arrayPath: '', // Will be determined by PathConverter internally
-        idKey: idKeySetting, 
-        isComposite: false, 
-        arraySize1: 0, 
-        arraySize2: 0 
-      }] : []
+      jsonData: jsonSide === 'left' ? jsonData?.left : jsonData?.right, // Use appropriate side data
+      idKeysUsed: idKeysUsed || []
     };
 
-    // Step 1: Get basic path variations for this node (we'll implement proper normalization later)
-    const allPathVariations = [
-      normalizedPathForDiff, 
-      `root.${normalizedPathForDiff}`,
-      normalizedPathForDiff.replace(/^root\./, '')
-    ].filter(Boolean);
+    // Step 1: Get all normalized path variations using PathConverter utility
+    const allPathVariations = normalizePathForComparison(normalizedPathForDiff, pathContext);
 
     // Step 2: O(1) exact match lookup using all path variations
     for (const pathVariation of allPathVariations) {
@@ -929,6 +921,7 @@ const debugNodeInfo = (nodeData: {
       }) || null;
       
       // Show file-specific ID keys for debugging
+/*
       console.log('📋 File-Specific ID Keys Analysis:');
       if (typeof window !== 'undefined') {
         console.log('File 1 ID Keys:', (window as any).file1IdKeys?.length || 0, 'entries');
@@ -943,7 +936,8 @@ const debugNodeInfo = (nodeData: {
           console.log(`  ${index + 1}. arrayPath: "${idKeyInfo.arrayPath}", idKey: "${idKeyInfo.idKey}"`);
         });
       }
-      
+ */
+
       console.log('🔍 Array Items Sorting Analysis:', {
         arrayLength: arrayItems.length,
         detectedArraySpecificIdKey: detectedIdKey,

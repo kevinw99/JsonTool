@@ -126,34 +126,6 @@ function extractIdKeyValue(segment: string): { key: string; value: string } | nu
   return null;
 }
 
-/**
- * Navigates to a specific path in JSON data and returns the value
- */
-function navigateToPath(data: any, segments: string[]): any {
-  let current = data;
-  
-  for (const segment of segments) {
-    if (!current || typeof current !== 'object') {
-      return undefined;
-    }
-    
-    // Handle array index
-    if (segment.startsWith('[') && segment.endsWith(']')) {
-      const indexStr = segment.slice(1, -1);
-      const index = parseInt(indexStr, 10);
-      if (!isNaN(index) && Array.isArray(current)) {
-        current = current[index];
-      } else {
-        return undefined;
-      }
-    } else {
-      // Handle object property
-      current = current[segment];
-    }
-  }
-  
-  return current;
-}
 
 /**
  * Converts an ID-based path to an index-based path with proper prefix handling
@@ -415,40 +387,13 @@ export function arePathsEquivalent(
 /**
  * For highlighting: Convert paths and try all variations for matching
  * Use case: Finding diffs that match a node's path regardless of format
+ * This is an alias for normalizePathForComparison for backward compatibility
  */
 export function getPathVariationsForHighlighting(
   path: string,
   context?: PathConversionContext
 ): string[] {
-  if (!context) {
-    return getAllPathVariations(path);
-  }
-  
-  const variations = new Set<string>();
-  
-  // Start with all basic variations
-  getAllPathVariations(path).forEach(v => variations.add(v));
-  
-  // Try converting between ID and index formats
-  const { corePath } = extractPrefix(path);
-  
-  // If it has ID keys, try converting to index
-  if (corePath.includes('[') && corePath.includes('=')) {
-    const indexPath = convertIdPathToIndexPath(path, context, { removeAllPrefixes: true });
-    if (indexPath) {
-      getAllPathVariations(indexPath).forEach(v => variations.add(v));
-    }
-  }
-  
-  // If it has numeric indices, try converting to ID
-  if (corePath.match(/\[\d+\]/)) {
-    const idPath = convertIndexPathToIdPath(path, context, { removeAllPrefixes: true });
-    if (idPath) {
-      getAllPathVariations(idPath).forEach(v => variations.add(v));
-    }
-  }
-  
-  return Array.from(variations);
+  return normalizePathForComparison(path, context);
 }
 
 /**
@@ -474,7 +419,7 @@ export function convertPathForSameViewer(
 export function convertPathForCrossViewerSync(
   path: string,
   context: PathConversionContext,
-  fromViewer: string,
+  _fromViewer: string,
   toViewer: string,
   targetFormat: 'id' | 'index'
 ): string | null {
