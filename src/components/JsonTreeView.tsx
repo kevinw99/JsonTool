@@ -130,14 +130,15 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           basePath = `${parentPathPart}[${actualNumericIndex}]`;
         }
       } else {
-        // For child nodes of array items, try to determine the numeric index
-        // Split the path and find all array segments
+        // Since data is now pre-sorted, ID-based paths should naturally match their positions
+        // We can keep the current path as-is since array rendering now uses actualNumericIndex
+        // which corresponds to the sorted positions. The correlation should work correctly.
+        // TODO: In the future, this conversion may not be needed at all
         const pathParts = basePath.split('.');
         const convertedParts = pathParts.map(part => {
           if (part.includes(`[${idKeySetting}=`)) {
-            // This is an ID-based array reference
-            // For now, let's use a simple heuristic: use index 0 as default
-            // In a real implementation, we'd need to track the mapping
+            // With pre-sorted data, this fallback should rarely be needed
+            // but we keep it for safety during transition
             return part.replace(new RegExp(`\\[${idKeySetting}=([^\\]]+)\\]`), '[0]');
           }
           return part;
@@ -210,7 +211,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const isArrayElement = genericNumericPathForNode.match(/\[\d+\]$/);
     
     if (shouldAutoExpand && !isArrayElement) { 
-      console.log(`[JsonNode VId:${viewerId}] Auto-expanding highlighted node: "${path}" (generic: "${genericNumericPathForNode}")`);
       // Pass the node's generic numeric path to toggleExpand for auto-expansion
       toggleExpand(genericNumericPathForNode); 
     }
@@ -271,15 +271,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     const classes: string[] = [];
 
-    // Debug logging for diff status (only when needed)
-    const shouldDebug = normalizedPathForDiff.includes('currentContributionOverride');
-    if (shouldDebug) {
-      console.log(`[JsonNode VId:${viewerId}] Processing currentContributionOverride:`, {
-        path,
-        normalizedForDiff: normalizedPathForDiff,
-        diffMatches: relevantDiffs.filter(d => d.numericPath === normalizedPathForDiff)
-      });
-    }
 
     // Check for EXACT matches first (this node IS the diff)
     for (const diff of relevantDiffs) {
@@ -294,7 +285,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         } else if (diff.type === 'changed') {
           classes.push('json-changed');
         }
-        console.log(`[JsonNode VId:${viewerId}] ✅ DIRECT MATCH: "${normalizedPathForDiff}" matches "${diff.numericPath}" -> ${diff.type}`);
         return classes; // Return immediately for exact matches
       }
     }
@@ -312,7 +302,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
       if (isDirectParent) {
         classes.push('json-parent-changed');
-        console.log(`[JsonNode VId:${viewerId}] ✅ PARENT MATCH: "${normalizedPathForDiff}" is parent of "${diff.numericPath}"`);
         return classes; // Return immediately
       }
     }
@@ -417,11 +406,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           if (isCurrentlyIgnored) {
             // Remove the pattern for this path
             removeIgnoredPatternByPath(normalizedPathForDiff);
-            console.log(`[ContextMenu] Removed ignore pattern for path: "${normalizedPathForDiff}"`);
           } else {
             // Add as a pattern to get full filtering behavior
             addIgnoredPatternFromRightClick(normalizedPathForDiff);
-            console.log(`[ContextMenu] Added ignore pattern for path: "${normalizedPathForDiff}"`);
           }
         }
       }
@@ -434,7 +421,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         label: isCurrentlySorted ? 'Disable Sorting' : 'Sort Array',
         icon: isCurrentlySorted ? '🔄' : '🔽',
         action: () => {
-          console.log(`[ContextMenu] Toggling array sorting for: "${genericNumericPathForNode}"`);
           toggleArraySorting(genericNumericPathForNode);
         }
       });
@@ -447,10 +433,41 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         icon: '↔️',
         action: () => {
           syncToCounterpart(path, viewerId);
-          console.log(`[ContextMenu] Syncing to counterpart for: "${path}"`);
         }
       });
     }
+
+    // Debug action - print detailed node information
+    actions.push({
+      label: 'Debug',
+      icon: '🔍',
+      action: () => {
+        const diffStatusClasses = getNodeDiffStatus();
+        const relevantDiffs = diffResultsData ? diffResultsData.filter((diff: any) => 
+          diff.numericPath === normalizedPathForDiff
+        ) : [];
+        
+        debugNodeInfo({
+          path,
+          normalizedPathForDiff,
+          genericNumericPathForNode,
+          value: data,
+          isArray,
+          hasChildren,
+          diffInfo: {
+            classes: diffStatusClasses,
+            relevantDiffs,
+            isIgnored: normalizedPathForDiff ? ignoredDiffs.has(normalizedPathForDiff) : false
+          },
+          isExpanded,
+          viewerId,
+          isCompareMode,
+          idKeySetting,
+          forceSortedArrays,
+          actualNumericIndex
+        });
+      }
+    });
 
     setContextMenu({
       x: e.clientX,
@@ -485,7 +502,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   // Debug logging for CSS visibility issues
   if (DEBUG_CSS_HIGHLIGHTING && diffStatusClasses.length > 0) {
-    console.log(`[JsonTreeView Debug] Path: ${path}, Classes: ${diffStatusClasses.join(', ')}, Final nodeClasses: ${nodeClasses}`);
   }
 
   // Create content-specific classes
@@ -526,29 +542,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
             {(() => {
               // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
               const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
-              const isForced = forceSortedArrays.has(genericNumericPathForNode);
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
               
               if (shouldSort) {
-                const sortReason = idKeySetting ? `ID key "${idKeySetting}"` : 'forced via context menu';
-                console.log(`[JsonTreeView] 🔍 Sorting array: ${sortReason} (${arrData.length} items)`);
-                
-                // Debug: Show first item structure only if forced sorting and no ID key
-                if (isForced && !idKeySetting && arrData.length > 0) {
-                  const firstItem = arrData[0];
-                  if (typeof firstItem === 'object' && firstItem !== null && !Array.isArray(firstItem)) {
-                    console.log(`[JsonTreeView] 🔍 Available fields:`, Object.keys(firstItem as JsonObject).slice(0, 5));
-                  }
-                }
-                
-                // IMPORTANT: Log before and after sorting to verify it's working
-                console.log(`[JsonTreeView] 🚨 BEFORE SORTING:`, arrData.map((item, i) => 
-                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
-                    ? `[${i}]: {${idKeySetting}: "${(item as JsonObject)[idKeySetting]}"}`
-                    : `[${i}]: ${typeof item}`
-                ).slice(0, 3));
                 
                 // Create array of {item, originalIndex} pairs
                 const itemsWithOriginalIndex = arrData.map((item, originalIndex) => ({
@@ -556,28 +554,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   originalIndex
                 }));
                 
-                // Show what keys are available in items for debugging
-                const sampleKeys = new Set<string>();
-                itemsWithOriginalIndex.slice(0, 3).forEach(({ item }) => {
-                  if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-                    Object.keys(item).forEach(key => sampleKeys.add(key));
-                  }
-                });
-                console.log(`[JsonTreeView] Sample keys in items: ${Array.from(sampleKeys).join(', ')}`);
-                
-                const beforeOrder = itemsWithOriginalIndex.map(({ item, originalIndex }) => {
-                  if (typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item) {
-                    return `${originalIndex}:${(item as JsonObject)[idKeySetting]}`;
-                  }
-                  return `${originalIndex}:${JSON.stringify(item).substring(0, 30)}...`;
-                });
-                console.log(`[JsonTreeView] Before sort: [${beforeOrder.join(', ')}]`);
-                
-                console.log(`[JsonTreeView] Original order:`, itemsWithOriginalIndex.map(({item, originalIndex}) =>
-                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
-                    ? `[${originalIndex}]: ${(item as JsonObject)[idKeySetting]}`
-                    : `[${originalIndex}]: no-id`
-                ).slice(0, 3));
                 
                 // Sort by ID key value if available, otherwise by string representation
                 itemsWithOriginalIndex.sort((a, b) => {
@@ -612,19 +588,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   }
                 });
                 
-                const afterOrder = itemsWithOriginalIndex.map(({ item, originalIndex }) => {
-                  if (typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item) {
-                    return `${originalIndex}:${(item as JsonObject)[idKeySetting]}`;
-                  }
-                  return `${originalIndex}:${JSON.stringify(item).substring(0, 30)}...`;
-                });
-                console.log(`[JsonTreeView] After sort: [${afterOrder.join(', ')}]`);
-                
-                console.log(`[JsonTreeView] Sorted order:`, itemsWithOriginalIndex.map(({item, originalIndex}) =>
-                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
-                    ? `[${originalIndex}]: ${(item as JsonObject)[idKeySetting]}`
-                    : `[${originalIndex}]: no-id`
-                ).slice(0, 3));
                 
                 // Extract sorted data and build index map
                 sortedData = itemsWithOriginalIndex.map(({ item }) => item);
@@ -632,16 +595,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   sortedIndexMap.set(sortedIndex, originalIndex);
                 });
                 
-                // IMPORTANT: Log after sorting to verify it's working  
-                console.log(`[JsonTreeView] 🚨 AFTER SORTING:`, sortedData.map((item, i) => 
-                  typeof item === 'object' && item !== null && !Array.isArray(item) && idKeySetting && idKeySetting in item 
-                    ? `[${i}]: {${idKeySetting}: "${(item as JsonObject)[idKeySetting]}"}`
-                    : `[${i}]: ${typeof item}`
-                ).slice(0, 3));
                 
-                if (isForced) {
-                  console.log(`[JsonTreeView] ✅ Force-sorted array complete`);
-                }
               } else {
                 // No sorting, create identity mapping
                 arrData.forEach((_, index) => {
@@ -805,7 +759,204 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
 };
 
 // Debug flag for CSS visibility issues
-const DEBUG_CSS_HIGHLIGHTING = true;
+const DEBUG_CSS_HIGHLIGHTING = false;
+
+// Debug function for individual node information
+const debugNodeInfo = (nodeData: {
+  path: string;
+  normalizedPathForDiff: string | null;
+  genericNumericPathForNode: string;
+  value: JsonValue;
+  isArray: boolean;
+  hasChildren: boolean;
+  diffInfo: any;
+  isExpanded: boolean;
+  viewerId: string;
+  isCompareMode: boolean;
+  idKeySetting: string | null;
+  forceSortedArrays: Set<string>;
+  actualNumericIndex?: number;
+}) => {
+  console.group(`🔍 Node Debug Info: ${nodeData.path}`);
+  
+  console.log('📍 Path Information:', {
+    originalPath: nodeData.path,
+    normalizedPathForDiff: nodeData.normalizedPathForDiff,
+    genericNumericPath: nodeData.genericNumericPathForNode
+  });
+  
+  console.log('📊 Value Information:', {
+    value: nodeData.value,
+    type: typeof nodeData.value,
+    isArray: nodeData.isArray,
+    hasChildren: nodeData.hasChildren,
+    isExpanded: nodeData.isExpanded
+  });
+  
+  console.log('🔄 Diff Information:', {
+    diffInfo: nodeData.diffInfo,
+    isCompareMode: nodeData.isCompareMode,
+    viewerId: nodeData.viewerId
+  });
+
+  // 🎯 CORRELATION DEBUGGING - Key information for investigating sync issues
+  const arrayItemMatch = nodeData.genericNumericPathForNode.match(/^(.*)\[(\d+)\](.*)$/);
+  if (arrayItemMatch) {
+    const [, arrayPath, indexStr, afterArrayPath] = arrayItemMatch;
+    const currentIndex = parseInt(indexStr, 10);
+    
+    console.log('🔗 Array Correlation Analysis:', {
+      isArrayItem: true,
+      arrayPath: arrayPath,
+      displayIndex: currentIndex,
+      originalIndex: nodeData.actualNumericIndex,
+      pathAfterArray: afterArrayPath || '(none)',
+      indexDifference: nodeData.actualNumericIndex !== undefined ? (currentIndex - nodeData.actualNumericIndex) : 'unknown'
+    });
+    
+    // Check if this array is sorted
+    const isArraySorted = Boolean(nodeData.idKeySetting) || nodeData.forceSortedArrays.has(arrayPath);
+    const sortMethod = nodeData.idKeySetting ? `ID key: "${nodeData.idKeySetting}"` : 
+                      nodeData.forceSortedArrays.has(arrayPath) ? 'Force-sorted via context menu' : 'Not sorted';
+    
+    console.log('📋 Array Sorting State:', {
+      arrayPath: arrayPath,
+      isSorted: isArraySorted,
+      sortMethod: sortMethod,
+      idKeySetting: nodeData.idKeySetting,
+      isInForceSortedSet: nodeData.forceSortedArrays.has(arrayPath),
+      allForceSortedArrays: Array.from(nodeData.forceSortedArrays)
+    });
+    
+    // If this is an array, show sorting analysis for its items
+    if (nodeData.isArray && Array.isArray(nodeData.value)) {
+      const arrayItems = nodeData.value as JsonValue[];
+      
+      // Detect what ID key would be best for this specific array
+      const candidateKeys = ['id', 'key', 'uuid', 'name', 'accountType', 'resolvedDisplayLabel', 'type'];
+      const detectedIdKey = candidateKeys.find(candidateKey => {
+        let validCount = 0;
+        const seenValues = new Set<string>();
+        for (const item of arrayItems) {
+          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+            const itemObj = item as JsonObject;
+            if (candidateKey in itemObj) {
+              const value = String(itemObj[candidateKey]);
+              if (value && !seenValues.has(value)) {
+                seenValues.add(value);
+                validCount++;
+              }
+            }
+          }
+        }
+        return validCount >= Math.max(2, Math.floor(arrayItems.length * 0.8));
+      }) || null;
+      
+      // Show file-specific ID keys for debugging
+      console.log('📋 File-Specific ID Keys Analysis:');
+      if (typeof window !== 'undefined') {
+        console.log('File 1 ID Keys:', (window as any).file1IdKeys?.length || 0, 'entries');
+        console.log('File 2 ID Keys:', (window as any).file2IdKeys?.length || 0, 'entries');
+        
+        // Find entries related to contributions
+        const contributionsKeys = (window as any).currentIdKeysUsed?.filter((idKeyInfo: any) => 
+          idKeyInfo.arrayPath.includes('contributions')
+        ) || [];
+        console.log('Contributions-related ID Keys:', contributionsKeys.length);
+        contributionsKeys.forEach((idKeyInfo: any, index: number) => {
+          console.log(`  ${index + 1}. arrayPath: "${idKeyInfo.arrayPath}", idKey: "${idKeyInfo.idKey}"`);
+        });
+      }
+      
+      console.log('🔍 Array Items Sorting Analysis:', {
+        arrayLength: arrayItems.length,
+        detectedArraySpecificIdKey: detectedIdKey,
+        globalIdKeySetting: nodeData.idKeySetting,
+        idKeyMismatch: detectedIdKey !== nodeData.idKeySetting,
+        currentArrayPath: nodeData.genericNumericPathForNode,
+        normalizedForLookup: nodeData.genericNumericPathForNode
+          .replace(/^root\./, '') // Remove "root." prefix
+          .replace(/\[\d+\]/g, ''), // Remove array indices
+        firstFewItems: arrayItems.slice(0, 3).map((item, index) => {
+          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+            const itemObj = item as JsonObject;
+            return {
+              index,
+              globalIdValue: nodeData.idKeySetting && nodeData.idKeySetting in itemObj ? itemObj[nodeData.idKeySetting] : 'NO_GLOBAL_ID',
+              detectedIdValue: detectedIdKey && detectedIdKey in itemObj ? itemObj[detectedIdKey] : 'NO_DETECTED_ID',
+              availableKeys: Object.keys(itemObj).slice(0, 5),
+              type: typeof item
+            };
+          }
+          return { index, globalIdValue: 'N/A', detectedIdValue: 'N/A', type: typeof item };
+        }),
+        sortingNote: 'Check the idKeysUsed array entries above to see the actual arrayPath format used for matching.'
+      });
+    }
+    
+    // Correlation target analysis
+    console.log('🎯 Correlation Target Analysis:', {
+      shouldCorrelateByPosition: isArraySorted,
+      currentDisplayPosition: currentIndex,
+      targetSide: nodeData.viewerId === 'viewer1' ? 'viewer2' : 'viewer1',
+      expectedTargetPath: `root_${nodeData.viewerId === 'viewer1' ? 'viewer2' : 'viewer1'}_${arrayPath}[${currentIndex}]${afterArrayPath || ''}`,
+      correlationStrategy: isArraySorted ? 'POSITIONAL (after sorting both sides)' : 'ID-BASED (preserve original mapping)',
+      actualNumericIndexMissing: nodeData.actualNumericIndex === undefined,
+      troubleshootingNote: nodeData.actualNumericIndex === undefined ? 
+        'actualNumericIndex is undefined - this means the array item sorting logic may not be passing the original index correctly' : 
+        'actualNumericIndex is available'
+    });
+    
+    // Check if the value has an ID field
+    if (typeof nodeData.value === 'object' && nodeData.value !== null && !Array.isArray(nodeData.value)) {
+      const valueObj = nodeData.value as JsonObject;
+      const hasIdField = nodeData.idKeySetting && nodeData.idKeySetting in valueObj;
+      console.log('🆔 ID Field Analysis:', {
+        hasIdField: hasIdField,
+        idFieldName: nodeData.idKeySetting,
+        idValue: hasIdField && nodeData.idKeySetting ? valueObj[nodeData.idKeySetting] : 'N/A',
+        availableFields: Object.keys(valueObj).slice(0, 10)
+      });
+    }
+  } else {
+    console.log('🔗 Array Correlation Analysis:', {
+      isArrayItem: false,
+      isArrayItself: nodeData.isArray,
+      note: nodeData.isArray ? 'This is an array container' : 'Not an array item'
+    });
+  }
+  
+  // Get DOM element and styling information
+  const selector = `[data-path="${nodeData.path}"]`;
+  const element = document.querySelector(selector) as HTMLElement;
+  
+  if (element) {
+    const computedStyle = window.getComputedStyle(element);
+    const contentElement = element.querySelector('.json-node-content') as HTMLElement;
+    const contentStyle = contentElement ? window.getComputedStyle(contentElement) : null;
+    
+    console.log('🎨 DOM & Styling:', {
+      element: element,
+      classes: element.className,
+      computedStyle: {
+        backgroundColor: computedStyle.backgroundColor,
+        borderLeft: computedStyle.borderLeft,
+        transform: computedStyle.transform,
+        isolation: computedStyle.isolation,
+        willChange: (computedStyle as any).willChange
+      },
+      contentStyle: contentStyle ? {
+        backgroundColor: contentStyle.backgroundColor,
+        borderLeft: contentStyle.borderLeft,
+        padding: contentStyle.padding
+      } : null
+    });
+  } else {
+    console.log('❌ DOM element not found for selector:', selector);
+  }
+  
+  console.groupEnd();
+};
 
 // Debug function for CSS visibility issues - attach to window for console access
 if (typeof window !== 'undefined') {

@@ -30,22 +30,17 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     // Don't stop propagation initially - let's see what happens
-    console.log('📁 FileDropZone: Drop event detected!', e.target);
     setIsDragOver(false);
 
     const files = e.dataTransfer.files;
-    console.log('📁 FileDropZone: Files in drop:', files ? Array.from(files).map(f => f.name) : 'none');
     
     if (files && files.length > 0) {
       // NOW stop propagation since we're handling it
       e.stopPropagation();
-      console.log('📁 FileDropZone: Handling drop, stopped propagation');
       
       // If multiple files and we have a handler for multiple files, use that
       if (files.length > 1 && onMultipleFilesDrop) {
-        console.log('📁 FileDropZone: Multiple files detected, using onMultipleFilesDrop handler');
         const filePromises = Array.from(files).map(file => {
-          console.log(`📁 FileDropZone: Processing file: ${file.name}`);
           return new Promise<{ content: any; isTextMode: boolean; fileName?: string }>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -132,7 +127,6 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
         reader.readAsText(file);
       }
     } else {
-      console.log('📁 FileDropZone: No files, allowing propagation to GlobalDropZone');
       // Don't stop propagation - let GlobalDropZone handle it
     }
   }, [onFileDrop, onMultipleFilesDrop]);

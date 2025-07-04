@@ -38,6 +38,8 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   forceSortedArrays: Set<string>; // Paths of arrays that should be forcibly sorted
   toggleArraySorting: (arrayPath: string) => void;
   syncToCounterpart: (nodePath: string, viewerId: string) => void;
+  // Test function for viewport debugging
+  testViewportDetection: () => void;
 }
 
 export const JsonViewerSyncContext = createContext<JsonViewerSyncContextProps | undefined>(undefined);
@@ -205,6 +207,80 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       setIgnoredDiffsState(new Set());
     }, []);
 
+    // TEST FUNCTION: Debug viewport detection
+    const testViewportDetection = useCallback(() => {
+      console.log('🧪 VIEWPORT TEST: Starting viewport detection test');
+      
+      // Get window dimensions
+      console.log('🧪 Window dimensions:', {
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        outerWidth: window.outerWidth,
+        outerHeight: window.outerHeight,
+        devicePixelRatio: window.devicePixelRatio
+      });
+      
+      // Find all elements with data-path
+      const allElements = document.querySelectorAll('[data-path]');
+      console.log(`🧪 Found ${allElements.length} elements with data-path`);
+      
+      // Test viewport detection for first 10 elements
+      Array.from(allElements).slice(0, 10).forEach((element, index) => {
+        const rect = element.getBoundingClientRect();
+        const elementCenter = rect.top + rect.height / 2;
+        const viewportCenter = window.innerHeight / 2;
+        
+        // Test different viewport detection methods
+        const isInViewport_Method1 = rect.top >= 0 && rect.bottom <= window.innerHeight && rect.left >= 0 && rect.right <= window.innerWidth;
+        const isInViewport_Method2 = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        const isInViewport_Method3 = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        console.log(`🧪 Element ${index + 1}:`, {
+          dataPath: element.getAttribute('data-path'),
+          textContent: element.textContent?.substring(0, 30) + '...',
+          rect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+          },
+          elementCenter: elementCenter,
+          viewportCenter: viewportCenter,
+          distanceFromCenter: Math.abs(elementCenter - viewportCenter),
+          isInViewport_Method1: isInViewport_Method1,
+          isInViewport_Method2: isInViewport_Method2,
+          isInViewport_Method3: isInViewport_Method3,
+          isVisible: rect.width > 0 && rect.height > 0,
+          isWellCentered: Math.abs(elementCenter - viewportCenter) < 100
+        });
+      });
+      
+      // Show scroll containers
+      const scrollContainers = document.querySelectorAll('[data-sync-group]');
+      console.log(`🧪 Found ${scrollContainers.length} scroll containers`);
+      scrollContainers.forEach((container, index) => {
+        const rect = container.getBoundingClientRect();
+        console.log(`🧪 Scroll container ${index + 1}:`, {
+          tagName: container.tagName,
+          className: container.className,
+          rect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+          },
+          scrollTop: container.scrollTop,
+          scrollHeight: container.scrollHeight,
+          clientHeight: container.clientHeight
+        });
+      });
+      
+    }, []);
+
     const goToDiff = useCallback((numericPathToExpand: string) => {
       console.log(`[JsonViewerSyncContext goToDiff] 🎯 CALLED with NUMERIC path: "${numericPathToExpand}"`);
       
@@ -334,15 +410,22 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             console.log(`[JsonViewerSyncContext goToDiff] 🔄 Scroll attempt ${attempt}/${maxAttempts}`);
             
             // Try multiple selectors to find the target element
+            // Include viewer-specific paths since DOM elements have viewer prefixes
             const selectors = [
               `[data-path="${pathWithRoot}"]`,
               `[data-path="${targetPath}"]`,
+              `[data-path="root_viewer1_${pathWithRoot}"]`,
+              `[data-path="root_viewer2_${pathWithRoot}"]`,
+              `[data-path="root_viewer1_${targetPath}"]`,
+              `[data-path="root_viewer2_${targetPath}"]`,
               `[data-numeric-path="${pathWithRoot}"]`,
               `[data-numeric-path="${targetPath}"]`,
               `[data-generic-path="${pathWithRoot}"]`,
               `[data-generic-path="${targetPath}"]`,
               `.json-node[data-path="${pathWithRoot}"]`,
-              `.json-node[data-path="${targetPath}"]`
+              `.json-node[data-path="${targetPath}"]`,
+              `.json-node[data-path*="${pathWithRoot}"]`,
+              `.json-node[data-path*="${targetPath}"]`
             ];
             
             let targetElement = null;
@@ -369,8 +452,17 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             });
             
             // Use the scroll container for better control
-            const scrollContainer = targetElement.closest('.json-viewer-scroll-container');
+            // SyncScroll components use data-sync-group attribute
+            const scrollContainer = targetElement.closest('[data-sync-group]');
             console.log(`[JsonViewerSyncContext goToDiff] 🔍 Scroll container found:`, scrollContainer ? 'YES' : 'NO');
+            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Scroll container details:`, {
+              tagName: scrollContainer?.tagName,
+              className: scrollContainer?.className,
+              syncGroup: scrollContainer?.getAttribute('data-sync-group'),
+              scrollTop: scrollContainer?.scrollTop,
+              scrollHeight: scrollContainer?.scrollHeight,
+              clientHeight: scrollContainer?.clientHeight
+            });
             
             if (scrollContainer) {
               // Force a reflow to ensure all DOM changes are applied
@@ -446,16 +538,69 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
                 greatGrandParent: targetElement.parentElement?.parentElement?.parentElement?.className
               });
               
-              // Try to find any scrollable parent
-              let scrollableParent = targetElement.parentElement;
-              while (scrollableParent) {
-                const style = window.getComputedStyle(scrollableParent);
-                if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
-                  console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found scrollable parent:`, scrollableParent.className);
-                  scrollableParent.scrollTop = scrollableParent.scrollTop + 200; // Test scroll
-                  break;
+              // Try to find any scrollable parent, prioritizing SyncScroll containers
+              let scrollableParent = targetElement.closest('[data-sync-group]');
+              if (!scrollableParent) {
+                scrollableParent = targetElement.parentElement;
+                while (scrollableParent) {
+                  const style = window.getComputedStyle(scrollableParent);
+                  if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                    console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found scrollable parent:`, scrollableParent.className);
+                    break;
+                  }
+                  scrollableParent = scrollableParent.parentElement;
                 }
-                scrollableParent = scrollableParent.parentElement;
+              }
+              
+              if (scrollableParent) {
+                console.log(`[JsonViewerSyncContext goToDiff] 🔍 Using scrollable parent:`, {
+                  tagName: scrollableParent.tagName,
+                  className: scrollableParent.className,
+                  syncGroup: scrollableParent.getAttribute('data-sync-group'),
+                  scrollTop: scrollableParent.scrollTop,
+                  scrollHeight: scrollableParent.scrollHeight,
+                  clientHeight: scrollableParent.clientHeight
+                });
+                
+                // Calculate scroll position to center the target element
+                const containerRect = scrollableParent.getBoundingClientRect();
+                const nodeRect = targetElement.getBoundingClientRect();
+                const offsetTopInContainer = nodeRect.top - containerRect.top;
+                const desiredScrollTop = scrollableParent.scrollTop + offsetTopInContainer - (containerRect.height / 2) + (nodeRect.height / 2);
+                
+                console.log(`[JsonViewerSyncContext goToDiff] 🧠 Fallback scroll calculation:`, {
+                  currentScrollTop: scrollableParent.scrollTop,
+                  desiredScrollTop,
+                  offsetTopInContainer,
+                  containerHeight: containerRect.height,
+                  nodeHeight: nodeRect.height
+                });
+                
+                // Temporarily disable sync scroll to prevent interference
+                const syncScrollElement = scrollableParent.hasAttribute('data-sync-group') ? scrollableParent : scrollableParent.querySelector('[data-sync-group]');
+                
+                if (syncScrollElement) {
+                  // Find the other sync scroll element and disable sync temporarily
+                  const syncGroup = syncScrollElement.getAttribute('data-sync-group');
+                  const allSyncElements = document.querySelectorAll(`[data-sync-group="${syncGroup}"]`);
+                  
+                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 Temporarily disabling sync for ${allSyncElements.length} elements`);
+                  
+                  // Disable sync by adding a temporary class
+                  allSyncElements.forEach(el => el.classList.add('temp-disable-sync'));
+                  
+                  // Perform the scroll
+                  scrollableParent.scrollTop = desiredScrollTop;
+                  
+                  // Re-enable sync after a short delay
+                  setTimeout(() => {
+                    allSyncElements.forEach(el => el.classList.remove('temp-disable-sync'));
+                    console.log(`[JsonViewerSyncContext goToDiff] 🔄 Re-enabled sync for scroll elements`);
+                  }, 200);
+                } else {
+                  // No sync scroll element, just scroll directly
+                  scrollableParent.scrollTop = desiredScrollTop;
+                }
               }
               
               // Fallback to standard scrollIntoView with more specific options
@@ -508,23 +653,17 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         const newSet = new Set(prev);
         if (newSet.has(arrayPath)) {
           newSet.delete(arrayPath);
-          console.log(`[Context] ❌ Removed array from forced sorting: "${arrayPath}"`);
-        } else {
+            } else {
           newSet.add(arrayPath);
-          console.log(`[Context] ✅ Added array to forced sorting: "${arrayPath}"`);
         }
         return newSet;
       });
     }, []);
 
-    const syncToCounterpart = useCallback((nodePath: string, viewerId: string) => {
+    const syncToCounterpart = useCallback((nodePath: string, _viewerId: string) => {
       // Normalize the path to remove viewer-specific prefix
       let normalizedPath = nodePath.replace(/^root_(viewer1|viewer2)_/, '');
       
-      // Determine the target viewer
-      const targetViewerId = viewerId === 'viewer1' ? 'viewer2' : 'viewer1';
-      
-      console.log(`[Context] 🔄 FORCE SYNC from ${viewerId} to ${targetViewerId}, path: "${normalizedPath}"`);
       
       // FORCE perfect alignment - disable scroll sync immediately and keep it disabled
       const wasEnabled = syncScrollRef.current;
@@ -865,6 +1004,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         forceSortedArrays,
         toggleArraySorting,
         syncToCounterpart,
+        // Test function
+        testViewportDetection,
     }), [
         viewMode,
         showDiffsOnly,
@@ -897,6 +1038,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         forceSortedArrays,
         toggleArraySorting,
         syncToCounterpart,
+        testViewportDetection,
         effectiveIgnoredDiffs,
     ]);
 

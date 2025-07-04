@@ -681,6 +681,72 @@ Related: Request #57 - Deterministic sync alignment enhancement"
 **Status**: 🚧 In Progress  
 
 
+### Request #61 - 🚨 Critical Bug
+**Date**: 2025-06-29  
+**Request**: "resolve TypeScript build errors for Vercel deployment
+
+- Comment out unused variables to maintain functionality while fixing TS errors
+- Simplify DiffFilteredJsonView and JsonNode components for build compatibility
+- Add proper TypeScript types to vite.config.ts parameters
+- Fix component prop interfaces and missing exports
+- Update test mocks to match actual interface definitions
+- Reorganize documentation files into docs/ directory
+
+All TypeScript errors resolved - build now passes successfully
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)"  
+**Commit**: [`8aa7da9`](https://github.com/user/repo/commit/8aa7da9)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, DOCUMENTATION_STRATEGY.md...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #62 - 🐛 Bug Fix
+**Date**: 2025-06-29  
+**Request**: "resolve TypeScript build errors for Vercel deployment
+
+- Comment out unused variables to maintain functionality while fixing TS errors
+- Simplify DiffFilteredJsonView and JsonNode components for build compatibility
+- Add proper TypeScript types to vite.config.ts parameters
+- Fix component prop interfaces and missing exports
+- Update test mocks to match actual interface definitions
+- Reorganize documentation files into docs/ directory
+
+All TypeScript errors resolved - build now passes successfully
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)"  
+**Commit**: [`8aa7da9`](https://github.com/user/repo/commit/8aa7da9)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, DOCUMENTATION_STRATEGY.md...  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #63 - 🐛 Bug Fix
+**Date**: 2025-07-04  
+**Request**: "implement ID-based correlation for Go To button in diff panel
+
+- Add smart correlation logic that finds corresponding elements by ID instead of position
+- DiffList now receives both left and right JSON data for correlation analysis
+- Parse display paths with ID-based arrays [id=value] to find numeric positions in each viewer
+- Implement dual highlighting that shows correct corresponding elements even when at different array indices
+- Fix issue where difference #8 was highlighting wrong element in right viewer
+- Use manual DOM highlighting to avoid overwriting when paths differ between viewers
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (diff panel, main app)"  
+**Commit**: [`c56ca6b`](https://github.com/user/repo/commit/c56ca6b)  
+**Files**: src/App.tsx, src/components/DiffList/DiffList.tsx, src/components/TabbedBottomPanel.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

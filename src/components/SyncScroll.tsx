@@ -28,6 +28,11 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
     const handleScroll = (event: Event) => {
       if (isScrollingRef.current) return;
       if (!(event.target instanceof HTMLElement) || event.target !== currentElement) return;
+      
+      // Check if sync is temporarily disabled
+      if (currentElement.classList.contains('temp-disable-sync')) {
+        return;
+      }
 
       isScrollingRef.current = true;
       const source = event.target;

@@ -108,13 +108,11 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
   };
 
   const buildNumericPath = (displayPath: string): string => {
-    console.log('[IdKeysPanel] 🔍 Building numeric path for display path:', displayPath);
     
     // Remove the trailing [] to get the path to the array container
     let targetPath = displayPath;
     if (targetPath.endsWith('[]')) {
       targetPath = targetPath.slice(0, -2);
-      console.log('[IdKeysPanel] 📝 Removed [] suffix, target path:', targetPath);
     }
     
     // Build the numeric path by inspecting the JSON structure
@@ -122,19 +120,15 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     let currentData = jsonData;
     let numericPath = 'root';
     
-    console.log('[IdKeysPanel] 🧩 Path segments to navigate:', segments);
     
     try {
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        console.log(`[IdKeysPanel] 🚶 Step ${i + 1}/${segments.length}: Processing segment "${segment}"`);
         
         if (currentData && typeof currentData === 'object' && segment in currentData) {
           numericPath += `.${segment}`;
           currentData = currentData[segment];
           
-          console.log(`[IdKeysPanel] ✅ Found segment "${segment}", currentData type:`, Array.isArray(currentData) ? 'array' : typeof currentData);
-          console.log(`[IdKeysPanel] 📍 Current numeric path: "${numericPath}"`);
           
           // If the current data is an array, navigate to the first element and continue
           // unless this is the last segment (target array)
@@ -143,16 +137,12 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
               // This is an intermediate array, pick first element and continue
               numericPath += '[0]';
               currentData = currentData[0];
-              console.log(`[IdKeysPanel] 🔄 Intermediate array: added [0], continuing with first element`);
-              console.log(`[IdKeysPanel] 📍 Updated numeric path: "${numericPath}"`);
             } else {
               // This is the target array, DON'T add [0] - we want to target the array itself
-              console.log(`[IdKeysPanel] 🎯 Target array reached: stopping at array level (no [0] added)`);
             }
           }
         } else {
           // If we can't find the segment, break and use what we have
-          console.log(`[IdKeysPanel] ❌ Segment "${segment}" not found in current data, using fallback`);
           numericPath += `.${segment}`;
           break;
         }
@@ -164,16 +154,12 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       numericPath = `root.${targetPath}[0]`;
     }
     
-    console.log('[IdKeysPanel] 🏁 Final numeric path:', numericPath);
     return numericPath;
   };
 
   const handlePathClick = (pathToExpand: string) => {
-    console.log('[IdKeysPanel] 🖱️ Path clicked:', pathToExpand);
-    console.log('[IdKeysPanel] 📊 Available JSON data:', jsonData ? 'Available' : 'Not available');
     
     const numericPath = buildNumericPath(pathToExpand);
-    console.log('[IdKeysPanel] 🎯 Calling goToDiff with numeric path:', numericPath);
     
     // Set persistent highlight for border highlighting that persists until next navigation
     setPersistentHighlightPath(numericPath);
@@ -183,8 +169,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
   };
 
   const handleOccurrenceClick = (originalPath: string) => {
-    console.log('[IdKeysPanel] 🖱️ Occurrence clicked:', originalPath);
-    console.log('[IdKeysPanel] 📊 Available JSON data:', jsonData ? 'Available' : 'Not available');
     
     // For specific occurrences, we need to build the path differently
     // The originalPath already contains the specific array index
@@ -195,7 +179,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       numericPath = `root.${numericPath}`;
     }
     
-    console.log('[IdKeysPanel] 🎯 Calling goToDiff with occurrence path:', numericPath);
     
     // Set persistent highlight for border highlighting that persists until next navigation
     setPersistentHighlightPath(numericPath);

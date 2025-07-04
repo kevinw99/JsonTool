@@ -27,3 +27,4 @@ dist-ssr
 public/*
 !public/sample1.json
 !public/sample2.json
+.vercel
