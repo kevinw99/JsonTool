@@ -1,0 +1,7 @@
+1 general edit/find/select/copy/past 
+2.ignore by value:
+    a. numberic, by percentage
+    b. string: by pattern, or one to one mapping
+3. group differnece 
+    a. by last field
+    b. by type: differnt, new, delete

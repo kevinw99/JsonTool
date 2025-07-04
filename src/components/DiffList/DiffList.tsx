@@ -203,6 +203,9 @@ export const DiffList: React.FC<DiffListProps> = ({
   const highlightElementsManually = (leftPath: string, rightPath: string) => {
     console.log('[DiffList] 🔧 Manual highlighting - LEFT:', leftPath, 'RIGHT:', rightPath);
     
+    // IMPORTANT: During diff navigation, we need to scroll both viewers independently
+    // The sync should remain enabled after navigation is complete
+    
     // Step 1: Expand and scroll to LEFT path first
     console.log('[DiffList] 📂 Step 1: Using goToDiff for LEFT path expansion');
     goToDiff(leftPath);
@@ -212,9 +215,16 @@ export const DiffList: React.FC<DiffListProps> = ({
       console.log('[DiffList] 📂 Step 2: Using goToDiff for RIGHT path expansion');
       goToDiff(rightPath);
       
-      // Step 3: After both expansions, manually highlight elements
+      // Step 3: After both expansions, manually highlight elements and ensure sync is enabled
       setTimeout(() => {
         console.log('[DiffList] ✨ Step 3: Finding and highlighting both elements manually');
+        
+        // IMPORTANT: Ensure sync is enabled after navigation
+        const syncButton = document.querySelector('.sync-toggle-button');
+        if (syncButton && !syncButton.classList.contains('toggled-on')) {
+          console.log('[DiffList] ⚠️ Sync was disabled during navigation, re-enabling...');
+          syncButton.click();
+        }
         
         // Find LEFT element
         const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);

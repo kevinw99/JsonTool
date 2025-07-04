@@ -1,0 +1,28 @@
+{
+  "id": 63,
+  "request": "implement ID-based correlation for Go To button in diff panel\n\n- Add smart correlation logic that finds corresponding elements by ID instead of position\n- DiffList now receives both left and right JSON data for correlation analysis\n- Parse display paths with ID-based arrays [id=value] to find numeric positions in each viewer\n- Implement dual highlighting that shows correct corresponding elements even when at different array indices\n- Fix issue where difference #8 was highlighting wrong element in right viewer\n- Use manual DOM highlighting to avoid overwriting when paths differ between viewers\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-04T00:40:19.445Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

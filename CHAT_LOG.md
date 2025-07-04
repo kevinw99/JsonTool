@@ -747,6 +747,16 @@ Co-Authored-By: Claude <noreply@anthropic.com> (diff panel, main app)"
 **Status**: 🚧 In Progress  
 
 
+### Request #64 - 🧭 Navigation
+**Date**: 2025-07-04  
+**Request**: "manual commit (JSON tree navigation, diff panel, ID keys)"  
+**Commit**: [`53ae9c1`](https://github.com/user/repo/commit/53ae9c1)  
+**Files**: .auto-chat-state.json, .gitignore, AUTO_CAPTURE_README.md...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

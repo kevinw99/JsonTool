@@ -1,0 +1,28 @@
+{
+  "id": 61,
+  "request": "resolve TypeScript build errors for Vercel deployment\n\n- Comment out unused variables to maintain functionality while fixing TS errors\n- Simplify DiffFilteredJsonView and JsonNode components for build compatibility\n- Add proper TypeScript types to vite.config.ts parameters\n- Fix component prop interfaces and missing exports\n- Update test mocks to match actual interface definitions\n- Reorganize documentation files into docs/ directory\n\nAll TypeScript errors resolved - build now passes successfully\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-06-29T23:55:52.631Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

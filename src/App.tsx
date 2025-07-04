@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { jsonCompare, detectIdKeysInSingleJson } from './utils/jsonCompare'
 import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompare'
@@ -6,7 +6,7 @@ import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
 import { ViewControls } from './components/ViewControls'
-import { SyncScroll } from './components/SyncScroll'
+// import { SyncScroll } from './components/SyncScroll' // Not needed anymore
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
 import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone'
@@ -155,6 +155,7 @@ function App() {
   const [idKeysUsed, setIdKeysUsed] = useState<IdKeyInfo[]>([])
   const [error, setError] = useState<string | null>(null)
   const [syncScroll, setSyncScroll] = useState<boolean>(true)
+  const programmaticScrollRef = useRef<boolean>(false) // Flag for programmatic scrolling
   
   // Queue for handling multiple file drops
   // const [pendingFiles, setPendingFiles] = useState<Array<{content: JsonValue | string, isTextMode: boolean, fileName?: string}>>([])
@@ -903,8 +904,240 @@ function App() {
     }
   };
 
+  // Debug: log mount/unmount
+  useEffect(() => {
+    console.log('[App] Component mounted, initial syncScroll:', syncScroll);
+    return () => {
+      console.log('[App] Component unmounting');
+    };
+  }, []);
+
+  // Custom sync handler
+  useEffect(() => {
+    console.log('[App Sync Effect] Running with syncScroll =', syncScroll);
+    
+    if (!syncScroll) {
+      console.log('[App Sync Effect] Sync is OFF, skipping listener setup');
+      return;
+    }
+    
+    let isScrolling = false;
+    
+    const handleScroll = (event: Event) => {
+      console.log('[Scroll Event] Received from:', event.target);
+      
+      const source = event.target as HTMLElement;
+      
+      // Find the actual scroll container (might be nested)
+      let scrollContainer = source;
+      if (source.classList.contains('json-viewer-scroll-container')) {
+        scrollContainer = source;
+      } else {
+        // If the event came from a child, find the parent container
+        const parent = source.closest('.json-viewer-scroll-container');
+        if (parent) {
+          scrollContainer = parent as HTMLElement;
+        } else {
+          console.log('[Scroll Event] Could not find scroll container, ignoring');
+          return;
+        }
+      }
+      
+      console.log('[Scroll Event] Valid container, scrollTop:', scrollContainer.scrollTop);
+      
+      if (isScrolling) {
+        console.log('[Scroll Event] Already scrolling, ignoring');
+        return;
+      }
+      
+      if (programmaticScrollRef.current) {
+        console.log('[Scroll Event] Programmatic scroll in progress, ignoring');
+        return;
+      }
+      
+      isScrolling = true;
+      
+      // Find both viewers and sync them
+      const allViewers = document.querySelectorAll('.json-viewer-scroll-container');
+      console.log('[Scroll Event] Found', allViewers.length, 'viewers to sync');
+      
+      allViewers.forEach((viewer, idx) => {
+        if (viewer !== scrollContainer) {
+          const targetViewer = viewer as HTMLElement;
+          console.log(`[Scroll Event] Syncing viewer ${idx} to scrollTop:`, scrollContainer.scrollTop);
+          targetViewer.scrollTop = scrollContainer.scrollTop;
+          targetViewer.scrollLeft = scrollContainer.scrollLeft;
+        }
+      });
+      
+      setTimeout(() => {
+        isScrolling = false;
+      }, 50);
+    };
+    
+    // Add listeners to both viewers
+    const setupListeners = () => {
+      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
+      console.log('[Setup] Found', viewers.length, 'viewer containers');
+      
+      viewers.forEach((viewer, index) => {
+        const htmlViewer = viewer as HTMLElement;
+        // Log what we're working with
+        console.log(`[Setup] Viewer ${index + 1}:`, {
+          element: htmlViewer,
+          className: htmlViewer.className,
+          scrollHeight: htmlViewer.scrollHeight,
+          clientHeight: htmlViewer.clientHeight,
+          isScrollable: htmlViewer.scrollHeight > htmlViewer.clientHeight,
+          computedStyle: {
+            overflow: window.getComputedStyle(htmlViewer).overflow,
+            overflowY: window.getComputedStyle(htmlViewer).overflowY
+          }
+        });
+        
+        // Add scroll listener with capture to catch events from children
+        viewer.addEventListener('scroll', handleScroll, { capture: true, passive: false });
+        
+        // Also check if any child elements are scrollable
+        const scrollableChildren = viewer.querySelectorAll('*');
+        scrollableChildren.forEach(child => {
+          const childElement = child as HTMLElement;
+          const style = window.getComputedStyle(childElement);
+          if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+              style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            console.log(`[Setup] Found scrollable child in viewer ${index + 1}:`, childElement);
+            childElement.addEventListener('scroll', handleScroll);
+          }
+        });
+        
+        console.log(`[Setup] Added scroll listeners to viewer ${index + 1}`);
+      });
+    };
+    
+    // Set up listeners after DOM is ready - try multiple times
+    const attemptSetup = (attempts = 0) => {
+      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
+      if (viewers.length >= 2 || attempts >= 10) {
+        setupListeners();
+      } else {
+        console.log(`[Setup] Only found ${viewers.length} viewers, retrying... (attempt ${attempts + 1})`);
+        setTimeout(() => attemptSetup(attempts + 1), 200);
+      }
+    };
+    
+    const timeoutId = setTimeout(() => attemptSetup(), 500);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
+      viewers.forEach(viewer => {
+        viewer.removeEventListener('scroll', handleScroll, { capture: true });
+        // Also remove from any scrollable children
+        const scrollableChildren = viewer.querySelectorAll('*');
+        scrollableChildren.forEach(child => {
+          child.removeEventListener('scroll', handleScroll);
+        });
+      });
+      console.log('[Cleanup] Removed scroll listeners');
+    };
+  }, [syncScroll]); // Re-run when syncScroll changes
+  
   const toggleSyncScroll = () => {
-    setSyncScroll(!syncScroll);
+    setSyncScroll(prev => {
+      const newValue = !prev;
+      console.log('[App] Sync scrolling:', newValue ? 'ENABLED' : 'DISABLED');
+      
+      if (newValue) {
+        // When re-enabling, perform alignment after state updates
+        setTimeout(() => {
+          performSmartSyncAlignment();
+        }, 50);
+      }
+      
+      return newValue;
+    });
+  };
+
+  // Smart sync alignment when re-enabling sync
+  const performSmartSyncAlignment = () => {
+    console.log('[App] 🎯 Starting smart sync alignment');
+    
+    // Step 1: Find highlighted/visible node in center of LEFT viewer
+    const leftViewer = document.querySelector('[data-sync-group="json-viewers"]');
+    if (!leftViewer) {
+      console.log('[App] ❌ Left viewer not found');
+      setSyncScroll(true); // Just enable sync without alignment
+      return;
+    }
+    
+    // Find highlighted node or node near center of left viewer
+    const leftRect = leftViewer.getBoundingClientRect();
+    const leftCenterY = leftRect.top + leftRect.height / 2;
+    
+    // Look for highlighted nodes first, then fallback to center node
+    let targetNode = leftViewer.querySelector('.highlighted-node, .persistent-highlight');
+    
+    if (!targetNode) {
+      // Fallback: Find node closest to center of left viewer
+      const allNodes = leftViewer.querySelectorAll('[data-path]');
+      let closestNode = null;
+      let closestDistance = Infinity;
+      
+      allNodes.forEach(node => {
+        const nodeRect = node.getBoundingClientRect();
+        const distance = Math.abs(nodeRect.top + nodeRect.height / 2 - leftCenterY);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestNode = node;
+        }
+      });
+      
+      targetNode = closestNode;
+    }
+    
+    if (!targetNode) {
+      console.log('[App] ❌ No target node found in left viewer');
+      setSyncScroll(true); // Just enable sync without alignment
+      return;
+    }
+    
+    const nodePath = targetNode.getAttribute('data-path');
+    console.log('[App] 🎯 Found target node path:', nodePath);
+    
+    // Step 2: Find corresponding node in RIGHT viewer
+    const rightViewer = document.querySelectorAll('[data-sync-group="json-viewers"]')[1];
+    if (!rightViewer) {
+      console.log('[App] ❌ Right viewer not found');
+      setSyncScroll(true); // Just enable sync without alignment
+      return;
+    }
+    
+    const correspondingNode = rightViewer.querySelector(`[data-path="${nodePath}"]`);
+    if (!correspondingNode) {
+      console.log('[App] ❌ Corresponding node not found in right viewer');
+      setSyncScroll(true); // Just enable sync without alignment
+      return;
+    }
+    
+    // Step 3: Scroll RIGHT viewer to align with LEFT
+    const rightRect = rightViewer.getBoundingClientRect();
+    const rightCenterY = rightRect.top + rightRect.height / 2;
+    const correspondingRect = correspondingNode.getBoundingClientRect();
+    
+    const targetScrollTop = rightViewer.scrollTop + (correspondingRect.top + correspondingRect.height / 2 - rightCenterY);
+    
+    console.log('[App] 📏 Aligning right viewer - scrollTop:', targetScrollTop);
+    
+    rightViewer.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth'
+    });
+    
+    // Step 4: Enable sync after alignment completes
+    setTimeout(() => {
+      console.log('[App] ✅ Smart alignment complete - enabling sync');
+      setSyncScroll(true);
+    }, 500); // Wait for smooth scroll to complete
   };
 
   // Inner component to access context
@@ -936,10 +1169,10 @@ function App() {
                 overflow: 'hidden',
                 minHeight: 0
               }}>
-                <SyncScroll 
-                  enabled={syncScroll} 
-                  syncGroup="json-viewers" 
+                <div 
                   className="json-viewer-scroll-container"
+                  data-sync-group="json-viewers"
+                  data-sync-enabled={syncScroll ? 'true' : 'false'}
                   style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
@@ -980,12 +1213,11 @@ function App() {
                       </div>
                     </div>
                   </FileDropZone>
-                </SyncScroll>
+                </div>
                 
-                <SyncScroll 
-                  enabled={syncScroll} 
-                  syncGroup="json-viewers" 
+                <div 
                   className="json-viewer-scroll-container"
+                  data-sync-group="json-viewers"
                   style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
@@ -1026,7 +1258,7 @@ function App() {
                       </div>
                     </div>
                   </FileDropZone>
-                </SyncScroll>
+                </div>
               </div>
             </div>
 
@@ -1254,8 +1486,9 @@ function App() {
       <JsonViewerSyncProvider
         initialViewMode="tree"
         initialShowDiffsOnly={false}
-        initialSyncEnabled={true} 
+        initialSyncEnabled={syncScroll} 
         diffResults={diffs}
+        jsonData={{ left: sortedFile1Data || file1?.content, right: sortedFile2Data || file2?.content }}
       >
         <div className="App">
           <header className="app-header">
@@ -1274,7 +1507,7 @@ function App() {
                 }}
               >
                 <span>{syncScroll ? '🔒' : '🔓'}</span>
-                <span>Sync</span>
+                <span>{syncScroll ? 'Sync ON' : 'Sync OFF'}</span>
               </button>
               <ViewControls 
                 onToggleViewMode={handleViewModeToggle} 
