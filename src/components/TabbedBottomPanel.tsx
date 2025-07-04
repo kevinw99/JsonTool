@@ -59,7 +59,7 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
       </div>
       <div className="tab-content">
         {activeTab === 'differences' ? (
-          <DiffList diffs={diffs || []} height="100%" />
+          <DiffList diffs={diffs || []} height="100%" jsonData={jsonData} />
         ) : activeTab === 'idkeys' ? (
           <IdKeysPanel idKeysUsed={idKeysUsed || []} jsonData={jsonData} />
         ) : (

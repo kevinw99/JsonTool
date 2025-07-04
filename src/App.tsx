@@ -13,9 +13,132 @@ import { FileDropZone } from './components/FileDropZone'
 import { FileHeader } from './components/FileHeader'
 import { FileSelector } from './components/FileSelector'
 import { GlobalDropZone } from './components/GlobalDropZone'
+import { ViewportTestButton } from './components/ViewportTestButton'
 import './components/JsonLayout.css'
-import type { JsonValue } from './components/JsonTreeView'
+import type { JsonValue, JsonObject } from './components/JsonTreeView'
 import { useJsonViewerSync } from './components/JsonViewerSyncContext'
+
+// Single-pass traversal that detects ID keys and sorts arrays immediately
+function traverseAndSortJson(data: JsonValue, currentPath: string = "", idKeysCollected: IdKeyInfo[] = []): { sortedData: JsonValue, idKeysUsed: IdKeyInfo[] } {
+  if (data === null) {
+    return { sortedData: data, idKeysUsed: idKeysCollected };
+  }
+  
+  if (Array.isArray(data)) {
+    // Detect the best ID key for this specific array
+    const candidateKeys = ['id', 'key', 'uuid', 'name', 'accountType', 'resolvedDisplayLabel', 'type'];
+    let detectedIdKey: string | null = null;
+    
+    for (const candidateKey of candidateKeys) {
+      let validCount = 0;
+      const seenValues = new Set<string>();
+      
+      for (const item of data) {
+        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+          const itemObj = item as JsonObject;
+          if (candidateKey in itemObj) {
+            const value = String(itemObj[candidateKey]);
+            if (value && !seenValues.has(value)) {
+              seenValues.add(value);
+              validCount++;
+            }
+          }
+        }
+      }
+      
+      // If most items have unique values for this key, use it
+      if (validCount >= Math.max(2, Math.floor(data.length * 0.8))) {
+        detectedIdKey = candidateKey;
+        break;
+      }
+    }
+    
+    // Sort the array immediately if we found an ID key
+    let arrayToProcess = data;
+    if (detectedIdKey) {
+      // Record this ID key detection
+      idKeysCollected.push({
+        arrayPath: currentPath,
+        idKey: detectedIdKey,
+        isComposite: false,
+        arraySize1: data.length,
+        arraySize2: data.length
+      });
+      
+      // Sort the array by the detected ID key
+      arrayToProcess = [...data].sort((a, b) => {
+        const aHasId = typeof a === 'object' && a !== null && !Array.isArray(a) && detectedIdKey in a;
+        const bHasId = typeof b === 'object' && b !== null && !Array.isArray(b) && detectedIdKey in b;
+        
+        if (aHasId && bHasId) {
+          const aId = String((a as JsonObject)[detectedIdKey]);
+          const bId = String((b as JsonObject)[detectedIdKey]);
+          return aId.localeCompare(bId);
+        }
+        
+        if (!aHasId && !bHasId) {
+          return JSON.stringify(a).localeCompare(JSON.stringify(b));
+        }
+        
+        return aHasId ? -1 : 1;
+      });
+      
+      // SPECIAL DEBUG: Print contributions arrays after sorting - only for specific path
+      if (currentPath.includes('boomerForecastV3Requests') && currentPath.includes('accountParams') && currentPath.includes('contributions')) {
+        console.log(`🔥 CONTRIBUTIONS_SORTED_DEBUG 🔥 Path: ${currentPath}`);
+        console.log('Original array length:', data.length);
+        console.log('Sorted array items:');
+        arrayToProcess.forEach((item, index) => {
+          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+            const itemObj = item as JsonObject;
+            const idValue = detectedIdKey ? itemObj[detectedIdKey] : 'NO_ID';
+            console.log(`  ${index}: ${detectedIdKey}=${idValue}`);
+          } else {
+            console.log(`  ${index}: ${typeof item} - ${JSON.stringify(item).substring(0, 100)}`);
+          }
+        });
+        console.log(`🔥 END CONTRIBUTIONS_SORTED_DEBUG 🔥`);
+      }
+    }
+    
+    // Recursively process array items (now sorted)
+    const processedArray: JsonValue[] = [];
+    for (let i = 0; i < arrayToProcess.length; i++) {
+      const item = arrayToProcess[i];
+      let itemPath: string;
+      
+      if (detectedIdKey && typeof item === 'object' && item !== null && !Array.isArray(item)) {
+        // Use ID-based path notation
+        const itemObj = item as JsonObject;
+        const idValue = itemObj[detectedIdKey];
+        itemPath = `${currentPath}[${detectedIdKey}=${idValue}]`;
+      } else {
+        // Use numeric index
+        itemPath = `${currentPath}[${i}]`;
+      }
+      
+      const result = traverseAndSortJson(item, itemPath, idKeysCollected);
+      processedArray.push(result.sortedData);
+    }
+    
+    return { sortedData: processedArray, idKeysUsed: idKeysCollected };
+    
+  } else if (typeof data === 'object' && data !== null) {
+    // Process object properties
+    const result: JsonObject = {};
+    
+    for (const [key, value] of Object.entries(data as JsonObject)) {
+      const propertyPath = currentPath ? `${currentPath}.${key}` : key;
+      const processResult = traverseAndSortJson(value, propertyPath, idKeysCollected);
+      result[key] = processResult.sortedData;
+    }
+    
+    return { sortedData: result, idKeysUsed: idKeysCollected };
+  }
+  
+  // Primitive values remain unchanged
+  return { sortedData: data, idKeysUsed: idKeysCollected };
+}
 
 interface FileData {
   content: JsonValue | string;
@@ -26,6 +149,8 @@ interface FileData {
 function App() {
   const [file1, setFile1] = useState<FileData | null>(null)
   const [file2, setFile2] = useState<FileData | null>(null)
+  const [sortedFile1Data, setSortedFile1Data] = useState<JsonValue | null>(null)
+  const [sortedFile2Data, setSortedFile2Data] = useState<JsonValue | null>(null)
   const [diffs, setDiffs] = useState<DiffResult[]>([])
   const [idKeysUsed, setIdKeysUsed] = useState<IdKeyInfo[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -60,10 +185,8 @@ function App() {
 
   // Helper function to get the primary ID key from detected ID keys
   const getPrimaryIdKey = (idKeysUsed: IdKeyInfo[]): string | null => {
-    console.log(`[getPrimaryIdKey] Called with ${idKeysUsed?.length || 0} ID keys:`, idKeysUsed);
     
     if (!idKeysUsed || idKeysUsed.length === 0) {
-      console.log(`[getPrimaryIdKey] ❌ No ID keys found`);
       return null;
     }
     
@@ -74,7 +197,6 @@ function App() {
       keyFrequency.set(info.idKey, count + 1);
     });
     
-    console.log(`[getPrimaryIdKey] Key frequency map:`, Object.fromEntries(keyFrequency));
     
     // Get the most frequent non-composite ID key (prefer simple keys over composite ones)
     let primaryKey: string | null = null;
@@ -97,14 +219,7 @@ function App() {
       }
     }
     
-    console.log(`[getPrimaryIdKey] ✅ Selected primary key: "${primaryKey}" with count ${maxCount}`);
     
-    // 🚀 VISUAL ALERT to make detection obvious in browser
-    if (primaryKey) {
-      console.log(`🎯🎯🎯 PRIMARY ID KEY DETECTED: "${primaryKey}" 🎯🎯🎯`);
-    } else {
-      console.log(`❌❌❌ NO PRIMARY ID KEY DETECTED ❌❌❌`);
-    }
     
     return primaryKey;
   };
@@ -112,7 +227,6 @@ function App() {
   // Helper function to save a single filename to localStorage
   const saveFilenameToStorage = (fileKey: 'file1' | 'file2', fileName: string) => {
     try {
-      console.log(`🔧 saveFilenameToStorage called with: ${fileKey} = ${fileName}`);
       
       // Get existing saved state or create a new one
       const existingSaved = localStorage.getItem('jsontool-saved-filenames');
@@ -127,11 +241,6 @@ function App() {
       fileState.timestamp = Date.now();
       
       localStorage.setItem('jsontool-saved-filenames', JSON.stringify(fileState));
-      console.log(`✅ ${fileKey} filename saved to localStorage:`, fileState);
-      
-      // Verify the save worked
-      const verification = localStorage.getItem('jsontool-saved-filenames');
-      console.log('🔍 Verification - localStorage now contains:', verification);
     } catch (e) {
       console.warn(`Failed to save ${fileKey} filename to localStorage:`, e);
     }
@@ -158,21 +267,17 @@ function App() {
   // Helper function to load a specific file from public directory
   const loadFileFromPublic = async (fileName: string): Promise<FileData | null> => {
     try {
-      console.log(`🔄 Loading file from public directory: ${fileName}`);
       const response = await fetch(`/${fileName}`);
       if (!response.ok) {
-        console.log(`❌ Failed to fetch ${fileName}: ${response.status} ${response.statusText}`);
         return null;
       }
       const data = await response.json();
-      console.log(`✅ Successfully loaded ${fileName}`);
       return {
         content: data,
         isTextMode: false,
         fileName: fileName
       };
     } catch (error) {
-      console.log(`❌ Error loading ${fileName}:`, error);
       return null;
     }
   };
@@ -240,12 +345,6 @@ function App() {
   // Function to save both filenames from FileData objects
   const saveFilenamesFromData = (file1Data: FileData, file2Data: FileData) => {
     try {
-      console.log('🔧 saveFilenamesFromData called with:', {
-        file1Name: file1Data.fileName,
-        file2Name: file2Data.fileName,
-        file1HasContent: !!file1Data.content,
-        file2HasContent: !!file2Data.content
-      });
       
       // Only save if both files have names (indicating they were loaded from public dir or uploaded)
       if (file1Data.fileName && file2Data.fileName) {
@@ -255,16 +354,7 @@ function App() {
           timestamp: Date.now()
         };
         localStorage.setItem('jsontool-saved-filenames', JSON.stringify(fileState));
-        console.log('✅ Filenames saved to localStorage:', fileState);
-        
-        // Verify the save worked
-        const verification = localStorage.getItem('jsontool-saved-filenames');
-        console.log('🔍 Verification - localStorage now contains:', verification);
       } else {
-        console.log('❌ Not saving filenames - one or both files missing fileName:', {
-          file1Name: file1Data.fileName,
-          file2Name: file2Data.fileName
-        });
       }
     } catch (e) {
       console.warn('Failed to save filenames to localStorage:', e);
@@ -275,43 +365,35 @@ function App() {
   const loadFilesByNames = async (): Promise<{ file1: FileData, file2: FileData } | null> => {
     try {
       const saved = localStorage.getItem('jsontool-saved-filenames');
-      console.log('🔍 Checking localStorage for saved filenames:', saved);
       
       if (!saved) {
-        console.log('❌ No saved filenames found in localStorage');
         return null;
       }
       
       const fileState = JSON.parse(saved);
-      console.log('📋 Found saved filenames:', fileState);
       
       // Check if saved filenames are recent (within 7 days)
       const oneWeek = 7 * 24 * 60 * 60 * 1000;
       if (Date.now() - fileState.timestamp > oneWeek) {
-        console.log('❌ Saved filenames expired (older than 7 days), removing...');
         localStorage.removeItem('jsontool-saved-filenames');
         return null;
       }
       
-      console.log('🔄 Attempting to load files from public directory...');
       console.log(`- File 1: /${fileState.file1Name}`);
       console.log(`- File 2: /${fileState.file2Name}`);
       
       // Try to load both files from public directory
       const [file1Response, file2Response] = await Promise.all([
-        fetch(`/${fileState.file1Name}`).catch(err => {
-          console.log(`❌ Failed to fetch ${fileState.file1Name}:`, err);
+        fetch(`/${fileState.file1Name}`).catch(() => {
           return null;
         }),
-        fetch(`/${fileState.file2Name}`).catch(err => {
-          console.log(`❌ Failed to fetch ${fileState.file2Name}:`, err);
+        fetch(`/${fileState.file2Name}`).catch(() => {
           return null;
         })
       ]);
       
       // If either file fails to load, remove from storage and return null
       if (!file1Response?.ok || !file2Response?.ok) {
-        console.log('❌ One or both saved files not found in public directory, falling back to samples');
         console.log(`- File 1 response: ${file1Response?.status} ${file1Response?.statusText}`);
         console.log(`- File 2 response: ${file2Response?.status} ${file2Response?.statusText}`);
         localStorage.removeItem('jsontool-saved-filenames');
@@ -323,7 +405,6 @@ function App() {
         file2Response.json()
       ]);
       
-      console.log('✅ Successfully loaded files from public directory:', fileState.file1Name, fileState.file2Name);
       
       return {
         file1: {
@@ -381,14 +462,8 @@ function App() {
   // Initial loading effect - try to load saved filenames first, then fall back to samples
   useEffect(() => {
     const loadInitialFiles = async () => {
-      console.log('🚀 Starting initial file loading...');
       const savedFiles = await loadFilesByNames();
       if (savedFiles) {
-        console.log('✅ Loading previously saved files from public directory');
-        console.log('📁 Loaded files:', { 
-          file1Name: savedFiles.file1.fileName, 
-          file2Name: savedFiles.file2.fileName 
-        });
         setFile1(savedFiles.file1);
         setFile2(savedFiles.file2);
         
@@ -406,7 +481,6 @@ function App() {
             setFile2(updatedFile2);
             setDiffs(comparisonResult.diffs);
             setIdKeysUsed(comparisonResult.idKeysUsed);
-            console.log('✅ Restored files with diffs:', comparisonResult.diffs.length, 'differences found');
             
             // Don't re-save the same filenames we just loaded
             console.log('ℹ️ Skipping filename save during initial restore');
@@ -417,7 +491,6 @@ function App() {
         }
         setError(null);
       } else {
-        console.log('❌ No saved files found, loading default samples');
         loadSamples();
       }
     };
@@ -427,9 +500,33 @@ function App() {
 
   useEffect(() => {
     if (file1 && file2 && !file1.isTextMode && !file2.isTextMode) {
-      const comparisonResult: JsonCompareResult = jsonCompare(file1.content as JsonValue, file2.content as JsonValue);
-      setDiffs(comparisonResult.diffs);
-      setIdKeysUsed(comparisonResult.idKeysUsed);
+      // Single-pass: traverse and sort both JSON structures, collecting ID keys as we go
+      const file1Result = traverseAndSortJson(file1.content as JsonValue, "root");
+      const file2Result = traverseAndSortJson(file2.content as JsonValue, "root");
+      
+      // Combine ID keys from both files (merge and deduplicate)
+      const combinedIdKeys = [...file1Result.idKeysUsed];
+      file2Result.idKeysUsed.forEach(idKey2 => {
+        if (!combinedIdKeys.find(idKey1 => idKey1.arrayPath === idKey2.arrayPath && idKey1.idKey === idKey2.idKey)) {
+          combinedIdKeys.push(idKey2);
+        }
+      });
+      
+      // Generate diffs on the already-sorted data
+      const finalComparisonResult: JsonCompareResult = jsonCompare(file1Result.sortedData, file2Result.sortedData);
+      setDiffs(finalComparisonResult.diffs);
+      setIdKeysUsed(combinedIdKeys);
+      
+      // Store idKeysUsed globally for debug access
+      if (typeof window !== 'undefined') {
+        (window as any).currentIdKeysUsed = combinedIdKeys;
+        (window as any).file1IdKeys = file1Result.idKeysUsed;
+        (window as any).file2IdKeys = file2Result.idKeysUsed;
+      }
+      
+      // Store sorted data separately to avoid infinite loop
+      setSortedFile1Data(file1Result.sortedData);
+      setSortedFile2Data(file2Result.sortedData);
     } else {
       // Clear diffs and idKeys if either file is in text mode
       setDiffs([]);
@@ -547,19 +644,12 @@ function App() {
 
   // Handler for multiple files dropped at once
   const handleMultipleFilesDrop = (files: Array<{ content: JsonValue | string; isTextMode: boolean; fileName?: string }>) => {
-    console.log('🎯 handleMultipleFilesDrop called with files:', files.map(f => ({ 
-      fileName: f.fileName, 
-      isTextMode: f.isTextMode, 
-      hasContent: !!f.content 
-    })));
-    
     if (files.length >= 2) {
       // Load first two files into left and right viewers
       setFile1(files[0]);
       setFile2(files[1]);
       
       // Save filenames to localStorage
-      console.log('💾 Saving filenames to localStorage from handleMultipleFilesDrop');
       if (files[0].fileName) {
         saveFilenameToStorage('file1', files[0].fileName);
       }
@@ -592,20 +682,11 @@ function App() {
 
   // Smart file drop handler that automatically assigns files to left/right based on availability
   const handleSmartFileDrop = (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
-    console.log('🎯 handleSmartFileDrop called with:', {
-      fileName: data.fileName,
-      isTextMode: data.isTextMode,
-      hasContent: !!data.content,
-      currentFiles: { file1Name: file1?.fileName, file2Name: file2?.fileName }
-    });
-    
     // If both viewers are empty, put the file in the left viewer
     if (!file1 && !file2) {
-      console.log('📍 Both viewers empty, placing in left viewer');
       setFile1(data);
       // Save only the left filename since right is still empty
       if (data.fileName) {
-        console.log('💾 Saving filename to localStorage (left only)');
         saveFilenameToStorage('file1', data.fileName);
       }
       return;
@@ -613,7 +694,6 @@ function App() {
     
     // If only left viewer is empty, put it there
     if (!file1) {
-      console.log('📍 Left viewer empty, placing there and comparing with file2');
       setFile1(data);
       if (!data.isTextMode && file2 && !file2.isTextMode) {
         const comparisonResult = jsonCompare(data.content as JsonValue, file2.content as JsonValue);
@@ -623,7 +703,6 @@ function App() {
         setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
-        console.log('💾 About to save filenames from handleSmartFileDrop (left empty case)');
         if (updatedFile1.fileName) {
           saveFilenameToStorage('file1', updatedFile1.fileName);
         }
@@ -631,7 +710,6 @@ function App() {
           saveFilenameToStorage('file2', updatedFile2.fileName);
         }
       } else if (file2) {
-        console.log('💾 About to save filenames from handleSmartFileDrop (left empty, no comparison case)');
         if (data.fileName) {
           saveFilenameToStorage('file1', data.fileName);
         }
@@ -644,7 +722,6 @@ function App() {
     
     // If only right viewer is empty, put it there
     if (!file2) {
-      console.log('📍 Right viewer empty, placing there and comparing with file1');
       setFile2(data);
       if (!data.isTextMode && file1 && !file1.isTextMode) {
         const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
@@ -654,7 +731,6 @@ function App() {
         setFile2(updatedFile2);
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
-        console.log('💾 About to save filenames from handleSmartFileDrop (right empty case)');
         if (updatedFile1.fileName) {
           saveFilenameToStorage('file1', updatedFile1.fileName);
         }
@@ -662,7 +738,6 @@ function App() {
           saveFilenameToStorage('file2', updatedFile2.fileName);
         }
       } else if (file1) {
-        console.log('💾 About to save filenames from handleSmartFileDrop (right empty, no comparison case)');
         if (file1.fileName) {
           saveFilenameToStorage('file1', file1.fileName);
         }
@@ -674,7 +749,6 @@ function App() {
     }
     
     // If both viewers are occupied, replace the right viewer (newer file)
-    console.log('📍 Both viewers occupied, replacing right viewer');
     setFile2(data);
     if (!data.isTextMode && file1 && !file1.isTextMode) {
       const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
@@ -684,7 +758,6 @@ function App() {
       setFile2(updatedFile2);
       setDiffs(comparisonResult.diffs);
       setIdKeysUsed(comparisonResult.idKeysUsed);
-      console.log('💾 About to save filenames from handleSmartFileDrop (both occupied case)');
       if (updatedFile1.fileName) {
         saveFilenameToStorage('file1', updatedFile1.fileName);
       }
@@ -692,7 +765,6 @@ function App() {
         saveFilenameToStorage('file2', updatedFile2.fileName);
       }
     } else if (file1) {
-      console.log('💾 About to save filenames from handleSmartFileDrop (both occupied, no comparison case)');
       if (file1.fileName) {
         saveFilenameToStorage('file1', file1.fileName);
       }
@@ -704,10 +776,8 @@ function App() {
 
   // Handle global file drops (when files are dropped anywhere on the app)
   const handleGlobalFileDrop = (files: File[]) => {
-    console.log('🌍 handleGlobalFileDrop called with:', files.map(f => f.name));
     
     const processFile = (file: File, index: number) => {
-      console.log(`📄 Processing file ${index + 1}: ${file.name}`);
       
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -723,21 +793,17 @@ function App() {
                 fileName: file.name 
               };
               
-              console.log(`✅ Successfully parsed JSON file: ${file.name}`);
               
               // If this is the first file and we have no files loaded, put it in left viewer
               if (index === 0 && !file1 && !file2) {
-                console.log(`📍 First file, no existing files - setting as file1`);
                 setFile1(data);
                 // Save filename to localStorage
                 if (data.fileName) {
-                  console.log('💾 Saving filename to localStorage (first file in handleGlobalFileDrop)');
                   saveFilenameToStorage('file1', data.fileName);
                 }
               }
               // If this is the second file or we already have one file, use smart drop logic
               else {
-                console.log(`📍 Using smart drop logic for: ${file.name}`);
                 handleSmartFileDrop(data);
               }
             } catch (jsonError) {
@@ -768,16 +834,9 @@ function App() {
   };
 
   const handleFileDrop = (viewer: 'file1' | 'file2') => (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
-    console.log(`📁 handleFileDrop called for ${viewer} with:`, {
-      fileName: data.fileName,
-      isTextMode: data.isTextMode,
-      hasContent: !!data.content
-    });
-    
     if (viewer === 'file1') {
       const newFile1 = data;
       setFile1(newFile1);
-      console.log('📝 Set file1 to:', { fileName: newFile1.fileName });
       
       if (!data.isTextMode && file2 && !file2.isTextMode) {
         const comparisonResult = jsonCompare(data.content as JsonValue, file2.content as JsonValue);
@@ -788,7 +847,6 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         // Auto-save filenames when files are processed (only if they have names)
-        console.log('💾 About to save filenames after JSON comparison (file1 case)');
         if (updatedFile1.fileName) {
           saveFilenameToStorage('file1', updatedFile1.fileName);
         }
@@ -797,7 +855,6 @@ function App() {
         }
       } else if (file2) {
         // Auto-save filenames even if not both JSON files (only if they have names)
-        console.log('💾 About to save filenames without JSON comparison (file1 case)');
         if (newFile1.fileName) {
           saveFilenameToStorage('file1', newFile1.fileName);
         }
@@ -807,15 +864,12 @@ function App() {
       } else {
         // Save just file1 name if file2 is null
         if (newFile1.fileName) {
-          console.log('💾 Saving only file1 filename');
           saveFilenameToStorage('file1', newFile1.fileName);
         }
-        console.log('⏸️ file2 is null, saved file1 only');
       }
     } else {
       const newFile2 = data;
       setFile2(newFile2);
-      console.log('📝 Set file2 to:', { fileName: newFile2.fileName });
       
       if (!data.isTextMode && file1 && !file1.isTextMode) {
         const comparisonResult = jsonCompare(file1.content as JsonValue, data.content as JsonValue);
@@ -826,7 +880,6 @@ function App() {
         setDiffs(comparisonResult.diffs);
         setIdKeysUsed(comparisonResult.idKeysUsed);
         // Auto-save filenames when files are processed (only if they have names)
-        console.log('💾 About to save filenames after JSON comparison (file2 case)');
         if (updatedFile1.fileName) {
           saveFilenameToStorage('file1', updatedFile1.fileName);
         }
@@ -835,7 +888,6 @@ function App() {
         }
       } else if (file1) {
         // Auto-save filenames even if not both JSON files (only if they have names)
-        console.log('💾 About to save filenames without JSON comparison (file2 case)');
         if (file1.fileName) {
           saveFilenameToStorage('file1', file1.fileName);
         }
@@ -845,10 +897,8 @@ function App() {
       } else {
         // Save just file2 name if file1 is null
         if (newFile2.fileName) {
-          console.log('💾 Saving only file2 filename');
           saveFilenameToStorage('file2', newFile2.fileName);
         }
-        console.log('⏸️ file1 is null, saved file2 only');
       }
     }
   };
@@ -918,7 +968,7 @@ function App() {
                           />
                         ) : (
                           <JsonTreeView
-                            data={file1.content as JsonValue}
+                            data={(sortedFile1Data || file1.content) as JsonValue}
                             viewerId="viewer1"
                             jsonSide='left'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
@@ -964,7 +1014,7 @@ function App() {
                           />
                         ) : (
                           <JsonTreeView
-                            data={file2.content as JsonValue}
+                            data={(sortedFile2Data || file2.content) as JsonValue}
                             viewerId="viewer2"
                             jsonSide='right'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
@@ -1013,7 +1063,10 @@ function App() {
                   height="100%"
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
-                  jsonData={file1.content}
+                  jsonData={{ 
+                    left: sortedFile1Data || file1.content, 
+                    right: sortedFile2Data || file2.content 
+                  }}
                 />
               )}
             </div>
@@ -1170,14 +1223,12 @@ function App() {
   //       // Wait a bit for the app to initialize
   //       await new Promise(resolve => setTimeout(resolve, 1000));
         
-  //       console.log('🚀 Auto-loading test files for sorting verification...');
         
   //       // Load both test files
   //       await handlePublicFileSelection('sort-test-1.json', 'file1');
   //       await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
   //       await handlePublicFileSelection('sort-test-2.json', 'file2');
         
-  //       console.log('✅ Test files loaded');
   //     } catch (err) {
   //       console.error('❌ Failed to auto-load test files:', err);
   //     }

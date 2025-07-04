@@ -7,11 +7,13 @@ import './DiffList.css';
 interface DiffListProps {
   diffs: DiffResult[];
   height?: number | string;
+  jsonData?: { left: any; right: any }; // Add JSON data for ID-based correlation
 }
 
 export const DiffList: React.FC<DiffListProps> = ({
   diffs,
   height = 'calc(25vh - 50px)',
+  jsonData,
 }) => {
   const { 
     ignoredDiffs,
@@ -44,15 +46,232 @@ export const DiffList: React.FC<DiffListProps> = ({
     addIgnoredPattern(numericDiffPath);
   };
 
-  const handleGoToDiff = (numericDiffPath: string) => {
-    console.log('[DiffList] 🔍 GoTo button clicked for numeric path:', numericDiffPath);
+  const handleGoToDiff = (diff: DiffResult) => {
+    console.log('[DiffList] 🎯 GoTo diff clicked - checking for ID-based correlation');
+    console.log('[DiffList] 📍 displayPath:', diff.displayPath);
+    console.log('[DiffList] 📍 numericPath:', diff.numericPath);
     
-    // Ensure the path has the "root." prefix to match JsonTreeView DOM structure
-    const pathWithRoot = numericDiffPath.startsWith('root.') ? numericDiffPath : `root.${numericDiffPath}`;
-    console.log('[DiffList] 🔍 Calling goToDiff with path:', pathWithRoot);
+    // Check if this diff involves ID-based arrays
+    const displayPath = diff.displayPath;
+    const hasIdBasedArrays = displayPath && displayPath.includes('[id=');
     
-    // Use the context's goToDiff function which handles highlighting and scrolling
-    goToDiff(pathWithRoot);
+    if (hasIdBasedArrays && jsonData) {
+      console.log('[DiffList] 🔍 Found ID-based arrays - using smart correlation');
+      handleIdBasedCorrelation(displayPath, diff);
+    } else {
+      console.log('[DiffList] 📍 Using simple numeric path approach');
+      // Fallback to simple numeric path
+      const numericPath = diff.numericPath;
+      const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
+      goToDiff(pathWithRoot);
+    }
+  };
+
+  // Smart ID-based correlation function
+  const handleIdBasedCorrelation = (displayPath: string, diff: DiffResult) => {
+    console.log('[DiffList] 🔍 Starting ID-based correlation for:', displayPath);
+    
+    // Step 1: Find the corresponding numeric path in LEFT viewer
+    const leftNumericPath = findNumericPathForDisplayPath(displayPath, 'left');
+    
+    // Step 2: Find the corresponding numeric path in RIGHT viewer  
+    const rightNumericPath = findNumericPathForDisplayPath(displayPath, 'right');
+    
+    console.log('[DiffList] 🎯 Correlation results:');
+    console.log('[DiffList] 🎯 LEFT numeric path:', leftNumericPath);
+    console.log('[DiffList] 🎯 RIGHT numeric path:', rightNumericPath);
+    
+    if (leftNumericPath && rightNumericPath) {
+      console.log('[DiffList] ✅ Found both paths - highlighting corresponding elements');
+      
+      // Add root prefix if needed
+      const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
+      const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
+      
+      console.log('[DiffList] 🎯 LEFT path with root:', leftPathWithRoot);
+      console.log('[DiffList] 🎯 RIGHT path with root:', rightPathWithRoot);
+      
+      // FIXED: Use manual DOM highlighting instead of goToDiff to avoid overwriting
+      highlightElementsManually(leftPathWithRoot, rightPathWithRoot);
+      
+    } else {
+      console.log('[DiffList] ❌ Could not find both paths - falling back to numeric path');
+      const numericPath = diff.numericPath;
+      const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
+      goToDiff(pathWithRoot);
+    }
+  };
+
+  // Helper function to find numeric path for a display path in a specific JSON viewer
+  const findNumericPathForDisplayPath = (displayPath: string, side: 'left' | 'right'): string | null => {
+    console.log(`[DiffList] 🔍 ${side.toUpperCase()} - Searching for:`, displayPath);
+    
+    if (!jsonData) {
+      console.log(`[DiffList] ❌ No JSON data available`);
+      return null;
+    }
+    
+    const targetData = side === 'left' ? jsonData.left : jsonData.right;
+    if (!targetData) {
+      console.log(`[DiffList] ❌ No ${side} JSON data`);
+      return null;
+    }
+    
+    try {
+      const numericPath = traverseJsonByDisplayPath(targetData, displayPath);
+      console.log(`[DiffList] ✅ ${side.toUpperCase()} found:`, numericPath);
+      return numericPath;
+    } catch (error) {
+      console.log(`[DiffList] ❌ ${side.toUpperCase()} error:`, error);
+      return null;
+    }
+  };
+
+  // Helper function to traverse JSON and convert display path to numeric path
+  const traverseJsonByDisplayPath = (data: any, displayPath: string): string | null => {
+    // Parse display path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType"
+    const segments = displayPath.split('.');
+    
+    let currentData = data;
+    let numericPath = '';
+    
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      
+      // Handle ID-based array access: "arrayName[id=value]"
+      const idArrayMatch = segment.match(/^([^[]+)\[id=([^\]]+)\]$/);
+      if (idArrayMatch) {
+        const [, arrayName, targetId] = idArrayMatch;
+        
+        // Add array name to path
+        if (numericPath) numericPath += '.';
+        numericPath += arrayName;
+        
+        // Navigate to array
+        currentData = currentData[arrayName];
+        if (!Array.isArray(currentData)) {
+          throw new Error(`Expected array at ${arrayName}`);
+        }
+        
+        // Find item with target ID
+        const foundIndex = currentData.findIndex((item: any) => {
+          if (typeof item !== 'object' || item === null) return false;
+          
+          // Check if any property matches the target ID
+          for (const value of Object.values(item)) {
+            if (String(value) === targetId) return true;
+          }
+          return false;
+        });
+        
+        if (foundIndex === -1) {
+          throw new Error(`Could not find item with ID ${targetId} in ${arrayName}`);
+        }
+        
+        // Add numeric index
+        numericPath += `[${foundIndex}]`;
+        currentData = currentData[foundIndex];
+        
+      } else if (segment.includes('[') && segment.includes(']')) {
+        // Handle numeric array access: "arrayName[0]"
+        const numericArrayMatch = segment.match(/^([^[]+)\[(\d+)\]$/);
+        if (numericArrayMatch) {
+          const [, arrayName, index] = numericArrayMatch;
+          
+          if (numericPath) numericPath += '.';
+          numericPath += `${arrayName}[${index}]`;
+          
+          currentData = currentData[arrayName][parseInt(index)];
+        }
+      } else {
+        // Handle simple property access
+        if (numericPath) numericPath += '.';
+        numericPath += segment;
+        
+        currentData = currentData[segment];
+      }
+      
+      if (currentData === undefined) {
+        throw new Error(`Property ${segment} not found`);
+      }
+    }
+    
+    return numericPath;
+  };
+
+  // Manual highlighting function that can highlight different paths in each viewer
+  const highlightElementsManually = (leftPath: string, rightPath: string) => {
+    console.log('[DiffList] 🔧 Manual highlighting - LEFT:', leftPath, 'RIGHT:', rightPath);
+    
+    // Step 1: Expand and scroll to LEFT path first
+    console.log('[DiffList] 📂 Step 1: Using goToDiff for LEFT path expansion');
+    goToDiff(leftPath);
+    
+    // Step 2: Expand RIGHT path as well (to ensure both are expanded)
+    setTimeout(() => {
+      console.log('[DiffList] 📂 Step 2: Using goToDiff for RIGHT path expansion');
+      goToDiff(rightPath);
+      
+      // Step 3: After both expansions, manually highlight elements
+      setTimeout(() => {
+        console.log('[DiffList] ✨ Step 3: Finding and highlighting both elements manually');
+        
+        // Find LEFT element
+        const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
+        console.log(`[DiffList] 🔍 Found ${leftElements.length} LEFT elements for path: ${leftPath}`);
+        
+        // Find RIGHT element  
+        const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
+        console.log(`[DiffList] 🔍 Found ${rightElements.length} RIGHT elements for path: ${rightPath}`);
+        
+        // Debug: Show all available elements if RIGHT not found
+        if (rightElements.length === 0) {
+          const allElements = document.querySelectorAll('[data-path*="contributionType"]');
+          console.log(`[DiffList] 🔍 DEBUG: Found ${allElements.length} elements with contributionType:`);
+          allElements.forEach((el, i) => {
+            if (i < 5) { // Show first 5
+              console.log(`[DiffList] 🔍   ${i + 1}: ${el.getAttribute('data-path')}`);
+            }
+          });
+        }
+        
+        // Clear all existing highlights first
+        document.querySelectorAll('.highlighted-node, .persistent-highlight').forEach(el => {
+          el.classList.remove('highlighted-node', 'persistent-highlight');
+        });
+        
+        // Highlight LEFT elements (only in left viewer)
+        leftElements.forEach((element, index) => {
+          const rect = element.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const isLeftViewer = rect.left < viewportWidth / 2;
+          
+          console.log(`[DiffList] 🔍 LEFT element ${index + 1}: rect.left=${rect.left}, isLeftViewer=${isLeftViewer}`);
+          
+          if (isLeftViewer) {
+            element.classList.add('highlighted-node', 'persistent-highlight');
+            console.log(`[DiffList] ✅ Highlighted LEFT element ${index + 1}`);
+          }
+        });
+        
+        // Highlight RIGHT elements (only in right viewer)  
+        rightElements.forEach((element, index) => {
+          const rect = element.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const isRightViewer = rect.left >= viewportWidth / 2;
+          
+          console.log(`[DiffList] 🔍 RIGHT element ${index + 1}: rect.left=${rect.left}, isRightViewer=${isRightViewer}`);
+          
+          if (isRightViewer) {
+            element.classList.add('highlighted-node', 'persistent-highlight');
+            console.log(`[DiffList] ✅ Highlighted RIGHT element ${index + 1}`);
+          }
+        });
+        
+        console.log('[DiffList] 🎉 Manual dual highlighting completed');
+        
+      }, 1500); // Wait for RIGHT expansion to complete
+    }, 1000); // Wait for LEFT expansion to complete
   };
 
   const formatValue = (value: any, truncate: boolean = true): string => {
@@ -123,7 +342,7 @@ export const DiffList: React.FC<DiffListProps> = ({
                   <div className="diff-actions">
                     <button 
                       className="goto-button"
-                      onClick={() => handleGoToDiff(diff.numericPath)}
+                      onClick={() => handleGoToDiff(diff)}
                       title="Navigate to this difference"
                     >
                       Go To
