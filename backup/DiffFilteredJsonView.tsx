@@ -1,6 +1,6 @@
 import React from 'react';
 import './DiffFilteredJsonView.css';
-import type { DiffResult } from '../jsonCompare';
+import type { DiffResult } from '../utils/jsonCompare';
 
 // Helper function to filter JSON to only include differences
 export const filterJsonByDiffs = (json: any, _diffResults: DiffResult[], _parentPath = ''): any => {

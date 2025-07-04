@@ -1,7 +1,7 @@
 import React from 'react';
 import { JsonTreeView } from './JsonTreeView';
 import { DiffFilteredJsonView, filterJsonByDiffs } from './DiffFilteredJsonView';
-import type { DiffResult } from '../jsonCompare';
+import type { DiffResult } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
 import './FilteredJsonViewer.css';
 

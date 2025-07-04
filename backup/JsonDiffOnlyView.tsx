@@ -1,6 +1,6 @@
 import React from 'react';
 import './JsonDiffOnlyView.css';
-import type { DiffResult } from '../jsonCompare';
+import type { DiffResult } from '../utils/jsonCompare';
 
 interface JsonDiffOnlyViewProps {
   diffResults: DiffResult[];

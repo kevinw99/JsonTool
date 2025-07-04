@@ -757,6 +757,30 @@ Co-Authored-By: Claude <noreply@anthropic.com> (diff panel, main app)"
 **Status**: 🚧 In Progress  
 
 
+### Request #65 - 🐛 Bug Fix
+**Date**: 2025-07-04  
+**Request**: "implement deterministic PathConverter and enhanced highlighting system
+
+- Add PathConverter utility with bidirectional ID ↔ index path conversion
+- Implement HighlightingProcessor for O(1) diff lookup performance
+- Refactor highlighting system to use deterministic path conversion
+- Remove non-deterministic path variations approach
+- Add comprehensive test suite (35/35 tests passing)
+- Integrate PathConverter with JsonViewerSyncContext
+- Support complex financial data structures with nested arrays
+- Fix path joining for array indices (array[0].prop not array.[0].prop)
+- Add proper ID key matching for array path detection
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, main app)"  
+**Commit**: [`8f029d1`](https://github.com/user/repo/commit/8f029d1)  
+**Files**: backup/JsonTreeView.tsx.new, src/App.tsx, src/components/JsonTreeView.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

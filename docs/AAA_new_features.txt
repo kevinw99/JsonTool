@@ -1,7 +1,11 @@
 1 general edit/find/select/copy/past 
+Text mode:
+  line #
+  show json-path from root
+
 2.ignore by value:
     a. numberic, by percentage
     b. string: by pattern, or one to one mapping
-3. group differnece 
+3. group differnece panel
     a. by last field
     b. by type: differnt, new, delete

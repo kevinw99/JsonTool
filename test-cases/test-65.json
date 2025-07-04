@@ -1,0 +1,28 @@
+{
+  "id": 65,
+  "request": "implement deterministic PathConverter and enhanced highlighting system\n\n- Add PathConverter utility with bidirectional ID ↔ index path conversion\n- Implement HighlightingProcessor for O(1) diff lookup performance\n- Refactor highlighting system to use deterministic path conversion\n- Remove non-deterministic path variations approach\n- Add comprehensive test suite (35/35 tests passing)\n- Integrate PathConverter with JsonViewerSyncContext\n- Support complex financial data structures with nested arrays\n- Fix path joining for array indices (array[0].prop not array.[0].prop)\n- Add proper ID key matching for array path detection\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-04T20:12:21.804Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

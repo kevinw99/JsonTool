@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DiffResult } from '../jsonCompare';
+import type { DiffResult } from '../utils/jsonCompare';
 import './JsonDiffViewer.css';
 
 interface JsonDiffViewerProps {
