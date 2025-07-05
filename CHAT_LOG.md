@@ -1078,6 +1078,26 @@ Co-Authored-By: Claude <noreply@anthropic.com> (diff panel)"
 **Status**: 🚧 In Progress  
 
 
+### Request #81 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "GoTo expansion now uses correct viewer-prefixed paths
+
+The issue was that expandedPaths state uses viewer-prefixed paths like 'viewer1_root'
+but goToDiff was adding paths without these prefixes. This caused the expansion to fail.
+
+Changes:
+- Add viewer1_ and viewer2_ prefixes when adding paths to expandedPaths
+- Update selectors to check data-original-path attribute with viewer prefixes
+- Add both viewer paths for synchronized expansion
+
+This should fix the GoTo button not expanding nodes properly."  
+**Commit**: [`c94dda5`](https://github.com/user/repo/commit/c94dda5)  
+**Files**: .auto-chat-state.json, src/components/JsonViewerSyncContext.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

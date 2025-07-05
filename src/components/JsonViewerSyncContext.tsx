@@ -434,15 +434,32 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Convert ID-based paths to numeric paths if needed
       let numericPathToExpand = pathToExpand;
+      let primaryViewer = 'viewer1'; // Default to left panel
+      
       if (pathToExpand.includes('[id=') && jsonData) {
-        // This is an ID-based path, convert to numeric for current context
+        // This is an ID-based path, try to convert for both viewers
         const leftContext: PathConversionContext = { jsonData: jsonData.left, idKeysUsed: idKeysUsed || [] };
-        const converted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), leftContext);
-        if (converted) {
-          numericPathToExpand = converted;
-          console.log('[JsonViewerSyncContext] 🔄 Converted ID-based path to numeric:', pathToExpand, '→', numericPathToExpand);
+        const rightContext: PathConversionContext = { jsonData: jsonData.right, idKeysUsed: idKeysUsed || [] };
+        
+        const leftConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), leftContext);
+        const rightConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), rightContext);
+        
+        if (leftConverted && rightConverted) {
+          // Path exists in both viewers, use left as primary
+          numericPathToExpand = leftConverted;
+          console.log('[JsonViewerSyncContext] 🔄 Path exists in both viewers, using left:', pathToExpand, '→', numericPathToExpand);
+        } else if (leftConverted) {
+          // Only exists in left
+          numericPathToExpand = leftConverted;
+          primaryViewer = 'viewer1';
+          console.log('[JsonViewerSyncContext] 🔄 Path only in LEFT viewer:', pathToExpand, '→', numericPathToExpand);
+        } else if (rightConverted) {
+          // Only exists in right
+          numericPathToExpand = rightConverted;
+          primaryViewer = 'viewer2';
+          console.log('[JsonViewerSyncContext] 🔄 Path only in RIGHT viewer:', pathToExpand, '→', numericPathToExpand);
         } else {
-          console.warn('[JsonViewerSyncContext] ⚠️ Failed to convert ID-based path:', pathToExpand);
+          console.warn('[JsonViewerSyncContext] ⚠️ Failed to convert ID-based path in either viewer:', pathToExpand);
         }
       }
       
@@ -462,6 +479,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setExpandedPathsState(currentExpandedPaths => {
           const newExpandedPaths = new Set<string>(currentExpandedPaths);
           newExpandedPaths.add('root'); // Ensure root is always expanded
+          
+          // Pass primaryViewer from outer scope
+          const currentPrimaryViewer = primaryViewer;
 
           const segments: string[] = [];
           let remainingPath: string = numericPathToExpand; // Internal string manipulation
@@ -532,19 +552,38 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           // IMPORTANT: Add viewer prefix to paths for proper expansion
           // The expandedPaths state uses viewer-prefixed paths like "viewer1_root"
-          const viewerPrefix = 'viewer1_'; // For left panel
+          // Use the primaryViewer determined earlier (which viewer has the path)
+          const viewerPrefix = currentPrimaryViewer + '_';
+          const otherViewer = currentPrimaryViewer === 'viewer1' ? 'viewer2' : 'viewer1';
+          const otherViewerPrefix = otherViewer + '_';
           
           ancestorGenericPaths.forEach(genericAncestor => {
             if (genericAncestor) { 
-              // Add with viewer prefix
+              // Add with primary viewer prefix
               const viewerPath = viewerPrefix + genericAncestor;
               newExpandedPaths.add(viewerPath);
               console.log('[goToDiff] 📂 Added to expandedPaths:', viewerPath);
               
-              // Also add the corresponding viewer2 path for sync
-              const otherViewerPath = 'viewer2_' + genericAncestor;
-              newExpandedPaths.add(otherViewerPath);
-              console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
+              // For paths that exist in both viewers, also add the other viewer path
+              // But skip if we know the path only exists in one viewer
+              if (pathToExpand.includes('[id=') && jsonData) {
+                // Check if path exists in other viewer before adding
+                const otherContext: PathConversionContext = { 
+                  jsonData: otherViewer === 'viewer1' ? jsonData.left : jsonData.right, 
+                  idKeysUsed: idKeysUsed || [] 
+                };
+                const otherConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), otherContext);
+                if (otherConverted) {
+                  const otherViewerPath = otherViewerPrefix + genericAncestor;
+                  newExpandedPaths.add(otherViewerPath);
+                  console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
+                }
+              } else {
+                // For non-ID paths, assume they exist in both viewers
+                const otherViewerPath = otherViewerPrefix + genericAncestor;
+                newExpandedPaths.add(otherViewerPath);
+                console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
+              }
             }
           });
           
@@ -561,8 +600,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           const pathWithRoot = targetPath.startsWith('root.') ? targetPath : `root.${targetPath}`;
           
           // Also prepare viewer-prefixed versions for data-original-path
-          const viewer1OriginalPath = 'viewer1_' + pathWithRoot;
-          const viewer2OriginalPath = 'viewer2_' + pathWithRoot;
+          // Use the currentPrimaryViewer from the parent scope
+          const primaryOriginalPath = currentPrimaryViewer + '_' + pathWithRoot;
+          const otherOriginalPath = (currentPrimaryViewer === 'viewer1' ? 'viewer2' : 'viewer1') + '_' + pathWithRoot;
           
           // Debug: Check what data-path attributes exist that are similar
           const allDataPathElements = document.querySelectorAll('[data-path]');
@@ -585,8 +625,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               `[data-path="${pathWithRoot}"]`,
               `[data-path="${targetPath}"]`,
               // Try data-original-path with viewer prefixes
-              `[data-original-path="${viewer1OriginalPath}"]`,
-              `[data-original-path="${viewer2OriginalPath}"]`,
+              `[data-original-path="${primaryOriginalPath}"]`,
+              `[data-original-path="${otherOriginalPath}"]`,
               `[data-original-path="viewer1_${targetPath}"]`,
               `[data-original-path="viewer2_${targetPath}"]`
             ];
