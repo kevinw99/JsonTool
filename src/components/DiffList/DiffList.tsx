@@ -54,14 +54,13 @@ export const DiffList: React.FC<DiffListProps> = ({
     const idBasedPath = diff.idBasedPath;
     const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
     
-    if (hasIdBasedArrays && jsonData) {
-      handleIdBasedCorrelation(idBasedPath, diff);
-    } else {
-      // Fallback to simple numeric path
-      const numericPath = diff.numericPath;
-      const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
-      goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.numericPath'));
-    }
+    // Simplified approach: Just use the numeric path directly
+    // The goToDiff function should handle all the expansion logic
+    const numericPath = diff.numericPath;
+    const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
+    
+    console.log('[DiffList] 🎯 Using direct navigation to:', pathWithRoot);
+    goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.direct'));
   };
 
   // Smart ID-based correlation function
