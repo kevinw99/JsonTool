@@ -482,9 +482,18 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               const pathSegmentRegex = /([^.\[]+)|\[([^\]]+)\]/g; 
               let match;
               while ((match = pathSegmentRegex.exec(remainingPath)) !== null) {
-                  segments.push(match[1] || match[0]); 
+                  // If it's an array index like [0], push the entire bracket notation
+                  // If it's a property name, push just the name
+                  if (match[0].startsWith('[')) {
+                      segments.push(match[0]); // Full bracket notation like [0]
+                  } else {
+                      segments.push(match[1] || match[0]); // Property name
+                  }
               }
           }
+          
+          console.log('[goToDiff] 📍 Parsed segments:', segments);
+          console.log('[goToDiff] 📍 Path to expand:', numericPathToExpand);
 
           const ancestorGenericPaths: string[] = [];
           let currentAncestorPath = '';
@@ -519,6 +528,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           }
           
 
+          console.log('[goToDiff] 📂 Paths to expand:', ancestorGenericPaths);
+          
           ancestorGenericPaths.forEach(genericAncestor => {
             if (genericAncestor) { 
               newExpandedPaths.add(genericAncestor);
@@ -529,6 +540,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         });
 
         // Add additional scrolling logic after a delay to ensure DOM is updated
+        // Increased timeout to allow tree expansion to complete
         setTimeout(() => {
           
           // The target path should be what we want to scroll to

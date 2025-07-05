@@ -1018,6 +1018,66 @@ Co-Authored-By: Claude <noreply@anthropic.com> (diff panel)"
 **Status**: 🚧 In Progress  
 
 
+### Request #78 - ✨ Feature
+**Date**: 2025-07-05  
+**Request**: "additional files update (JSON tree navigation, diff panel)"  
+**Commit**: [`ace528c`](https://github.com/user/repo/commit/ace528c)  
+**Files**: CHAT_LOG.md, src/components/DiffList/DiffList.tsx, src/components/JsonTreeView.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #79 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "remove numericPath from DiffResult and compute on-demand
+
+This architectural change eliminates a fundamental source of bugs by removing
+viewer-specific numericPath from the viewer-agnostic DiffResult interface.
+
+Key changes:
+- Remove numericPath field from DiffResult interface
+- Update jsonCompare to only generate viewer-agnostic idBasedPath
+- Modify NewHighlightingProcessor to compute numeric paths on-demand using convertIdPathToIndexPath
+- Update UI components to use idBasedPath for viewer-agnostic operations
+- Fix property references in JsonDiffViewer (path → idBasedPath, oldValue → value1, newValue → value2)
+
+Benefits:
+- Eliminates bugs caused by incorrect left-panel indices in right panel
+- Creates cleaner separation between viewer-agnostic (idBasedPath) and viewer-specific (computed numericPath) concerns
+- Improves maintainability by removing redundant/incorrect data from DiffResult
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (diff panel)"  
+**Commit**: [`fcf90fb`](https://github.com/user/repo/commit/fcf90fb)  
+**Files**: src/components/DiffList/DiffList.tsx, src/components/JsonDiffViewer.tsx, src/components/TabbedBottomPanel.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #80 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "improve GoTo functionality for ID-based paths
+
+Key changes:
+- Update goToDiff to handle both numeric and ID-based paths by converting ID-based paths to numeric using convertIdPathToIndexPath
+- Simplify DiffList navigation to use standard goToDiff approach instead of complex manual highlighting
+- Fix remaining numericPath references to use idBasedPath after DiffResult refactoring
+
+This should resolve the issue where clicking Go To on diffs wasn't expanding to show the target nodes.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (diff panel)"  
+**Commit**: [`cda3541`](https://github.com/user/repo/commit/cda3541)  
+**Files**: src/components/DiffList/DiffList.tsx, src/components/JsonViewerSyncContext.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
