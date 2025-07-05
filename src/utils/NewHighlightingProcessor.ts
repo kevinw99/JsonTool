@@ -1,5 +1,6 @@
 import { 
   normalizePathForComparison,
+  convertIdPathToIndexPath,
   type PathConversionContext 
 } from './PathConverter';
 import type { DiffResult } from './jsonCompare';
@@ -69,9 +70,13 @@ export class NewHighlightingProcessor {
         const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
         
         if (!shouldSkipNumericFallback) {
-          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-          if (numericVariations.includes(variation)) {
-            return true;
+          // Convert idBasedPath to numeric path for the current viewer context
+          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          if (numericPath) {
+            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            if (numericVariations.includes(variation)) {
+              return true;
+            }
           }
         }
         
@@ -107,14 +112,18 @@ export class NewHighlightingProcessor {
         const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
         
         if (!shouldSkipNumericFallback) {
-          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-          const isChildOfNumeric = numericVariations.some(diffVar => 
-            variation.startsWith(diffVar + '.') || 
-            variation.startsWith(diffVar + '[')
-          );
-          
-          if (isChildOfNumeric) {
-            return true;
+          // Convert idBasedPath to numeric path for the current viewer context
+          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          if (numericPath) {
+            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            const isChildOfNumeric = numericVariations.some(diffVar => 
+              variation.startsWith(diffVar + '.') || 
+              variation.startsWith(diffVar + '[')
+            );
+            
+            if (isChildOfNumeric) {
+              return true;
+            }
           }
         }
         
@@ -149,13 +158,17 @@ export class NewHighlightingProcessor {
         const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
         
         if (!shouldSkipNumericFallback) {
-          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-          const hasNumericChild = numericVariations.some(diffVar => 
-            this.isTrueParentChild(variation, diffVar)
-          );
-          
-          if (hasNumericChild) {
-            return true;
+          // Convert idBasedPath to numeric path for the current viewer context
+          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          if (numericPath) {
+            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            const hasNumericChild = numericVariations.some(diffVar => 
+              this.isTrueParentChild(variation, diffVar)
+            );
+            
+            if (hasNumericChild) {
+              return true;
+            }
           }
         }
         
@@ -285,7 +298,7 @@ export class NewHighlightingProcessor {
    * Get all paths that have highlighting (useful for debugging)
    */
   getHighlightedPaths(): string[] {
-    return this.diffResults.map(diff => diff.numericPath);
+    return this.diffResults.map(diff => diff.idBasedPath);
   }
   
   /**

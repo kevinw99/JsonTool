@@ -27,7 +27,7 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
   
   // Calculate non-ignored diffs count
   const nonIgnoredDiffsCount = diffs?.filter(diff => 
-    diff.numericPath && !ignoredDiffs.has(diff.numericPath) && !isPathIgnoredByPattern(diff.numericPath)
+    diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) && !isPathIgnoredByPattern(diff.idBasedPath)
   ).length || 0;
   
   // Calculate total ignored count (manual patterns + right-click patterns)

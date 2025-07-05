@@ -20,7 +20,7 @@ export const JsonDiffViewer: React.FC<JsonDiffViewerProps> = ({
   
   diffResults.forEach(diff => {
     // For each diff, mark the path and all its parent paths
-    const pathParts = diff.path
+    const pathParts = diff.idBasedPath
       .replace(/\[(\d+)\]/g, '.$1') // Convert array notation to dot notation
       .split('.');
     
@@ -29,7 +29,7 @@ export const JsonDiffViewer: React.FC<JsonDiffViewerProps> = ({
       currentPath = currentPath ? `${currentPath}.${part}` : part;
       
       // If this path is directly affected by the diff
-      if (currentPath === diff.path.replace(/\[(\d+)\]/g, '.$1')) {
+      if (currentPath === diff.idBasedPath.replace(/\[(\d+)\]/g, '.$1')) {
         diffMap[currentPath] = { 
           type: diff.type,
           changed: true
@@ -101,19 +101,19 @@ export const JsonDiffViewer: React.FC<JsonDiffViewerProps> = ({
       if (!classNames) {
         diffResults.forEach(diff => {
           if (diff.type === 'changed') {
-            const oldValueStr = JSON.stringify(diff.oldValue);
-            const newValueStr = JSON.stringify(diff.newValue);
+            const oldValueStr = JSON.stringify(diff.value1);
+            const newValueStr = JSON.stringify(diff.value2);
             
             if (line.includes(isOriginal ? oldValueStr : newValueStr)) {
               classNames = 'json-changed-value';
             }
           } else if (diff.type === 'added' && !isOriginal) {
-            const newValueStr = JSON.stringify(diff.newValue);
+            const newValueStr = JSON.stringify(diff.value2);
             if (line.includes(newValueStr)) {
               classNames = 'json-added-value';
             }
           } else if (diff.type === 'removed' && isOriginal) {
-            const oldValueStr = JSON.stringify(diff.oldValue);
+            const oldValueStr = JSON.stringify(diff.value1);
             if (line.includes(oldValueStr)) {
               classNames = 'json-removed-value';
             }
