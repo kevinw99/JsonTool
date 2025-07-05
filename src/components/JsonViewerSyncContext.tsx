@@ -4,7 +4,7 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
 import { convertIndexPathToIdPath, convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { NumericPath, IdBasedPath } from '../utils/PathTypes';
-import { unsafeNumericPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes'; 
+import { unsafeNumericPath, unsafeIdBasedPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -430,11 +430,22 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    const goToDiff = useCallback((numericPathToExpand: string) => {
+    const goToDiff = useCallback((pathToExpand: string) => {
       
-      // For array paths from ID Keys, we typically want to highlight the array itself
-      // The IdKeysPanel should now be sending us the array path without [0] at the end
-      // So we don't need to strip it here anymore
+      // Convert ID-based paths to numeric paths if needed
+      let numericPathToExpand = pathToExpand;
+      if (pathToExpand.includes('[id=') && jsonData) {
+        // This is an ID-based path, convert to numeric for current context
+        const leftContext: PathConversionContext = { jsonData: jsonData.left, idKeysUsed: idKeysUsed || [] };
+        const converted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), leftContext);
+        if (converted) {
+          numericPathToExpand = converted;
+          console.log('[JsonViewerSyncContext] 🔄 Converted ID-based path to numeric:', pathToExpand, '→', numericPathToExpand);
+        } else {
+          console.warn('[JsonViewerSyncContext] ⚠️ Failed to convert ID-based path:', pathToExpand);
+        }
+      }
+      
       let pathToHighlight = numericPathToExpand;
       
       // Reset highlight to re-trigger the effect in JsonNode, even for the same path.
@@ -1487,8 +1498,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Add paths that match any ignored pattern
       for (const diff of diffResults) {
-        if (diff.numericPath && isPathIgnoredByPattern(diff.numericPath)) {
-          ignored.add(diff.numericPath);
+        if (diff.idBasedPath && isPathIgnoredByPattern(diff.idBasedPath)) {
+          ignored.add(diff.idBasedPath);
         }
       }
       

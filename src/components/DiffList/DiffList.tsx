@@ -1,7 +1,5 @@
 import React from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
-import { convertIdPathToIndexPath } from '../../utils/PathConverter';
-import { unsafeIdBasedPath } from '../../utils/PathTypes';
 // Ensure DiffResult is imported from the correct location
 import type { DiffResult } from '../../utils/jsonCompare';
 import './DiffList.css';
@@ -84,17 +82,15 @@ export const DiffList: React.FC<DiffListProps> = ({
       console.log('[DiffList] 🎯 RIGHT numeric path:', rightNumericPath);
       
       if (leftNumericPath && rightNumericPath) {
-        console.log('[DiffList] ✅ Found both paths - highlighting corresponding elements');
+        console.log('[DiffList] ✅ Found both paths - using simple goToDiff approach');
         
-        // Add root prefix if needed
+        // Add root prefix if needed  
         const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
-        const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
         
-        console.log('[DiffList] 🎯 LEFT path with root:', leftPathWithRoot);
-        console.log('[DiffList] 🎯 RIGHT path with root:', rightPathWithRoot);
+        console.log('[DiffList] 🎯 Navigating to LEFT path:', leftPathWithRoot);
         
-        // FIXED: Use manual DOM highlighting instead of goToDiff to avoid overwriting
-        highlightElementsManually(leftPathWithRoot, rightPathWithRoot);
+        // Use the standard goToDiff approach (now supports ID-based paths)
+        goToDiff(leftPathWithRoot);
         
       } else {
         console.log('[DiffList] ❌ Could not find both paths - falling back to ID-based path');
