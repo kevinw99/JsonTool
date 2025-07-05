@@ -801,6 +801,45 @@ Co-Authored-By: Claude <noreply@anthropic.com> (styling)"
 **Status**: 🚧 In Progress  
 
 
+### Request #67 - 🧭 Navigation
+**Date**: 2025-07-04  
+**Request**: "Before revamping the highligh system (JSON tree navigation, main app)"  
+**Commit**: [`da040ea`](https://github.com/user/repo/commit/da040ea)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/App.tsx...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #68 - 🚨 Critical Bug
+**Date**: 2025-07-05  
+**Request**: "standardize naming conventions for path types
+
+- Replace 'displayPath' with 'idBasedPath' throughout codebase
+- Replace 'displayVariations' with 'idBasedVariations'
+- Update function names for consistency:
+  - convertNumericToDisplayPath → convertNumericToIdBasedPath
+  - findNumericPathForDisplayPath → findNumericPathForIdBasedPath
+  - traverseJsonByDisplayPath → traverseJsonByIdBasedPath
+- Update variable names and console logs for clarity
+- Fix TypeScript error in DiffList component (HTMLElement casting)
+- Apply strict typing with NumericPath and IdBasedPath types
+- Add runtime validation for path type conversions
+
+This improves code maintainability by using consistent terminology:
+- idBasedPath: paths with ID-based array segments like [id=value]
+- numericPath: paths with numeric array indices like [0], [1]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, ID keys)"  
+**Commit**: [`e206ae9`](https://github.com/user/repo/commit/e206ae9)  
+**Files**: src/components/DiffList/DiffList.tsx, src/components/IdKeysPanel.tsx, src/components/JsonTreeView.tsx...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

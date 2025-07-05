@@ -1,4 +1,6 @@
 import type { IdKeyInfo } from './jsonCompare';
+import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
+import { unsafeAnyToIdBased, unsafeAnyToNumeric } from './PathTypes';
 
 /**
  * Path Converter Utility
@@ -132,10 +134,10 @@ function extractIdKeyValue(segment: string): { key: string; value: string } | nu
  * Example: "root.accountParams[id=45626988::2]" -> "root.accountParams[1]"
  */
 export function convertIdPathToIndexPath(
-  idPath: string,
+  idPath: IdBasedPath,
   context: PathConversionContext,
   options: ConversionOptions = {}
-): string | null {
+): NumericPath | null {
   if (!context.jsonData) {
     return null;
   }
@@ -196,7 +198,7 @@ export function convertIdPathToIndexPath(
   // Apply prefix options
   const targetPrefix = applyPrefixOptions(originalPrefix, options);
   
-  return buildPathWithPrefix(convertedCorePath, targetPrefix);
+  return buildPathWithPrefix(convertedCorePath, targetPrefix) as NumericPath;
 }
 
 /**
@@ -231,10 +233,10 @@ function applyPrefixOptions(originalPrefix: PathPrefix, options: ConversionOptio
  * Example: "root.accountParams[1]" -> "root.accountParams[id=45626988::2]"
  */
 export function convertIndexPathToIdPath(
-  indexPath: string,
+  indexPath: NumericPath,
   context: PathConversionContext,
   options: ConversionOptions = {}
-): string | null {
+): IdBasedPath | null {
   if (!context.jsonData || !context.idKeysUsed) {
     return null;
   }
@@ -310,15 +312,15 @@ export function convertIndexPathToIdPath(
   // Apply prefix options
   const targetPrefix = applyPrefixOptions(originalPrefix, options);
   
-  return buildPathWithPrefix(convertedCorePath, targetPrefix);
+  return buildPathWithPrefix(convertedCorePath, targetPrefix) as IdBasedPath;
 }
 
 
 /**
  * Removes all prefixes (root, viewer) from a path
  */
-export function stripAllPrefixes(path: string): string {
-  let stripped = path;
+export function stripAllPrefixes(path: AnyPath): AnyPath {
+  let stripped: string = path;
   
   // Remove viewer prefix
   stripped = stripped.replace(/^root_(viewer\d+)_/, '');
@@ -330,15 +332,15 @@ export function stripAllPrefixes(path: string): string {
     stripped = '';
   }
   
-  return stripped;
+  return stripped as AnyPath;
 }
 
 /**
  * Checks if two paths refer to the same location, accounting for ID/index variations
  */
 export function arePathsEquivalent(
-  path1: string,
-  path2: string,
+  path1: AnyPath,
+  path2: AnyPath,
   context?: PathConversionContext
 ): boolean {
   // Quick check - if they're already equal
@@ -355,24 +357,24 @@ export function arePathsEquivalent(
     // Try converting path1 to match path2's format
     if (normalized1.includes('=') && normalized2.match(/\[\d+\]/)) {
       // path1 is ID-based, path2 is index-based
-      const converted1 = convertIdPathToIndexPath(normalized1, context);
+      const converted1 = convertIdPathToIndexPath(unsafeAnyToIdBased(normalized1), context);
       if (converted1 === normalized2) return true;
     }
     
     if (normalized2.includes('=') && normalized1.match(/\[\d+\]/)) {
       // path2 is ID-based, path1 is index-based  
-      const converted2 = convertIdPathToIndexPath(normalized2, context);
+      const converted2 = convertIdPathToIndexPath(unsafeAnyToIdBased(normalized2), context);
       if (converted2 === normalized1) return true;
     }
     
     // Try converting index paths to ID paths
     if (normalized1.match(/\[\d+\]/) && !normalized2.includes('=')) {
-      const converted1 = convertIndexPathToIdPath(normalized1, context);
+      const converted1 = convertIndexPathToIdPath(unsafeAnyToNumeric(normalized1), context);
       if (converted1 === normalized2) return true;
     }
     
     if (normalized2.match(/\[\d+\]/) && !normalized1.includes('=')) {
-      const converted2 = convertIndexPathToIdPath(normalized2, context);
+      const converted2 = convertIndexPathToIdPath(unsafeAnyToNumeric(normalized2), context);
       if (converted2 === normalized1) return true;
     }
   }
@@ -390,10 +392,10 @@ export function arePathsEquivalent(
  * This is an alias for normalizePathForComparison for backward compatibility
  */
 export function getPathVariationsForHighlighting(
-  path: string,
+  path: AnyPath,
   context?: PathConversionContext
-): string[] {
-  return normalizePathForComparison(path, context);
+): AnyPath[] {
+  return normalizePathForComparison(path, context) as AnyPath[];
 }
 
 /**
@@ -401,14 +403,14 @@ export function getPathVariationsForHighlighting(
  * Use case: Navigating within the same JSON tree view
  */
 export function convertPathForSameViewer(
-  path: string,
+  path: AnyPath,
   context: PathConversionContext,
   targetFormat: 'id' | 'index'
-): string | null {
+): AnyPath | null {
   if (targetFormat === 'id') {
-    return convertIndexPathToIdPath(path, context, { preservePrefix: true });
+    return convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { preservePrefix: true });
   } else {
-    return convertIdPathToIndexPath(path, context, { preservePrefix: true });
+    return convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { preservePrefix: true });
   }
 }
 
@@ -417,18 +419,18 @@ export function convertPathForSameViewer(
  * Use case: Syncing from left viewer to right viewer
  */
 export function convertPathForCrossViewerSync(
-  path: string,
+  path: AnyPath,
   context: PathConversionContext,
   _fromViewer: string,
   toViewer: string,
   targetFormat: 'id' | 'index'
-): string | null {
+): AnyPath | null {
   if (targetFormat === 'id') {
-    return convertIndexPathToIdPath(path, context, { 
+    return convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { 
       targetViewer: toViewer 
     });
   } else {
-    return convertIdPathToIndexPath(path, context, { 
+    return convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { 
       targetViewer: toViewer 
     });
   }
@@ -439,9 +441,9 @@ export function convertPathForCrossViewerSync(
  * Use case: Comparing paths from JsonCompare with UI paths
  */
 export function normalizePathForComparison(
-  path: string,
+  path: AnyPath,
   context?: PathConversionContext
-): string[] {
+): AnyPath[] {
   const variations = new Set<string>();
   
   // Add stripped version
@@ -452,17 +454,17 @@ export function normalizePathForComparison(
     const { corePath } = extractPrefix(path);
     
     if (corePath.includes('=')) {
-      const indexPath = convertIdPathToIndexPath(path, context, { removeAllPrefixes: true });
+      const indexPath = convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { removeAllPrefixes: true });
       if (indexPath) variations.add(indexPath);
     }
     
     if (corePath.match(/\[\d+\]/)) {
-      const idPath = convertIndexPathToIdPath(path, context, { removeAllPrefixes: true });
+      const idPath = convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { removeAllPrefixes: true });
       if (idPath) variations.add(idPath);
     }
   }
   
-  return Array.from(variations);
+  return Array.from(variations) as AnyPath[];
 }
 
 /**
@@ -470,14 +472,14 @@ export function normalizePathForComparison(
  * Use case: Showing paths in debug menus and error messages
  */
 export function convertPathForDisplay(
-  path: string,
+  path: NumericPath,
   context: PathConversionContext
-): string {
+): IdBasedPath {
   // Try to convert to ID-based format for readability
   const idPath = convertIndexPathToIdPath(path, context, { 
     addRoot: true,
     preservePrefix: false 
   });
   
-  return idPath || path;
+  return idPath || (path as unknown as IdBasedPath);
 }
