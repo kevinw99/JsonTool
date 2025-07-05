@@ -2,7 +2,6 @@ import React from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
 // Ensure DiffResult is imported from the correct location
 import type { DiffResult } from '../../utils/jsonCompare';
-import { createNumericPath, validateAndCreateNumericPath } from '../../utils/PathTypes';
 import './DiffList.css';
 
 interface DiffListProps {
@@ -48,178 +47,92 @@ export const DiffList: React.FC<DiffListProps> = ({
   };
 
   const handleGoToDiff = (diff: DiffResult) => {
-    console.log('[DiffList] 🎯 GoTo diff:', diff.idBasedPath || diff.numericPath);
+    console.log('[DiffList] 🎯 GoTo diff clicked - checking for ID-based correlation');
+    console.log('[DiffList] 📍 idBasedPath:', diff.idBasedPath);
+    console.log('[DiffList] 📍 numericPath:', diff.numericPath);
     
     // Check if this diff involves ID-based arrays
     const idBasedPath = diff.idBasedPath;
     const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
     
-    // Simplified approach: Just use the numeric path directly
-    // The goToDiff function should handle all the expansion logic
-    const numericPath = diff.numericPath;
-    const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
-    
-    console.log('[DiffList] 🎯 Using direct navigation to:', pathWithRoot);
-    goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.direct'));
+    if (hasIdBasedArrays && jsonData) {
+      console.log('[DiffList] 🔍 Found ID-based arrays - using smart correlation');
+      handleIdBasedCorrelation(idBasedPath, diff);
+    } else {
+      console.log('[DiffList] 📍 Using simple numeric path approach');
+      // Fallback to simple numeric path
+      const numericPath = diff.numericPath;
+      const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
+      goToDiff(pathWithRoot);
+    }
   };
 
   // Smart ID-based correlation function
   const handleIdBasedCorrelation = (idBasedPath: string, diff: DiffResult) => {
-    // Step 1: Find the corresponding numeric path in LEFT viewer
-    const leftNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'left');
+    console.log('[DiffList] 🔍 Starting ID-based correlation for:', idBasedPath);
     
-    // Step 2: Find the corresponding numeric path in RIGHT viewer  
-    const rightNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'right');
-    
-    if (leftNumericPath && rightNumericPath) {
-      // Add root prefix if needed
-      const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
-      const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
+    try {
+      // Step 1: Find the corresponding numeric path in LEFT viewer
+      const leftNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'left');
       
-      // Expand all necessary ancestors step by step
-      const expansionPaths = getAllExpansionPaths(leftPathWithRoot);
-      console.log('[DiffList] 📂 Expansion sequence:', expansionPaths);
+      // Step 2: Find the corresponding numeric path in RIGHT viewer  
+      const rightNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'right');
       
-      if (expansionPaths.length > 0) {
-        expandPathsSequentially(expansionPaths, 0, () => {
-          // Finally highlight both elements after all expansions
-          setTimeout(() => {
-            highlightBothElements(leftPathWithRoot, rightPathWithRoot);
-          }, 300);
-        });
+      console.log('[DiffList] 🎯 Correlation results:');
+      console.log('[DiffList] 🎯 LEFT numeric path:', leftNumericPath);
+      console.log('[DiffList] 🎯 RIGHT numeric path:', rightNumericPath);
+      
+      if (leftNumericPath && rightNumericPath) {
+        console.log('[DiffList] ✅ Found both paths - highlighting corresponding elements');
+        
+        // Add root prefix if needed
+        const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
+        const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
+        
+        console.log('[DiffList] 🎯 LEFT path with root:', leftPathWithRoot);
+        console.log('[DiffList] 🎯 RIGHT path with root:', rightPathWithRoot);
+        
+        // FIXED: Use manual DOM highlighting instead of goToDiff to avoid overwriting
+        highlightElementsManually(leftPathWithRoot, rightPathWithRoot);
+        
       } else {
-        // No expansion needed, navigate directly
-        goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
-        setTimeout(() => {
-          highlightBothElements(leftPathWithRoot, rightPathWithRoot);
-        }, 500);
+        console.log('[DiffList] ❌ Could not find both paths - falling back to numeric path');
+        const numericPath = diff.numericPath;
+        const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
+        goToDiff(pathWithRoot);
       }
-      
-    } else {
-      // Fallback to simple numeric path
+    } catch (error) {
+      console.error('[DiffList] 🚨 Error during ID-based correlation:', error);
+      console.log('[DiffList] 🔄 Falling back to numeric path due to error');
       const numericPath = diff.numericPath;
       const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
-      goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.numericPath fallback'));
+      goToDiff(pathWithRoot);
     }
   };
 
-  // Helper function to get parent array path for better expansion
-  const getParentArrayPath = (fullPath: string): string | null => {
-    // For "root.accountParams[1].contributions[0].contributionType", we want "root.accountParams[1].contributions"
-    // Strategy: Remove the last property and the array index before it
-    
-    console.log('[DiffList] 🔍 Getting parent path for:', fullPath);
-    
-    const segments = fullPath.split('.');
-    console.log('[DiffList] 🔍 Segments:', segments);
-    
-    // Find the last segment that's a simple property (no brackets)
-    for (let i = segments.length - 1; i >= 0; i--) {
-      const segment = segments[i];
-      console.log(`[DiffList] 🔍 Checking segment ${i}: "${segment}"`);
-      
-      if (!segment.includes('[') && !segment.includes(']')) {
-        console.log(`[DiffList] 🔍 Found property segment: "${segment}"`);
-        
-        // This is a property, now check if the previous segment is an array element
-        if (i > 0) {
-          const prevSegment = segments[i - 1];
-          console.log(`[DiffList] 🔍 Previous segment: "${prevSegment}"`);
-          
-          if (prevSegment.includes('[') && prevSegment.includes(']')) {
-            // Previous segment is an array element like "contributions[0]"
-            // Extract just the array name by removing the [index] part
-            const arrayName = prevSegment.replace(/\[.*\]$/, '');
-            console.log(`[DiffList] 🔍 Array name: "${arrayName}"`);
-            
-            // Build parent path: everything up to i-1, but replace the last segment with just the array name
-            const parentSegments = segments.slice(0, i - 1).concat([arrayName]);
-            const parentPath = parentSegments.join('.');
-            console.log(`[DiffList] ✅ Parent path: "${parentPath}"`);
-            return parentPath;
-          }
-        }
-      }
-    }
-    
-    console.log('[DiffList] ❌ No parent array found');
-    return null;
-  };
-
-  // Helper function to get all paths that need to be expanded in sequence
-  const getAllExpansionPaths = (fullPath: string): string[] => {
-    const paths: string[] = [];
-    const segments = fullPath.split('.');
-    
-    // Build progressive paths, including both array containers AND their elements
-    let currentPath = '';
-    for (let i = 0; i < segments.length - 1; i++) { // -1 to exclude the final property
-      const segment = segments[i];
-      
-      if (currentPath) currentPath += '.';
-      currentPath += segment;
-      
-      // If this segment contains an array (has brackets), we need to expand:
-      // 1. The array container (without index)
-      // 2. The specific array element (with index) 
-      if (segment.includes('[') && segment.includes(']')) {
-        // Add the array container path
-        const arrayName = segment.replace(/\[.*\]$/, '');
-        const containerPath = currentPath.replace(segment, arrayName);
-        
-        if (!paths.includes(containerPath)) {
-          paths.push(containerPath);
-        }
-        
-        // Also add the current path (which includes the array element)
-        if (!paths.includes(currentPath)) {
-          paths.push(currentPath);
-        }
-      } else {
-        // For non-array segments, just add the current path
-        if (!paths.includes(currentPath)) {
-          paths.push(currentPath);
-        }
-      }
-    }
-    
-    console.log('[DiffList] 🔍 Full path breakdown for:', fullPath);
-    console.log('[DiffList] 🔍 Segments:', segments);
-    console.log('[DiffList] 🔍 Generated paths:', paths);
-    
-    return paths;
-  };
-
-  // Helper function to expand paths sequentially with delays
-  const expandPathsSequentially = (paths: string[], index: number, onComplete: () => void) => {
-    if (index >= paths.length) {
-      onComplete();
-      return;
-    }
-    
-    const currentPath = paths[index];
-    console.log(`[DiffList] 📂 Expanding step ${index + 1}/${paths.length}: ${currentPath}`);
-    
-    goToDiff(validateAndCreateNumericPath(currentPath, `DiffResult.expansion${index}`));
-    
-    // Continue with next path after delay
-    setTimeout(() => {
-      expandPathsSequentially(paths, index + 1, onComplete);
-    }, 600); // Give each expansion time to complete
-  };
 
   // Helper function to find numeric path for an ID-based path in a specific JSON viewer
   const findNumericPathForIdBasedPath = (idBasedPath: string, side: 'left' | 'right'): string | null => {
+    console.log(`[DiffList] 🔍 ${side.toUpperCase()} - Searching for:`, idBasedPath);
     
-    if (!jsonData) return null;
+    if (!jsonData) {
+      console.log(`[DiffList] ❌ No JSON data available`);
+      return null;
+    }
     
     const targetData = side === 'left' ? jsonData.left : jsonData.right;
-    if (!targetData) return null;
+    if (!targetData) {
+      console.log(`[DiffList] ❌ No ${side} JSON data`);
+      return null;
+    }
     
     try {
-      return traverseJsonByIdBasedPath(targetData, idBasedPath);
+      const numericPath = traverseJsonByIdBasedPath(targetData, idBasedPath);
+      console.log(`[DiffList] ✅ ${side.toUpperCase()} found:`, numericPath);
+      return numericPath;
     } catch (error) {
-      return null;
+      console.log(`[DiffList] ❌ ${side.toUpperCase()} error:`, error);
+      throw error; // Re-throw instead of failing silently
     }
   };
 
@@ -295,25 +208,96 @@ export const DiffList: React.FC<DiffListProps> = ({
     return numericPath;
   };
 
-  // Simplified highlighting function that highlights both elements after expansion
-  const highlightBothElements = (leftPath: string, rightPath: string) => {
-    // Find all elements with either path
-    const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
-    const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
+  // Manual highlighting function that can highlight different paths in each viewer
+  const highlightElementsManually = (leftPath: string, rightPath: string) => {
+    console.log('[DiffList] 🔧 Manual highlighting - LEFT:', leftPath, 'RIGHT:', rightPath);
     
-    // Clear existing highlights
-    document.querySelectorAll('.highlighted-node, .persistent-highlight').forEach(el => {
-      el.classList.remove('highlighted-node', 'persistent-highlight');
-    });
+    // IMPORTANT: We need to expand arrays step by step since DOM elements don't exist for collapsed arrays
     
-    // Highlight found elements
-    leftElements.forEach(element => {
-      element.classList.add('highlighted-node', 'persistent-highlight');
-    });
+    // Extract the array paths that need to be expanded first
+    const leftArrayPath = getArrayContainerPath(leftPath);
+    const rightArrayPath = getArrayContainerPath(rightPath);
     
-    rightElements.forEach(element => {
-      element.classList.add('highlighted-node', 'persistent-highlight');
-    });
+    console.log('[DiffList] 📂 Step 1: Expanding array containers');
+    console.log('[DiffList] 📂 LEFT array container:', leftArrayPath);
+    console.log('[DiffList] 📂 RIGHT array container:', rightArrayPath);
+    
+    // Step 1: Expand the array containers first
+    if (leftArrayPath) goToDiff(leftArrayPath);
+    if (rightArrayPath && rightArrayPath !== leftArrayPath) {
+      setTimeout(() => goToDiff(rightArrayPath), 300);
+    }
+    
+    // Step 2: After arrays are expanded, navigate to the actual target elements
+    setTimeout(() => {
+      console.log('[DiffList] 📂 Step 2: Navigating to target elements');
+      goToDiff(leftPath);
+      
+      setTimeout(() => {
+        goToDiff(rightPath);
+        
+        // Step 3: After both expansions, manually highlight elements
+        setTimeout(() => {
+          console.log('[DiffList] ✨ Step 3: Finding and highlighting both elements manually');
+          
+          // Find LEFT element
+          const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
+          console.log(`[DiffList] 🔍 Found ${leftElements.length} LEFT elements for path: ${leftPath}`);
+          
+          // Find RIGHT element  
+          const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
+          console.log(`[DiffList] 🔍 Found ${rightElements.length} RIGHT elements for path: ${rightPath}`);
+          
+          // Clear all existing highlights first
+          document.querySelectorAll('.highlighted-node, .persistent-highlight').forEach(el => {
+            el.classList.remove('highlighted-node', 'persistent-highlight');
+          });
+          
+          // Highlight LEFT elements (only in left viewer)
+          leftElements.forEach((element, index) => {
+            const rect = element.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const isLeftViewer = rect.left < viewportWidth / 2;
+            
+            if (isLeftViewer) {
+              element.classList.add('highlighted-node', 'persistent-highlight');
+              console.log(`[DiffList] ✅ Highlighted LEFT element ${index + 1}`);
+            }
+          });
+          
+          // Highlight RIGHT elements (only in right viewer)  
+          rightElements.forEach((element, index) => {
+            const rect = element.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const isRightViewer = rect.left >= viewportWidth / 2;
+            
+            if (isRightViewer) {
+              element.classList.add('highlighted-node', 'persistent-highlight');
+              console.log(`[DiffList] ✅ Highlighted RIGHT element ${index + 1}`);
+            }
+          });
+          
+          console.log('[DiffList] 🎉 Manual dual highlighting completed');
+          
+        }, 800); // Wait for final expansions to complete
+      }, 400); // Wait between left and right navigation
+    }, 800); // Wait for array expansions to complete
+  };
+  
+  // Helper function to extract the array container path from a full path
+  const getArrayContainerPath = (fullPath: string): string | null => {
+    // For "root.accountParams[1].contributions[0].contributionType"
+    // We want "root.accountParams[1].contributions" (the array container)
+    
+    const match = fullPath.match(/^(.+\.[^.\[]+)\[[^\]]+\]\.[^.]+$/);
+    if (match) {
+      const arrayPath = match[1];
+      console.log(`[DiffList] 🔍 Extracted array path from "${fullPath}": "${arrayPath}"`);
+      return arrayPath;
+    }
+    
+    console.log(`[DiffList] 🔍 No array container found in path: "${fullPath}"`);
+    return null;
   };
 
   const formatValue = (value: any, truncate: boolean = true): string => {

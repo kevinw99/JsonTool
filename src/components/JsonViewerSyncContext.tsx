@@ -2,9 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
-import { convertIndexPathToIdPath, type PathConversionContext } from '../utils/PathConverter';
+import { convertIndexPathToIdPath, convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { NumericPath, IdBasedPath } from '../utils/PathTypes';
-import { unsafeNumericPath, validateAndCreateNumericPath } from '../utils/PathTypes'; 
+import { unsafeNumericPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -17,7 +17,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   setViewMode: (mode: 'text' | 'tree') => void;
   setShowDiffsOnly: (show: boolean) => void;
   setShowColoredDiff: (show: boolean) => void;
-  toggleExpand: (genericPath: string) => void; // Path is generic numeric path
+  toggleExpand: (path: string, sourceViewerId?: string) => void; // Can accept both numeric and ID-based paths
   setExpandAll: (expand: boolean) => void;
   syncEnabled: boolean;
   setSyncEnabled: (enabled: boolean) => void;
@@ -28,7 +28,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   removeIgnoredPattern: (id: string) => void;
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: string) => boolean;
-  goToDiff: (diffPath: NumericPath) => void; // Diff paths are always numeric paths from jsonCompare
+  goToDiff: (diffPath: string) => void; // Diff paths can be either numeric or ID-based
   highlightPath: string | null; // Keep as string for compatibility with existing Set<string> operations
   setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
   persistentHighlightPath: string | null; // New property for persistent border highlighting
@@ -78,6 +78,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
   jsonData, // JSON data for ID-based correlation
   idKeysUsed = [] // ID keys for path conversion
 }) => {
+  // Removed syncToCounterpartRef as manual expansion no longer triggers sync
     const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
     const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
     const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); 
@@ -177,19 +178,130 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
     }, [diffResults, jsonData, idKeysUsed]);
 
-    const toggleExpand = useCallback((genericPath: string) => {
-      // genericPath is the generic numeric path, e.g., "root.some.path" or "root.array[0]"
-      setExpandedPathsState(prev => {
-        const newPathsSet = new Set(prev);
-        if (newPathsSet.has(genericPath)) {
-          newPathsSet.delete(genericPath);
-        } else {
-          newPathsSet.add(genericPath);
+    const toggleExpand = useCallback((path: string, sourceViewerId?: string) => {
+      console.log(`[JsonViewerSyncContext toggleExpand] Simple path: "${path}"`);
+      
+      if (!sourceViewerId) {
+        console.log(`[JsonViewerSyncContext toggleExpand] No sourceViewerId provided`);
+        return;
+      }
+      
+      // Convert viewer-specific path to generic path
+      // "root_viewer1_root.boomerForecastV3Requests" -> "root.boomerForecastV3Requests"
+      const genericPath = path.replace(/^root_viewer\d+_/, '');
+      console.log(`[JsonViewerSyncContext toggleExpand] Generic path: "${genericPath}"`);
+      
+      // Check if this is an ID-based array path that needs sync
+      const hasIdBasedSegment = genericPath.includes('[id=');
+      console.log(`[JsonViewerSyncContext toggleExpand] Has ID-based segment: ${hasIdBasedSegment}`);
+      
+      // Convert to numeric path for consistent storage
+      let sourceNumericPath = genericPath;
+      if (hasIdBasedSegment && jsonData && idKeysUsed) {
+        const sourceData = sourceViewerId === 'viewer1' ? jsonData.left : jsonData.right;
+        const sourceContext: PathConversionContext = { jsonData: sourceData, idKeysUsed: idKeysUsed };
+        
+        try {
+          const convertedPath = convertIdPathToIndexPath(
+            createIdBasedPath(genericPath),
+            sourceContext,
+            { preservePrefix: true }
+          );
+          if (convertedPath) {
+            sourceNumericPath = convertedPath;
+            console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Converted source ID path to numeric: "${sourceNumericPath}"`);
+          }
+        } catch (error) {
+          console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Failed to convert source path, using original:`, error);
         }
-        // console.log(`[JsonViewerSyncContext toggleExpand] Path: \"${genericPath}\". New expandedPaths:`, Array.from(newPathsSet));
-        return newPathsSet;
+      }
+      
+      // Create viewer-specific path for storage (always numeric)
+      const viewerSpecificPath = `${sourceViewerId}_${sourceNumericPath}`;
+      console.log(`[JsonViewerSyncContext toggleExpand] Viewer-specific path: "${viewerSpecificPath}"`);
+      
+      // Always toggle expansion for the source viewer's path
+      setExpandedPathsState(prev => {
+        const newPaths = new Set(prev);
+        const wasExpanded = newPaths.has(viewerSpecificPath);
+        
+        if (wasExpanded) {
+          newPaths.delete(viewerSpecificPath);
+        } else {
+          newPaths.add(viewerSpecificPath);
+        }
+        
+        console.log(`[JsonViewerSyncContext toggleExpand] Action: ${wasExpanded ? 'collapsed' : 'expanded'} "${viewerSpecificPath}"`);
+        console.log(`[expandedPaths] Added to expandedPaths: "${viewerSpecificPath}"`);
+        console.log(`[expandedPaths] Current expandedPaths size: ${newPaths.size}`);
+        
+        // Sync to other viewer (for both simple and ID-based paths)
+        if (syncEnabled) {
+          const otherViewerId = sourceViewerId === 'viewer1' ? 'viewer2' : 'viewer1';
+          
+          if (hasIdBasedSegment && jsonData && idKeysUsed) {
+            // Handle ID-based path sync (existing logic)
+            console.log(`[JsonViewerSyncContext toggleExpand] 🎯 ID-based sync: Finding corresponding path in other viewer`);
+            
+            const sourceData = sourceViewerId === 'viewer1' ? jsonData.left : jsonData.right;
+            const otherData = otherViewerId === 'viewer1' ? jsonData.left : jsonData.right;
+            
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Data selection debug:`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 sourceViewerId: ${sourceViewerId}`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 otherViewerId: ${otherViewerId}`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using sourceData: ${sourceViewerId === 'viewer1' ? 'LEFT' : 'RIGHT'}`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using otherData: ${otherViewerId === 'viewer1' ? 'LEFT' : 'RIGHT'}`);
+            
+            // Use PathConverter to find corresponding numeric path in other viewer
+            const sourceContext: PathConversionContext = { jsonData: sourceData, idKeysUsed: idKeysUsed };
+            const otherContext: PathConversionContext = { jsonData: otherData, idKeysUsed: idKeysUsed };
+            
+            try {
+              // Convert generic ID-based path to numeric in other viewer
+              const otherNumericPath = convertIdPathToIndexPath(
+                createIdBasedPath(genericPath),
+                otherContext,
+                { preservePrefix: true }
+              );
+              console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Other viewer numeric path: "${otherNumericPath}"`);
+              
+              // If we found a corresponding path in the other viewer, create viewer-specific path and toggle it
+              if (otherNumericPath) {
+                const otherViewerSpecificPath = `${otherViewerId}_${otherNumericPath}`;
+                console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Other viewer-specific path: "${otherViewerSpecificPath}"`);
+                
+                if (wasExpanded) {
+                  newPaths.delete(otherViewerSpecificPath);
+                } else {
+                  newPaths.add(otherViewerSpecificPath);
+                }
+                console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Synced to other viewer: ${wasExpanded ? 'collapsed' : 'expanded'} "${otherViewerSpecificPath}"`);
+                console.log(`[expandedPaths] Added sync path to expandedPaths: "${otherViewerSpecificPath}"`);
+              } else {
+                console.log(`[JsonViewerSyncContext toggleExpand] 🎯 No corresponding path found in other viewer`);
+              }
+            } catch (error) {
+              console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Error during ID-based sync:`, error);
+            }
+          } else {
+            // Handle simple path sync (new logic)
+            console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Simple path sync: Adding corresponding path in other viewer`);
+            const otherViewerSpecificPath = `${otherViewerId}_${sourceNumericPath}`;
+            console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Other viewer simple path: "${otherViewerSpecificPath}"`);
+            
+            if (wasExpanded) {
+              newPaths.delete(otherViewerSpecificPath);
+            } else {
+              newPaths.add(otherViewerSpecificPath);
+            }
+            console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Synced simple path to other viewer: ${wasExpanded ? 'collapsed' : 'expanded'} "${otherViewerSpecificPath}"`);
+            console.log(`[expandedPaths] Added simple sync path to expandedPaths: "${otherViewerSpecificPath}"`);
+          }
+        }
+        
+        return newPaths;
       });
-    }, []); // Dependencies simplified, sync logic removed as expansion is per-viewer based on generic path
+    }, [syncEnabled, jsonData, idKeysUsed]); // Dependencies for ID-based sync
 
     const setExpandAll = useCallback((expand: boolean) => {
       if (expand) {
@@ -318,7 +430,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    const goToDiff = useCallback((numericPathToExpand: NumericPath) => {
+    const goToDiff = useCallback((numericPathToExpand: string) => {
       
       // For array paths from ID Keys, we typically want to highlight the array itself
       // The IdKeysPanel should now be sending us the array path without [0] at the end
@@ -676,7 +788,37 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               // Final attempt failed
               console.log(`[goToDiff] ❌ Target not found: "${targetPath}"`);
               
-              // Elements available for debugging
+              // Enhanced debugging: Show what elements ARE available
+              const allDataPathElements = document.querySelectorAll('[data-path]');
+              console.log(`[goToDiff] 🔍 Total elements with data-path: ${allDataPathElements.length}`);
+              
+              // Show elements that might be close to our target
+              const pathSegments = targetPath.split('.');
+              const lastSegment = pathSegments[pathSegments.length - 1];
+              const secondLastSegment = pathSegments.length > 1 ? pathSegments[pathSegments.length - 2] : '';
+              
+              console.log(`[goToDiff] 🔍 Looking for elements containing "${lastSegment}" or "${secondLastSegment}"`);
+              
+              const relatedElements = Array.from(allDataPathElements).filter(el => {
+                const path = el.getAttribute('data-path') || '';
+                return path.includes(lastSegment) || (secondLastSegment && path.includes(secondLastSegment));
+              });
+              
+              console.log(`[goToDiff] 🔍 Found ${relatedElements.length} related elements:`);
+              relatedElements.slice(0, 10).forEach((el, i) => {
+                console.log(`[goToDiff] 🔍   ${i + 1}: ${el.getAttribute('data-path')}`);
+              });
+              
+              // Show elements that contain 'contributions' specifically
+              const contributionsElements = Array.from(allDataPathElements).filter(el => {
+                const path = el.getAttribute('data-path') || '';
+                return path.includes('contributions');
+              });
+              
+              console.log(`[goToDiff] 🔍 Found ${contributionsElements.length} elements with 'contributions':`);
+              contributionsElements.slice(0, 5).forEach((el, i) => {
+                console.log(`[goToDiff] 🔍   ${i + 1}: ${el.getAttribute('data-path')}`);
+              });
             }
           };
           
@@ -730,6 +872,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         simpleSyncToCounterpart(normalizedPath);
       }
     }, [jsonData]);
+
+    // Removed ref update effect as manual expansion no longer triggers sync
 
     // Helper function to convert numeric path to display path with ID keys
     const convertNumericToIdBasedPath = useCallback((numericPath: string, jsonData: any): string => {
@@ -855,14 +999,14 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         console.log('[Context] ❌ Could not find both paths - falling back to simple sync');
         simpleSyncToCounterpart(idBasedPath);
       }
-    }, [jsonData]);
+    }, [jsonData, idKeysUsed]);
 
     // Helper function to find numeric path for an ID-based path in a specific JSON viewer
     const findNumericPathForIdBasedPath = useCallback((idBasedPath: string, side: 'left' | 'right'): string | null => {
       console.log(`[Context] 🔍 ${side.toUpperCase()} - Searching for:`, idBasedPath);
       
-      if (!jsonData) {
-        console.log(`[Context] ❌ No JSON data available`);
+      if (!jsonData || !idKeysUsed) {
+        console.log(`[Context] ❌ No JSON data or ID keys available`);
         return null;
       }
       
@@ -873,86 +1017,28 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
       
       try {
-        const numericPath = traverseJsonByIdBasedPath(targetData, idBasedPath);
-        console.log(`[Context] ✅ ${side.toUpperCase()} found:`, numericPath);
+        // Use the proper PathConverter utility for ID-based to numeric conversion
+        const pathContext: PathConversionContext = {
+          jsonData: targetData,
+          idKeysUsed: idKeysUsed
+        };
+        
+        // Convert ID-based path to numeric path using PathConverter
+        const idBasedPathFormatted = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+        const numericPath = convertIdPathToIndexPath(
+          idBasedPathFormatted as IdBasedPath, 
+          pathContext,
+          { removeAllPrefixes: true }
+        );
+        
+        console.log(`[Context] ✅ ${side.toUpperCase()} PathConverter result:`, numericPath);
         return numericPath;
       } catch (error) {
-        console.log(`[Context] ❌ ${side.toUpperCase()} error:`, error);
+        console.log(`[Context] ❌ ${side.toUpperCase()} PathConverter error:`, error);
         return null;
       }
-    }, [jsonData]);
+    }, [jsonData, idKeysUsed]);
 
-    // Helper function to traverse JSON and convert ID-based path to numeric path
-    const traverseJsonByIdBasedPath = useCallback((data: any, idBasedPath: string): string | null => {
-      // Parse ID-based path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributionType"
-      const segments = idBasedPath.split('.');
-      
-      let currentData = data;
-      let numericPath = '';
-      
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        
-        // Handle ID-based array access: "arrayName[id=value]"
-        const idArrayMatch = segment.match(/^([^[]+)\[id=([^\]]+)\]$/);
-        if (idArrayMatch) {
-          const [, arrayName, targetId] = idArrayMatch;
-          
-          // Add array name to path
-          if (numericPath) numericPath += '.';
-          numericPath += arrayName;
-          
-          // Navigate to array
-          currentData = currentData[arrayName];
-          if (!Array.isArray(currentData)) {
-            throw new Error(`Expected array at ${arrayName}`);
-          }
-          
-          // Find item with target ID
-          const foundIndex = currentData.findIndex((item: any) => {
-            if (typeof item !== 'object' || item === null) return false;
-            
-            // Check if any property matches the target ID
-            for (const value of Object.values(item)) {
-              if (String(value) === targetId) return true;
-            }
-            return false;
-          });
-          
-          if (foundIndex === -1) {
-            throw new Error(`Could not find item with ID ${targetId} in ${arrayName}`);
-          }
-          
-          // Add numeric index
-          numericPath += `[${foundIndex}]`;
-          currentData = currentData[foundIndex];
-          
-        } else if (segment.includes('[') && segment.includes(']')) {
-          // Handle numeric array access: "arrayName[0]"
-          const numericArrayMatch = segment.match(/^([^[]+)\[(\d+)\]$/);
-          if (numericArrayMatch) {
-            const [, arrayName, index] = numericArrayMatch;
-            
-            if (numericPath) numericPath += '.';
-            numericPath += `${arrayName}[${index}]`;
-            
-            currentData = currentData[arrayName][parseInt(index)];
-          }
-        } else {
-          // Handle simple property access
-          if (numericPath) numericPath += '.';
-          numericPath += segment;
-          
-          currentData = currentData[segment];
-        }
-        
-        if (currentData === undefined) {
-          throw new Error(`Property ${segment} not found`);
-        }
-      }
-      
-      return numericPath;
-    }, []);
 
     // Helper function to disable sync scrolling
     const disableSyncScrolling = useCallback(() => {

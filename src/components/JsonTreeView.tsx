@@ -5,7 +5,7 @@ import { JsonViewerSyncContext } from './JsonViewerSyncContext';
 import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
-import { type PathConversionContext } from '../utils/PathConverter';
+import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath } from '../utils/PathTypes';
 import { createIdBasedPath } from '../utils/PathTypes';
 
@@ -122,39 +122,45 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   // Calculate the generic numeric path for this node, to be used with context state (expandedPaths, highlightPath)
   const genericNumericPathForNode = useMemo(() => {
     // 1. Strip viewer-specific prefix (e.g., "root_viewer1_" or "root_viewer2_") to get a base path.
-    // The `path` prop for JsonNode already includes the viewerId, e.g., "root_viewer1_root.some.path"
-    // We need to normalize this to match the context's generic paths like "root.some.path"
     let basePath = path.replace(/^root_(viewer1|viewer2)_/, '');
 
-    // 2. Convert ID-based array indices to numeric indices
-    if (idKeySetting && basePath.includes(`[${idKeySetting}=`)) {
-      // For nodes that are array items themselves, use actualNumericIndex
-      if (actualNumericIndex !== undefined) {
-        const lastBracket = basePath.lastIndexOf('[');
-        if (lastBracket > -1) {
-          const parentPathPart = basePath.substring(0, lastBracket);
-          basePath = `${parentPathPart}[${actualNumericIndex}]`;
-        }
-      } else {
-        // Since data is now pre-sorted, ID-based paths should naturally match their positions
-        // We can keep the current path as-is since array rendering now uses actualNumericIndex
-        // which corresponds to the sorted positions. The correlation should work correctly.
-        // TODO: In the future, this conversion may not be needed at all
-        const pathParts = basePath.split('.');
-        const convertedParts = pathParts.map(part => {
-          if (part.includes(`[${idKeySetting}=`)) {
-            // With pre-sorted data, this fallback should rarely be needed
-            // but we keep it for safety during transition
-            return part.replace(new RegExp(`\\[${idKeySetting}=([^\\]]+)\\]`), '[0]');
+    // 2. Convert ID-based array indices to numeric indices using PathConverter
+    if (basePath.includes('[id=')) {
+      // Get JSON data and ID keys from context for PathConverter
+      const jsonData = viewerId === 'viewer1' ? 
+        (context as any)?.jsonData?.left : 
+        (context as any)?.jsonData?.right;
+      const idKeysUsed = (context as any)?.idKeysUsed;
+      
+      if (jsonData && idKeysUsed) {
+        try {
+          const sourceContext = { jsonData, idKeysUsed };
+          const convertedPath = convertIdPathToIndexPath(
+            createIdBasedPath(basePath),
+            sourceContext,
+            { preservePrefix: true }
+          );
+          if (convertedPath) {
+            basePath = convertedPath;
+            console.log(`[JsonNode DEBUG] 🔧 PathConverter: "${path}" -> "${basePath}"`);
           }
-          return part;
-        });
-        basePath = convertedParts.join('.');
+        } catch (error) {
+          console.log(`[JsonNode DEBUG] 🔧 PathConverter failed, using fallback:`, error);
+          // Fallback to simple replacement
+          const pathParts = basePath.split('.');
+          const convertedParts = pathParts.map(part => {
+            if (part.includes('[id=')) {
+              return part.replace(/\[id=[^\]]+\]/, '[0]');
+            }
+            return part;
+          });
+          basePath = convertedParts.join('.');
+        }
       }
     }
     
     return basePath;
-  }, [path, viewerId, actualNumericIndex, idKeySetting]); // Dependencies for useMemo
+  }, [path, viewerId, context]); // Dependencies for useMemo
 
   // Moved these declarations earlier as they don't depend on path processing for their definition
   const isObject = data !== null && typeof data === 'object';
@@ -190,12 +196,21 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   })();
 
   const isExpanded = (() => {
-    // expandedPaths from context is a Set of generic numeric paths.
-    // Check if the node's generic numeric path is in the Set.
-    const expanded = expandedPaths.has(genericNumericPathForNode);
-    // if (path.includes('\\'accountParams\\'')) {
-    //   console.log(`[JsonNode VId:${viewerId}] Expansion Check for \\"${path}\\" (Generic: \\"${genericNumericPathForNode}\\"): expandedPaths.has() returns ${expanded}. expandedPaths:`, Array.from(expandedPaths));
-    // }
+    // Check viewer-specific path expansion state
+    const viewerSpecificPath = `${viewerId}_${genericNumericPathForNode}`;
+    const expanded = expandedPaths.has(viewerSpecificPath);
+    
+    // Explicit logging for contributions nodes
+    if (path.includes('contributions') && path.includes('accountParams')) {
+      console.log(`[isExpanded] 🔍 Checking expansion for ${viewerId}:`);
+      console.log(`[isExpanded] 🔍 Original path: "${path}"`);
+      console.log(`[isExpanded] 🔍 genericNumericPathForNode: "${genericNumericPathForNode}"`);
+      console.log(`[isExpanded] 🔍 viewerSpecificPath: "${viewerSpecificPath}"`);
+      console.log(`[isExpanded] 🔍 expandedPaths.has(viewerSpecificPath): ${expanded}`);
+//       console.log(`[isExpanded] 🔍 All expandedPaths:`, Array.from(expandedPaths));
+//       console.log(`[isExpanded] 🔍 Filtered contributions paths:`, Array.from(expandedPaths).filter(p => p.includes('contributions')));
+    }
+    
     return expanded;
   })();
 
@@ -217,8 +232,8 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const isArrayElement = genericNumericPathForNode.match(/\[\d+\]$/);
     
     if (shouldAutoExpand && !isArrayElement) { 
-      // Pass the node's generic numeric path to toggleExpand for auto-expansion
-      toggleExpand(genericNumericPathForNode); 
+      // For auto-expansion, use numeric path (no cross-viewer sync needed)
+      toggleExpand(genericNumericPathForNode); // Auto-expansion - use numeric path
     }
   }, [isHighlighted, path, hasChildren, isExpanded, viewerId, isObject, isArray, toggleExpand, genericNumericPathForNode]); // Added genericNumericPathForNode to dependencies
   
@@ -301,6 +316,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   
   const diffStatusClasses = getNodeDiffStatus(); // This returns an array of classes
   const diffStatus = diffStatusClasses.join(' '); // Join for compatibility with existing code
+  
+  // DEBUG: Log highlighting for the problematic contributions arrays
+  if (path.includes('contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions')) {
+    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} Path: "${path}"`);
+    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} CSS classes: [${diffStatusClasses.join(', ')}]`);
+    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} genericNumericPathForNode: "${genericNumericPathForNode}"`);
+  }
 
   const calculateIsVisibleInDiffsOnlyMode = (): boolean => {
     // Use showDiffsOnly from props if available, otherwise from context
@@ -366,11 +388,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   const toggleExpansion = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Pass the node's generic numeric path to the context's toggleExpand
-    // console.log(`[JsonNode VId:${viewerId}] User Toggling Expansion for path: \\"${path}\\". Calling toggleExpand with generic numeric path: \\"${genericNumericPathForNode}\\"`);
-    toggleExpand(genericNumericPathForNode);
-    if (onNodeToggle) { // Call onNodeToggle if provided
-        onNodeToggle(path); // Use original ID-based path
+    console.log(`[JsonNode VId:${viewerId}] Toggling expansion for path: "${path}"`);
+    toggleExpand(path, viewerId);
+    if (onNodeToggle) {
+        onNodeToggle(path);
     }
   };
 

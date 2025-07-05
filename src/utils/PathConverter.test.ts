@@ -351,5 +351,25 @@ describe('PathConverter', () => {
       expect(convertedIndexPath).toBe(expectedIndexPath);
       expect(convertedBackToId).toBe(originalIdPath);
     });
+
+    test('DEBUG: Issue with catchup-50-separate ID mapping to wrong index', () => {
+      // This is the specific issue reported: catchup-50-separate_0 should map to index [1] in right panel
+      const problematicIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions[0]');
+      const convertedIndexPath = convertIdPathToIndexPath(problematicIdPath, contextRight);
+      
+      console.log('');
+      console.log('🐛 DEBUG: Testing the reported bug');
+      console.log('  Right panel data structure:');
+      console.log('    [0]: id "45626988::2_prtcpnt-after_0" (added item)');
+      console.log('    [1]: id "45626988::2_prtcpnt-catchup-50-separate_0" (existing item, contributionType changed)');
+      console.log('    [2]: id "45626988::2_prtcpnt-pre_0" (existing item, array values changed)');
+      console.log('');
+      console.log('  Converting:', problematicIdPath);
+      console.log('  Result    :', convertedIndexPath);
+      console.log('  Expected  :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+      
+      // This should resolve to index [1] not [0]
+      expect(convertedIndexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+    });
   });
 });
