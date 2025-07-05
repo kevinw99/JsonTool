@@ -64,19 +64,19 @@ const sampleDataRight = {
           managementFee: 0.007212962962963,
           contributions: [
             {
-              id: "45626988::2_prtcpnt-after_0", // ADDED - new contribution (diff #13)
+              id: "45626988::2_prtcpnt-after_0", // ADDED - new contribution (diff #7)
               contributionType: "PARTICIPANT_AFTER_TAX",
               contributions: [3500, 3500, 3500, 3500, 3500]
             },
             {
               id: "45626988::2_prtcpnt-catchup-50-separate_0",
-              contributionType: "CATCH_UP_50_SEPARATE_AFTER_TAX", // CHANGED (diff #7)
+              contributionType: "CATCH_UP_50_SEPARATE_AFTER_TAX", // CHANGED (diff #1)
               contributions: [1000, 1000, 1000, 1000, 1000] // Same values
             },
             {
               id: "45626988::2_prtcpnt-pre_0",
               contributionType: "PARTICIPANT_PRE_TAX",
-              contributions: [3500, 3500, 3500, 3500, 3500] // CHANGED (diffs #8-12)
+              contributions: [3500, 3500, 3500, 3500, 3500] // CHANGED (diffs #2-6)
             }
           ]
         }
@@ -182,7 +182,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       
       // Test for specific diffs from your list
       
-      // Diff #7: Catchup contributionType change
+      // Diff #1: Catchup contributionType change
       const catchupTypeChange = actualDiffResults.find(diff => 
         diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType')
       );
@@ -191,7 +191,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       expect(catchupTypeChange?.value1).toBe('CATCH_UP_50_SEPARATE_PRE_TAX');
       expect(catchupTypeChange?.value2).toBe('CATCH_UP_50_SEPARATE_AFTER_TAX');
       
-      // Diffs #8-12: Pre contribution array changes  
+      // Diffs #2-6: Pre contribution array changes  
       const preContributionChanges = actualDiffResults.filter(diff => 
         diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-pre_0].contributions[') &&
         diff.type === 'changed'
@@ -202,7 +202,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
         expect(diff.value2).toBe(3500);
       });
       
-      // Diff #13: After contribution added
+      // Diff #7: After contribution added
       const afterContributionAdded = actualDiffResults.find(diff => 
         diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-after_0]') && 
         diff.type === 'added'
@@ -594,11 +594,11 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
   describe('Real Data Validation', () => {
     test('Generated data should match expected differences from UI screenshot', () => {
       console.log('\n📋 Expected diffs from screenshot:');
-      console.log('7. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
+      console.log('1. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
       console.log('   ~ Changed: "CATCH_UP_50_SEPARATE_PRE_TAX" → "CATCH_UP_50_SEPARATE_AFTER_TAX"');
-      console.log('8-12. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0-4]');
+      console.log('2-6. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0-4]');
       console.log('   ~ Changed: 7000 → 3500');
-      console.log('13. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
+      console.log('7. boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
       console.log('   + Added: Object{3 keys}');
       
       console.log('\n📋 Actually generated diffs:');

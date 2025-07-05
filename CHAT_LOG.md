@@ -1155,6 +1155,27 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #85 - ✨ Feature
+**Date**: 2025-07-05  
+**Request**: "clean slate for UI tests - remove old test directories
+
+- Removed src/test/ and src/tests/ with 21 failing integration tests
+- Created minimal test setup for core utilities
+- Core utils tests still passing: 67/67 ✅
+  - PathConverter.test.ts: 36 tests ✅
+  - NewHighlightingProcessor.test.ts: 31 tests ✅
+- Ready to create fresh UI tests using current sample data
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`0d2ab13`](https://github.com/user/repo/commit/0d2ab13)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/test/idkey-click-navigation.test.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

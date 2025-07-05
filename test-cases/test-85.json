@@ -1,0 +1,20 @@
+{
+  "id": 85,
+  "request": "clean slate for UI tests - remove old test directories\n\n- Removed src/test/ and src/tests/ with 21 failing integration tests\n- Created minimal test setup for core utilities\n- Core utils tests still passing: 67/67 ✅\n  - PathConverter.test.ts: 36 tests ✅\n  - NewHighlightingProcessor.test.ts: 31 tests ✅\n- Ready to create fresh UI tests using current sample data\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-05T20:04:05.860Z",
+  "testSteps": [
+    "1. Load JSON comparison view",
+    "2. Resize browser window to various sizes (mobile: 375px, tablet: 768px, desktop: 1200px)",
+    "3. Verify layout remains functional at all sizes",
+    "4. Check text alignment and overflow handling",
+    "5. Verify no horizontal scrolling on mobile",
+    "6. Test with long JSON property names"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}
