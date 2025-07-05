@@ -530,9 +530,21 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
           console.log('[goToDiff] 📂 Paths to expand:', ancestorGenericPaths);
           
+          // IMPORTANT: Add viewer prefix to paths for proper expansion
+          // The expandedPaths state uses viewer-prefixed paths like "viewer1_root"
+          const viewerPrefix = 'viewer1_'; // For left panel
+          
           ancestorGenericPaths.forEach(genericAncestor => {
             if (genericAncestor) { 
-              newExpandedPaths.add(genericAncestor);
+              // Add with viewer prefix
+              const viewerPath = viewerPrefix + genericAncestor;
+              newExpandedPaths.add(viewerPath);
+              console.log('[goToDiff] 📂 Added to expandedPaths:', viewerPath);
+              
+              // Also add the corresponding viewer2 path for sync
+              const otherViewerPath = 'viewer2_' + genericAncestor;
+              newExpandedPaths.add(otherViewerPath);
+              console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
             }
           });
           
@@ -547,6 +559,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           let targetPath = numericPathToExpand;
           // JsonTreeView DOM elements have paths with "root." prefix, so we need to add it if missing
           const pathWithRoot = targetPath.startsWith('root.') ? targetPath : `root.${targetPath}`;
+          
+          // Also prepare viewer-prefixed versions for data-original-path
+          const viewer1OriginalPath = 'viewer1_' + pathWithRoot;
+          const viewer2OriginalPath = 'viewer2_' + pathWithRoot;
           
           // Debug: Check what data-path attributes exist that are similar
           const allDataPathElements = document.querySelectorAll('[data-path]');
@@ -563,15 +579,16 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             // Attempt ${attempt}/${maxAttempts}
             
             // Try multiple selectors to find the target element
-            // Include both numeric and ID-based path formats
+            // Include both data-path and data-original-path attributes
             const selectors: string[] = [
-              // Try numeric paths first
+              // Try data-path first
               `[data-path="${pathWithRoot}"]`,
               `[data-path="${targetPath}"]`,
-              `[data-path="root_viewer1_${pathWithRoot}"]`,
-              `[data-path="root_viewer2_${pathWithRoot}"]`,
-              `[data-path="root_viewer1_${targetPath}"]`,
-              `[data-path="root_viewer2_${targetPath}"]`
+              // Try data-original-path with viewer prefixes
+              `[data-original-path="${viewer1OriginalPath}"]`,
+              `[data-original-path="${viewer2OriginalPath}"]`,
+              `[data-original-path="viewer1_${targetPath}"]`,
+              `[data-original-path="viewer2_${targetPath}"]`
             ];
 
             // Try to convert numeric path to ID-based path for both viewers
