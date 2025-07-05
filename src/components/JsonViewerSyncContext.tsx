@@ -319,7 +319,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, []);
 
     const goToDiff = useCallback((numericPathToExpand: NumericPath) => {
-      console.log(`[goToDiff] 🎯 Called for path: "${numericPathToExpand}"`);
       
       // For array paths from ID Keys, we typically want to highlight the array itself
       // The IdKeysPanel should now be sending us the array path without [0] at the end
@@ -382,7 +381,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               if (segment.startsWith('[') && segment.endsWith(']')) {
                 // This is an array index - add the current path (array) as ancestor
                 ancestorGenericPaths.push(currentAncestorPath);
-                console.log(`[JsonViewerSyncContext goToDiff] 📂 Array ancestor: "${currentAncestorPath}"`);
+                // Expand ancestor path
                 // Continue building the path through the array index
                 currentAncestorPath += segment; 
               } else {
@@ -422,16 +421,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             return path && (path.includes('boomerForecastV3Requests') || path.includes('metadata') || path.includes('externalRequestDateTime'));
           });
           
-          console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found ${partialMatches.length} elements with similar paths:`);
-          partialMatches.forEach((el, i) => {
-            if (i < 5) { // Limit output to first 5 matches
-              console.log(`[JsonViewerSyncContext goToDiff] 🔍   ${i + 1}: data-path="${el.getAttribute('data-path')}"`);
-            }
-          });
+          // Debug: Found ${partialMatches.length} elements with similar paths
           
           // Function to attempt finding and scrolling to the target element
           const attemptScrollToTarget = (attempt: number = 1, maxAttempts: number = 5) => {
-            console.log(`[JsonViewerSyncContext goToDiff] 🔄 Scroll attempt ${attempt}/${maxAttempts}`);
+            // Attempt ${attempt}/${maxAttempts}
             
             // Try multiple selectors to find the target element
             // Include both numeric and ID-based path formats
@@ -461,7 +455,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
                     preservePrefix: true 
                   });
                   
-                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 ${viewer} conversion: "${targetPath}" → "${idBasedPath}"`);
+                  // Conversion: ${viewer} "${targetPath}" → "${idBasedPath}"
                   
                   if (idBasedPath && String(idBasedPath) !== String(targetPath)) {
                     // Add ID-based selectors
@@ -677,18 +671,12 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             }, 200);
             } else if (attempt < maxAttempts) {
               // Element not found, but we still have attempts left
-              console.log(`[JsonViewerSyncContext goToDiff] ⏳ Element not found, retrying in 500ms... (attempt ${attempt}/${maxAttempts})`);
               setTimeout(() => attemptScrollToTarget(attempt + 1, maxAttempts), 500);
             } else {
               // Final attempt failed
-              console.log(`[JsonViewerSyncContext goToDiff] ❌ Target element not found after ${maxAttempts} attempts for path: "${targetPath}"`);
-              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Also tried with root prefix: "${pathWithRoot}"`);
-              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Tried selectors:`, selectors);
+              console.log(`[goToDiff] ❌ Target not found: "${targetPath}"`);
               
-              // Show what elements are actually available for debugging
-              const availableElements = document.querySelectorAll('[data-path]');
-              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Currently available elements:`, 
-                Array.from(availableElements).slice(0, 10).map(el => el.getAttribute('data-path')));
+              // Elements available for debugging
             }
           };
           
