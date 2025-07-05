@@ -616,5 +616,62 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       expect(actualIdKeys.length).toBeGreaterThan(0);
       expect(actualDiffResults.length).toBeGreaterThan(0);
     });
+
+    test('Catchup contribution array should NOT be highlighted (bug reproduction)', () => {
+      // This is the exact path from the user's issue - the contributions array inside the catchup object
+      // that contains [1000, 1000, 1000, 1000, 1000] which is identical in both panels
+      const catchupContributionsPath: AnyPath = createIdBasedPath(
+        'root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions'
+      );
+      
+      const rightClasses = processor.getHighlightingClasses(
+        catchupContributionsPath,
+        'right',
+        contextRight
+      );
+      
+      // This should be empty because the contributions array [1000, 1000, 1000, 1000, 1000] is identical in both panels
+      // The only change in the catchup object is the contributionType field, not the contributions array
+      // Previously this incorrectly returned ['json-parent-changed'] due to sibling field highlighting bug
+      expect(rightClasses).toEqual([]);
+    });
+
+    test('Individual catchup contribution array elements should NOT be highlighted (bug reproduction)', () => {
+      // Test individual array elements within the catchup contributions array
+      // These values [1000, 1000, 1000, 1000, 1000] are identical in both panels
+      
+      // Test the first array element specifically
+      const catchupContributionElementPath: AnyPath = createIdBasedPath(
+        'root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions[0]'
+      );
+      
+      const rightClasses = processor.getHighlightingClasses(
+        catchupContributionElementPath,
+        'right',
+        contextRight
+      );
+      
+      // These should be empty because the values are identical in both panels: [1000, 1000, 1000, 1000, 1000]
+      // Only the contributionType field changed, not the individual array elements
+      expect(rightClasses).toEqual([]);
+    });
+
+    test('Pre contribution contributions array should be parent-changed (bug reproduction from screenshot)', () => {
+      // This is the exact path from the user's screenshot in the blue border
+      // LEFT PANEL: root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions
+      // This array [7000, 7000, 7000, 7000, 7000] contains elements that all change to [3500, 3500, 3500, 3500, 3500]
+      const preContributionsArrayPath: AnyPath = createIdBasedPath(
+        'root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions'
+      );
+      
+      const leftClasses = processor.getHighlightingClasses(
+        preContributionsArrayPath,
+        'left',
+        contextLeft
+      );
+      
+      // This should be parent-changed because all 5 array elements [0] through [4] have changes (7000 → 3500)
+      expect(leftClasses).toEqual([CSS_CLASSES.PARENT_CHANGED]);
+    });
   });
 });

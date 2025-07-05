@@ -46,23 +46,31 @@ export class NewHighlightingProcessor {
   ): string[] {
     const classes: string[] = [];
     
+    // Check if the original input path contains ID-based segments
+    const originalPathContainsIdSegments = nodePath.includes('[id=');
+    
     // Step 1: Normalize the node path to get all possible variations
     const pathVariations = normalizePathForComparison(nodePath, context);
-    
     
     // Step 2: Check for exact diff matches
     for (const variation of pathVariations) {
       const exactMatch = this.diffResults.find(diff => {
-        // Check both numeric path and display path if available
-        const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-        if (numericVariations.includes(variation)) {
-          return true;
-        }
-        
-        // Also check idBasedPath if it exists (for ID-based correlation)
+        // PRIORITIZE idBasedPath over numericPath for accuracy in viewer-specific contexts
+        // Check idBasedPath first if it exists (for ID-based correlation)
         if (diff.idBasedPath) {
           const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
           if (idBasedVariations.includes(variation)) {
+            return true;
+          }
+        }
+        
+        // For viewer-specific paths (when arrays with ID keys are reordered), numeric paths can be incorrect
+        // Only skip numeric fallback if the original input path contains ID-based segments and idBasedPath exists
+        const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
+        
+        if (!shouldSkipNumericFallback) {
+          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
+          if (numericVariations.includes(variation)) {
             return true;
           }
         }
@@ -82,18 +90,8 @@ export class NewHighlightingProcessor {
     // Step 3: Check if this is a child of any added/removed/changed element
     for (const variation of pathVariations) {
       const parentDiff = this.diffResults.find(diff => {
-        // Check both numeric path and display path for parent relationships
-        const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-        const isChildOfNumeric = numericVariations.some(diffVar => 
-          variation.startsWith(diffVar + '.') || 
-          variation.startsWith(diffVar + '[')
-        );
-        
-        if (isChildOfNumeric) {
-          return true;
-        }
-        
-        // Also check idBasedPath if it exists
+        // PRIORITIZE idBasedPath over numericPath for parent relationships
+        // Check idBasedPath first if it exists
         if (diff.idBasedPath) {
           const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
           const isChildOfDisplay = idBasedVariations.some(diffVar => 
@@ -101,6 +99,21 @@ export class NewHighlightingProcessor {
             variation.startsWith(diffVar + '[')
           );
           if (isChildOfDisplay) {
+            return true;
+          }
+        }
+        
+        // Only skip numeric fallback for ID-based paths with ID segments  
+        const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
+        
+        if (!shouldSkipNumericFallback) {
+          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
+          const isChildOfNumeric = numericVariations.some(diffVar => 
+            variation.startsWith(diffVar + '.') || 
+            variation.startsWith(diffVar + '[')
+          );
+          
+          if (isChildOfNumeric) {
             return true;
           }
         }
@@ -120,25 +133,28 @@ export class NewHighlightingProcessor {
     // Step 4: Check if this is a parent of any changed element
     for (const variation of pathVariations) {
       const isParent = this.diffResults.some(diff => {
-        // Check both numeric path and display path for child relationships
-        const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
-        const hasNumericChild = numericVariations.some(diffVar => 
-          diffVar.startsWith(variation + '.') || 
-          diffVar.startsWith(variation + '[')
-        );
-        
-        if (hasNumericChild) {
-          return true;
-        }
-        
-        // Also check idBasedPath if it exists
+        // PRIORITIZE idBasedPath over numericPath for child relationships
+        // Check idBasedPath first if it exists
         if (diff.idBasedPath) {
           const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
           const hasDisplayChild = idBasedVariations.some(diffVar => 
-            diffVar.startsWith(variation + '.') || 
-            diffVar.startsWith(variation + '[')
+            this.isTrueParentChild(variation, diffVar)
           );
           if (hasDisplayChild) {
+            return true;
+          }
+        }
+        
+        // Only skip numeric fallback for ID-based paths with ID segments
+        const shouldSkipNumericFallback = diff.idBasedPath && originalPathContainsIdSegments;
+        
+        if (!shouldSkipNumericFallback) {
+          const numericVariations = normalizePathForComparison(unsafeIdBasedPath(diff.numericPath), context);
+          const hasNumericChild = numericVariations.some(diffVar => 
+            this.isTrueParentChild(variation, diffVar)
+          );
+          
+          if (hasNumericChild) {
             return true;
           }
         }
@@ -169,6 +185,93 @@ export class NewHighlightingProcessor {
       default:
         return null;
     }
+  }
+
+  /**
+   * Determines if parentPath is a true parent of childPath (not a sibling)
+   * @param parentPath The potential parent path
+   * @param childPath The potential child path
+   * @returns true if parentPath is a true parent of childPath
+   */
+  private isTrueParentChild(parentPath: string, childPath: string): boolean {
+    // Basic check: child must start with parent + separator
+    if (!childPath.startsWith(parentPath + '.') && !childPath.startsWith(parentPath + '[')) {
+      return false;
+    }
+
+    // Extract what comes after the potential parent path
+    const remainder = childPath.substring(parentPath.length);
+    
+    // Must start with a separator
+    if (!remainder.startsWith('.') && !remainder.startsWith('[')) {
+      return false;
+    }
+    
+    // For a true parent-child relationship, we need to ensure:
+    // 1. The child path is actually nested under the parent
+    // 2. We're not dealing with siblings that share the same immediate parent
+    
+    // Extract the immediate next segment after the parent
+    let nextSegmentEnd = remainder.length;
+    let i = 1; // Skip the initial separator
+    
+    // Find where the first segment ends
+    while (i < remainder.length) {
+      if (remainder[i] === '.' || remainder[i] === '[') {
+        nextSegmentEnd = i;
+        break;
+      }
+      if (remainder[i - 1] === '[' && remainder[i] === ']') {
+        nextSegmentEnd = i + 1;
+        break;
+      }
+      i++;
+    }
+    
+    const firstSegment = remainder.substring(0, nextSegmentEnd);
+    const afterFirstSegment = remainder.substring(nextSegmentEnd);
+    
+    // If there's nothing after the first segment, this is a direct child
+    // We want to return true for direct children (like parent.child)
+    // but false for siblings that happen to start with the same path
+    
+    // The key insight: if parentPath ends with the same segment as the diff starts with,
+    // and they have the same length, they're likely siblings
+    
+    // Check if this could be a sibling relationship
+    // Example: parent = "obj.contributions", child = "obj.contributionType"
+    // Both have the same parent "obj" but different final segments
+    
+    // Count segments more accurately by counting dots and array accessors
+    // Each . represents a field access, each [ represents an array/object access
+    const countSegments = (path: string): number => {
+      let count = 0;
+      let i = 0;
+      while (i < path.length) {
+        if (path[i] === '.') {
+          count++;
+        } else if (path[i] === '[') {
+          count++;
+          // Skip to the end of this bracket segment
+          while (i < path.length && path[i] !== ']') {
+            i++;
+          }
+        }
+        i++;
+      }
+      return count;
+    };
+    
+    const parentSegmentCount = countSegments(parentPath);
+    const childSegmentCount = countSegments(childPath);
+    
+    // If they have the same number of segments, they're at the same level (siblings)
+    if (parentSegmentCount === childSegmentCount) {
+      return false;
+    }
+    
+    // If parent has fewer segments, it's a true parent
+    return parentSegmentCount < childSegmentCount;
   }
   
   /**
