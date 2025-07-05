@@ -1,0 +1,28 @@
+{
+  "id": 75,
+  "request": "implement sequential array expansion for deep navigation\n\nInstead of trying to expand just the immediate parent, this approach:\n1. Identifies ALL array containers in the path that need expansion\n2. Expands them sequentially with proper delays\n3. Ensures each level is fully expanded before moving to the next\n\nFor path 'root.accountParams[1].contributions[0].contributionType':\n- Step 1: Expand 'root.accountParams'\n- Step 2: Expand 'root.accountParams[1].contributions'\n- Step 3: Highlight final target\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-05T01:45:59.418Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

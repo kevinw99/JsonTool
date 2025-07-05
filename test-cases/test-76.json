@@ -1,0 +1,20 @@
+{
+  "id": 76,
+  "request": "expand both array containers AND array elements\n\nThe issue was that we were expanding accountParams[1] but not the\ncontributions array inside it. Now the expansion sequence includes:\n\n1. root.boomerForecastV3Requests (array container)\n2. root.boomerForecastV3Requests[0] (array element)\n3. root.boomerForecastV3Requests[0].parameters (property)\n4. root.boomerForecastV3Requests[0].parameters.accountParams (array container)\n5. root.boomerForecastV3Requests[0].parameters.accountParams[1] (array element)\n6. root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions (array container)\n\nThis ensures every level is fully expanded before moving to the next.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T01:48:03.899Z",
+  "testSteps": [
+    "1. Load the application",
+    "2. Navigate to the relevant feature area",
+    "3. Perform the requested action/change",
+    "4. Verify expected behavior",
+    "5. Test edge cases and error conditions",
+    "6. Verify no existing functionality is broken"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

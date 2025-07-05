@@ -1,0 +1,28 @@
+{
+  "id": 80,
+  "request": "improve GoTo functionality for ID-based paths\n\nKey changes:\n- Update goToDiff to handle both numeric and ID-based paths by converting ID-based paths to numeric using convertIdPathToIndexPath\n- Simplify DiffList navigation to use standard goToDiff approach instead of complex manual highlighting\n- Fix remaining numericPath references to use idBasedPath after DiffResult refactoring\n\nThis should resolve the issue where clicking Go To on diffs wasn't expanding to show the target nodes.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T18:41:17.969Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

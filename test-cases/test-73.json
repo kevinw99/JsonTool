@@ -1,0 +1,28 @@
+{
+  "id": 73,
+  "request": "correct parent array path extraction for navigation\n\nThe issue was in getParentArrayPath() - it was incorrectly including the array index\ninstead of just the array name. For path 'root.accountParams[1].contributions[0].contributionType',\nit should return 'root.accountParams[1].contributions' not 'root.accountParams[1].contributions[0]'.\n\nThis ensures the contributions array itself gets expanded, not a specific element.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T01:41:59.736Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

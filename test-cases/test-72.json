@@ -1,0 +1,20 @@
+{
+  "id": 72,
+  "request": "debug: add detailed logging for ID-based path conversion\n\nThis will show exactly what IDs are being looked for and what data\nstructure exists in the contributions array to debug the conversion failure.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T01:40:18.197Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

@@ -1098,6 +1098,23 @@ This should fix the GoTo button not expanding nodes properly."
 **Status**: 🚧 In Progress  
 
 
+### Request #82 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "improve GoTo handling for paths that only exist in one viewer
+
+- Detect which viewer(s) contain an ID-based path during conversion
+- Use the appropriate viewer prefix based on where the path exists
+- Only expand in viewers that actually have the path
+- Better handling of added/removed nodes that only exist in one panel
+
+This fixes GoTo navigation for diffs where the path only exists in one viewer."  
+**Commit**: [`6efea77`](https://github.com/user/repo/commit/6efea77)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/components/JsonViewerSyncContext.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

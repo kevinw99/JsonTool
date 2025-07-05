@@ -1,0 +1,28 @@
+{
+  "id": 79,
+  "request": "remove numericPath from DiffResult and compute on-demand\n\nThis architectural change eliminates a fundamental source of bugs by removing\nviewer-specific numericPath from the viewer-agnostic DiffResult interface.\n\nKey changes:\n- Remove numericPath field from DiffResult interface\n- Update jsonCompare to only generate viewer-agnostic idBasedPath\n- Modify NewHighlightingProcessor to compute numeric paths on-demand using convertIdPathToIndexPath\n- Update UI components to use idBasedPath for viewer-agnostic operations\n- Fix property references in JsonDiffViewer (path → idBasedPath, oldValue → value1, newValue → value2)\n\nBenefits:\n- Eliminates bugs caused by incorrect left-panel indices in right panel\n- Creates cleaner separation between viewer-agnostic (idBasedPath) and viewer-specific (computed numericPath) concerns\n- Improves maintainability by removing redundant/incorrect data from DiffResult\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T07:43:01.341Z",
+  "testSteps": [
+    "1. Load JSON comparison view",
+    "2. Resize browser window to various sizes (mobile: 375px, tablet: 768px, desktop: 1200px)",
+    "3. Verify layout remains functional at all sizes",
+    "4. Check text alignment and overflow handling",
+    "5. Verify no horizontal scrolling on mobile",
+    "6. Test with long JSON property names"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

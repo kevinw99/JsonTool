@@ -9,3 +9,7 @@ Text mode:
 3. group differnece panel
     a. by last field
     b. by type: differnt, new, delete
+4 other forms:
+  as a chrome plugin
+  as a intellij plugin
+

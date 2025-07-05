@@ -1,0 +1,20 @@
+{
+  "id": 81,
+  "request": "GoTo expansion now uses correct viewer-prefixed paths\n\nThe issue was that expandedPaths state uses viewer-prefixed paths like 'viewer1_root'\nbut goToDiff was adding paths without these prefixes. This caused the expansion to fail.\n\nChanges:\n- Add viewer1_ and viewer2_ prefixes when adding paths to expandedPaths\n- Update selectors to check data-original-path attribute with viewer prefixes\n- Add both viewer paths for synchronized expansion\n\nThis should fix the GoTo button not expanding nodes properly.",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T19:22:12.920Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

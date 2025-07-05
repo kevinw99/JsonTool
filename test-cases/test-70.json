@@ -1,0 +1,28 @@
+{
+  "id": 70,
+  "request": "improve goto button navigation and reduce verbose logging\n\n- Simplify ID-based correlation logic in DiffList\n- Replace complex manual highlighting with simpler approach\n- Use direct goToDiff navigation followed by delayed highlighting\n- Reduce excessive console logging in both DiffList and JsonViewerSyncContext\n- Remove redundant debug messages and verbose element search logs\n\nThis should fix the issue where goto button couldn't find target elements\nby using a more straightforward navigation approach that relies on the\nexisting goToDiff expansion logic before attempting to highlight elements.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T01:29:04.293Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

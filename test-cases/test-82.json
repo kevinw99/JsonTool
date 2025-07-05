@@ -1,0 +1,28 @@
+{
+  "id": 82,
+  "request": "improve GoTo handling for paths that only exist in one viewer\n\n- Detect which viewer(s) contain an ID-based path during conversion\n- Use the appropriate viewer prefix based on where the path exists\n- Only expand in viewers that actually have the path\n- Better handling of added/removed nodes that only exist in one panel\n\nThis fixes GoTo navigation for diffs where the path only exists in one viewer.",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T19:28:35.982Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

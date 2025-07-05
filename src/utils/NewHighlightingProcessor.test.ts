@@ -131,7 +131,7 @@ function generateDiffResults(leftData: any, rightData: any, idKeys: IdKeyInfo[])
   console.log('📋 Diff summary:');
   compareResult.diffs.forEach((diff, index) => {
     console.log(`  ${index + 1}. ID_BASED: ${diff.idBasedPath}`);
-    console.log(`      NUMERIC: ${diff.numericPath} (${diff.type}): ${diff.value1} → ${diff.value2}`);
+    console.log(`      ID_BASED: ${diff.idBasedPath} (${diff.type}): ${diff.value1} → ${diff.value2}`);
   });
   
   return compareResult.diffs;
@@ -184,7 +184,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       
       // Diff #7: Catchup contributionType change
       const catchupTypeChange = actualDiffResults.find(diff => 
-        diff.numericPath && diff.numericPath.includes('contributions[0].contributionType')
+        diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType')
       );
       expect(catchupTypeChange).toBeDefined();
       expect(catchupTypeChange?.type).toBe('changed');
@@ -193,7 +193,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       
       // Diffs #8-12: Pre contribution array changes  
       const preContributionChanges = actualDiffResults.filter(diff => 
-        diff.numericPath && diff.numericPath.includes('contributions[1].contributions[') &&
+        diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-pre_0].contributions[') &&
         diff.type === 'changed'
       );
       expect(preContributionChanges.length).toBe(5); // Should be 5 array elements
@@ -204,7 +204,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       
       // Diff #13: After contribution added
       const afterContributionAdded = actualDiffResults.find(diff => 
-        diff.numericPath && diff.numericPath.includes('contributions[0]') && 
+        diff.idBasedPath && diff.idBasedPath.includes('[id=45626988::2_prtcpnt-after_0]') && 
         diff.type === 'added'
       );
       expect(afterContributionAdded).toBeDefined();
@@ -213,7 +213,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       console.log('📋 All diffs generated:');
       actualDiffResults.forEach((diff, index) => {
         console.log(`  ${index + 1}. ID_BASED: ${diff.idBasedPath || 'undefined'}`);
-        console.log(`      NUMERIC: ${diff.numericPath || 'undefined'} (${diff.type}): ${diff.value1} → ${diff.value2}`);
+        console.log(`      ID_BASED: ${diff.idBasedPath || 'undefined'} (${diff.type}): ${diff.value1} → ${diff.value2}`);
       });
     });
   });
@@ -605,7 +605,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
         const summary = diff.type === 'added' ? `+ Added: ${typeof diff.value2}` :
                        diff.type === 'removed' ? `- Removed: ${typeof diff.value1}` :
                        `~ Changed: ${diff.value1} → ${diff.value2}`;
-        console.log(`${index + 1}. ${diff.numericPath}`);
+        console.log(`${index + 1}. ${diff.idBasedPath}`);
         console.log(`   ${summary}`);
       });
       

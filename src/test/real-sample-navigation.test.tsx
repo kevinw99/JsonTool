@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render /*, screen, fireEvent, waitFor */ } from '@testing-library/react';
+import { render, act /*, screen, fireEvent, waitFor */ } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../App';
 
@@ -19,7 +19,9 @@ describe('ID Key Navigation with Real Sample Files', () => {
   });
 
   it('should load and compare the real sample files', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     // Load the actual sample files (this would normally be done by the app)
     const sample1 = await loadSampleFile('sample1.json');
@@ -32,7 +34,9 @@ describe('ID Key Navigation with Real Sample Files', () => {
   });
 
   it('should identify ID keys from real financial data structure', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
     
     const sample1 = await loadSampleFile('sample1.json');
     const sample2 = await loadSampleFile('sample2.json');

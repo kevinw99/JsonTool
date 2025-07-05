@@ -1,0 +1,28 @@
+{
+  "id": 71,
+  "request": "improve goto navigation by expanding parent arrays first\n\n- Add getParentArrayPath helper to identify parent arrays that need expansion\n- Implement staged expansion: parent array first, then target element\n- Add timing delays to ensure each expansion completes before the next\n- This should fix the 'Target not found' issue for deeply nested elements\n\nThe navigation now follows: Parent Array → Target Element → Highlight\ninstead of trying to navigate directly to deeply nested targets.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T01:32:09.720Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

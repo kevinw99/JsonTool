@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import App from '../App'
 
 // Sample test data for direct loading
@@ -103,7 +103,7 @@ beforeEach(() => {
 
 describe('ID Key Click Navigation Tests', () => {
   it('should load sample data and display ID Keys panel', async () => {
-    const { container } = render(<App />)
+    const { container } = await act(async () => render(<App />))
 
     // Directly set the data using the onFileDrop callback
     // First, we need to find the FileDropZone components and simulate data loading
@@ -140,18 +140,22 @@ describe('ID Key Click Navigation Tests', () => {
     vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any)
 
     // Trigger first file drop
-    fireEvent(dropZones[0], dropEvent1)
-    mockFileReader.result = JSON.stringify(sampleData1)
-    if (mockFileReader.onload) {
-      mockFileReader.onload({ target: mockFileReader } as any)
-    }
+    await act(async () => {
+      fireEvent(dropZones[0], dropEvent1)
+      mockFileReader.result = JSON.stringify(sampleData1)
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: mockFileReader } as any)
+      }
+    })
 
     // Trigger second file drop
-    fireEvent(dropZones[1], dropEvent2)
-    mockFileReader.result = JSON.stringify(sampleData2)
-    if (mockFileReader.onload) {
-      mockFileReader.onload({ target: mockFileReader } as any)
-    }
+    await act(async () => {
+      fireEvent(dropZones[1], dropEvent2)
+      mockFileReader.result = JSON.stringify(sampleData2)
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: mockFileReader } as any)
+      }
+    })
 
     // Wait for comparison to complete
     await waitFor(() => {
@@ -161,8 +165,10 @@ describe('ID Key Click Navigation Tests', () => {
     }, { timeout: 3000 })
 
     // Click on ID Keys tab to show the panel
-    const idKeysTab = screen.getByText('ID Keys')
-    fireEvent.click(idKeysTab)
+    await act(async () => {
+      const idKeysTab = screen.getByText('ID Keys')
+      fireEvent.click(idKeysTab)
+    })
 
     await waitFor(() => {
       // Verify ID Keys are displayed
@@ -172,7 +178,7 @@ describe('ID Key Click Navigation Tests', () => {
   })
 
   it('should expand nodes and scroll when ID Key path is clicked', async () => {
-    const { container } = render(<App />)
+    const { container } = await act(async () => render(<App />))
 
     // Load sample data (same as above)
     const dropZones = container.querySelectorAll('.file-drop-zone')
@@ -198,23 +204,29 @@ describe('ID Key Click Navigation Tests', () => {
     vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any)
 
     // Load first file
-    fireEvent(dropZones[0], dropEvent1)
-    mockFileReader.result = JSON.stringify(sampleData1)
-    if (mockFileReader.onload) {
-      mockFileReader.onload({ target: mockFileReader } as any)
-    }
+    await act(async () => {
+      fireEvent(dropZones[0], dropEvent1)
+      mockFileReader.result = JSON.stringify(sampleData1)
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: mockFileReader } as any)
+      }
+    })
 
     // Load second file
-    fireEvent(dropZones[1], dropEvent2)
-    mockFileReader.result = JSON.stringify(sampleData2)
-    if (mockFileReader.onload) {
-      mockFileReader.onload({ target: mockFileReader } as any)
-    }
+    await act(async () => {
+      fireEvent(dropZones[1], dropEvent2)
+      mockFileReader.result = JSON.stringify(sampleData2)
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: mockFileReader } as any)
+      }
+    })
 
     // Wait for comparison and switch to ID Keys tab
-    await waitFor(() => {
-      const idKeysTab = screen.getByText('ID Keys')
-      fireEvent.click(idKeysTab)
+    await waitFor(async () => {
+      await act(async () => {
+        const idKeysTab = screen.getByText('ID Keys')
+        fireEvent.click(idKeysTab)
+      })
     }, { timeout: 3000 })
 
     // Wait for ID Keys panel to be visible
@@ -240,7 +252,9 @@ describe('ID Key Click Navigation Tests', () => {
     const initialExpandedCount = container.querySelectorAll('.json-node.expanded').length
     
     // Click the path
-    fireEvent.click(firstClickablePath)
+    await act(async () => {
+      fireEvent.click(firstClickablePath)
+    })
 
     // Wait for navigation to complete
     await waitFor(() => {
@@ -260,7 +274,7 @@ describe('ID Key Click Navigation Tests', () => {
   })
 
   it('should handle multiple ID Key path clicks', async () => {
-    const { container } = render(<App />)
+    const { container } = await act(async () => render(<App />))
 
     // Load sample data (abbreviated version of above)
     const dropZones = container.querySelectorAll('.file-drop-zone')
@@ -317,7 +331,7 @@ describe('ID Key Click Navigation Tests', () => {
   })
 
   it('should verify specific array paths are navigated correctly', async () => {
-    const { container } = render(<App />)
+    const { container } = await act(async () => render(<App />))
 
     // Load data and navigate to ID Keys (abbreviated)
     const dropZones = container.querySelectorAll('.file-drop-zone')

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../App'
 
@@ -96,7 +96,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should detect and display ID Keys for array comparisons', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Simulate file drops
     const file1Input = screen.getAllByText(/Drop file here/)[0];
@@ -127,7 +129,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should navigate to target array when ID Key path is clicked', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -167,7 +171,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should build correct numeric paths for nested arrays', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -202,7 +208,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should expand all necessary ancestor paths when navigating', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -243,7 +251,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should attempt scrolling with correct calculations', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data and trigger navigation
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -280,7 +290,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should handle multiple ID Key clicks correctly', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -333,7 +345,9 @@ describe('ID Keys Navigation Feature', () => {
   });
 
   it('should display correct ID Key consolidation and occurrence counts', async () => {
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // Load test data
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
@@ -380,7 +394,9 @@ describe('ID Keys Navigation Feature', () => {
       ]
     };
 
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
     const file2Input = screen.getAllByText(/Drop JSON file here/)[1];
@@ -409,7 +425,9 @@ describe('ID Keys Navigation Feature', () => {
 describe('ID Keys Navigation Integration', () => {
   it('should perform end-to-end navigation workflow', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     // 1. Load JSON files
     const file1Input = screen.getAllByText(/Drop JSON file here/)[0];
