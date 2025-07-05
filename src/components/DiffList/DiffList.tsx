@@ -77,23 +77,19 @@ export const DiffList: React.FC<DiffListProps> = ({
       const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
       const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
       
-      // First, expand to the parent array to ensure it's available
-      const parentPath = getParentArrayPath(leftPathWithRoot);
-      if (parentPath) {
-        console.log('[DiffList] 📂 Expanding parent array first:', parentPath);
-        goToDiff(validateAndCreateNumericPath(parentPath, 'DiffResult.parentPath'));
-        
-        // Then navigate to the actual target after parent is expanded
-        setTimeout(() => {
-          goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
-          
-          // Finally highlight both elements
+      // Expand all necessary ancestors step by step
+      const expansionPaths = getAllExpansionPaths(leftPathWithRoot);
+      console.log('[DiffList] 📂 Expansion sequence:', expansionPaths);
+      
+      if (expansionPaths.length > 0) {
+        expandPathsSequentially(expansionPaths, 0, () => {
+          // Finally highlight both elements after all expansions
           setTimeout(() => {
             highlightBothElements(leftPathWithRoot, rightPathWithRoot);
-          }, 500);
-        }, 800);
+          }, 300);
+        });
       } else {
-        // No parent array, navigate directly
+        // No expansion needed, navigate directly
         goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
         setTimeout(() => {
           highlightBothElements(leftPathWithRoot, rightPathWithRoot);
@@ -149,6 +145,53 @@ export const DiffList: React.FC<DiffListProps> = ({
     
     console.log('[DiffList] ❌ No parent array found');
     return null;
+  };
+
+  // Helper function to get all paths that need to be expanded in sequence
+  const getAllExpansionPaths = (fullPath: string): string[] => {
+    const paths: string[] = [];
+    const segments = fullPath.split('.');
+    
+    // Build progressive paths, focusing on array containers
+    let currentPath = '';
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      
+      if (currentPath) currentPath += '.';
+      currentPath += segment;
+      
+      // If this segment contains an array (has brackets), we need to expand it
+      if (segment.includes('[') && segment.includes(']')) {
+        // Add the path up to the array container (without the index)
+        const arrayName = segment.replace(/\[.*\]$/, '');
+        const containerPath = currentPath.replace(segment, arrayName);
+        
+        // Only add if it's not already in the list
+        if (!paths.includes(containerPath)) {
+          paths.push(containerPath);
+        }
+      }
+    }
+    
+    return paths;
+  };
+
+  // Helper function to expand paths sequentially with delays
+  const expandPathsSequentially = (paths: string[], index: number, onComplete: () => void) => {
+    if (index >= paths.length) {
+      onComplete();
+      return;
+    }
+    
+    const currentPath = paths[index];
+    console.log(`[DiffList] 📂 Expanding step ${index + 1}/${paths.length}: ${currentPath}`);
+    
+    goToDiff(validateAndCreateNumericPath(currentPath, `DiffResult.expansion${index}`));
+    
+    // Continue with next path after delay
+    setTimeout(() => {
+      expandPathsSequentially(paths, index + 1, onComplete);
+    }, 600); // Give each expansion time to complete
   };
 
   // Helper function to find numeric path for an ID-based path in a specific JSON viewer
