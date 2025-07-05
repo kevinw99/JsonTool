@@ -169,19 +169,30 @@ export const DiffList: React.FC<DiffListProps> = ({
         }
         
         // Find item with target ID
-        const foundIndex = currentData.findIndex((item: any) => {
+        console.log(`[DiffList] 🔍 Looking for ID "${targetId}" in ${arrayName} array:`, currentData);
+        
+        const foundIndex = currentData.findIndex((item: any, index: number) => {
           if (typeof item !== 'object' || item === null) return false;
           
+          console.log(`[DiffList] 🔍   Item ${index}:`, item);
+          
           // Check if any property matches the target ID
-          for (const value of Object.values(item)) {
-            if (String(value) === targetId) return true;
+          for (const [key, value] of Object.entries(item)) {
+            console.log(`[DiffList] 🔍     Checking ${key}: "${value}" vs "${targetId}"`);
+            if (String(value) === targetId) {
+              console.log(`[DiffList] ✅     Found match!`);
+              return true;
+            }
           }
           return false;
         });
         
         if (foundIndex === -1) {
+          console.log(`[DiffList] ❌ Could not find item with ID "${targetId}" in ${arrayName}`);
           throw new Error(`Could not find item with ID ${targetId} in ${arrayName}`);
         }
+        
+        console.log(`[DiffList] ✅ Found item at index ${foundIndex}`);
         
         // Add numeric index
         numericPath += `[${foundIndex}]`;
