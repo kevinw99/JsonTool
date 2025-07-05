@@ -152,26 +152,41 @@ export const DiffList: React.FC<DiffListProps> = ({
     const paths: string[] = [];
     const segments = fullPath.split('.');
     
-    // Build progressive paths, focusing on array containers
+    // Build progressive paths, including both array containers AND their elements
     let currentPath = '';
-    for (let i = 0; i < segments.length; i++) {
+    for (let i = 0; i < segments.length - 1; i++) { // -1 to exclude the final property
       const segment = segments[i];
       
       if (currentPath) currentPath += '.';
       currentPath += segment;
       
-      // If this segment contains an array (has brackets), we need to expand it
+      // If this segment contains an array (has brackets), we need to expand:
+      // 1. The array container (without index)
+      // 2. The specific array element (with index) 
       if (segment.includes('[') && segment.includes(']')) {
-        // Add the path up to the array container (without the index)
+        // Add the array container path
         const arrayName = segment.replace(/\[.*\]$/, '');
         const containerPath = currentPath.replace(segment, arrayName);
         
-        // Only add if it's not already in the list
         if (!paths.includes(containerPath)) {
           paths.push(containerPath);
         }
+        
+        // Also add the current path (which includes the array element)
+        if (!paths.includes(currentPath)) {
+          paths.push(currentPath);
+        }
+      } else {
+        // For non-array segments, just add the current path
+        if (!paths.includes(currentPath)) {
+          paths.push(currentPath);
+        }
       }
     }
+    
+    console.log('[DiffList] 🔍 Full path breakdown for:', fullPath);
+    console.log('[DiffList] 🔍 Segments:', segments);
+    console.log('[DiffList] 🔍 Generated paths:', paths);
     
     return paths;
   };
