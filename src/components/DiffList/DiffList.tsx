@@ -72,8 +72,8 @@ export const DiffList: React.FC<DiffListProps> = ({
         
         if (leftPath && rightPath) {
           console.log('[DiffList] ✅ Found both paths - using new goToDiffWithPaths navigation');
-          console.log('[DiffList] 🎯 LEFT path (viewer1):', leftPath);
-          console.log('[DiffList] 🎯 RIGHT path (viewer2):', rightPath);
+          console.log('[DiffList] 🎯 LEFT path (left):', leftPath);
+          console.log('[DiffList] 🎯 RIGHT path (right):', rightPath);
           
           // Use the new dual-path navigation function
           goToDiffWithPaths(leftPath, rightPath);

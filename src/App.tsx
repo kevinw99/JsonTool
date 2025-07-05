@@ -1202,7 +1202,7 @@ function App() {
                         ) : (
                           <JsonTreeView
                             data={(sortedFile1Data || file1.content) as JsonValue}
-                            viewerId="viewer1"
+                            viewerId="left"
                             jsonSide='left'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}
@@ -1247,7 +1247,7 @@ function App() {
                         ) : (
                           <JsonTreeView
                             data={(sortedFile2Data || file2.content) as JsonValue}
-                            viewerId="viewer2"
+                            viewerId="right"
                             jsonSide='right'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}

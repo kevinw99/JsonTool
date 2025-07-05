@@ -1176,6 +1176,65 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #86 - ✨ Feature
+**Date**: 2025-07-05  
+**Request**: "update diff numbering from #7-13 to #1-7
+
+Updated all documentation and test comments to reflect the correct diff numbering as shown in the current UI:
+
+- Diff #1: contributionType change (was #7)
+- Diffs #2-6: contribution array changes (was #8-12)
+- Diff #7: added contribution object (was #13)
+
+This matches the simplified data structure currently loaded in the app and ensures consistent reference numbering for future development.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`7fdf32e`](https://github.com/user/repo/commit/7fdf32e)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/test/goto-functionality.test.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #87 - 🚨 Critical Bug
+**Date**: 2025-07-05  
+**Request**: "implement dual highlighting and clean up GoTo navigation
+
+- Add dual-path highlighting support for GoTo navigation
+  - New persistentHighlightPaths Set for multiple simultaneous highlights
+  - Both left and right panel nodes now get blue border highlighting
+  - Fixes issue where right panel node wasn't highlighted for Diff #1
+
+- Refactor GoTo navigation system with PathConverter integration
+  - Replace old goToDiff with goToDiffWithPaths-based implementation
+  - Remove 200+ lines of manual path traversal code
+  - Use pathResolution utility instead of duplicate conversion logic
+  - All numeric paths now properly associated with viewers
+
+- Clean up technical debt in JsonViewerSyncContext
+  - Remove obsolete functions: handleIdBasedSync, findNumericPathForIdBasedPath,
+    convertNumericToIdBasedPath, performDeterministicAlignment
+  - Fix function declaration order to resolve dependency issues
+  - Remove unused imports and variables
+  - Ensure strict type safety with PathTypes utilities
+
+- Create comprehensive pathResolution tests
+  - Verify correct array index resolution (contributions[0] vs contributions[1])
+  - Test edge cases and error handling
+  - Confirm PathConverter integration works correctly
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel)"  
+**Commit**: [`ed7f46b`](https://github.com/user/repo/commit/ed7f46b)  
+**Files**: docs/AAA_new_features.txt, e2e/id-key-navigation.spec.ts, e2e/responsive-test.spec.ts...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

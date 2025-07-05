@@ -142,3 +142,94 @@ export function smartPathConversion(path: string, source: string = 'unknown'): A
   // Default to IdBasedPath (superset)
   return createIdBasedPath(path);
 }
+
+// ============================================================================
+// VIEWER-SPECIFIC PATH TYPES
+// ============================================================================
+
+/**
+ * Viewer identifiers - only these two are allowed
+ */
+export type ViewerId = 'left' | 'right';
+
+/**
+ * Viewer-specific path type that MUST include viewer association
+ * Only used for numeric paths since ID-based paths are viewer-agnostic
+ * Format: "left_root.path.to.element" or "right_root.array[0].property"
+ */
+export type ViewerPath = string & { 
+  __brand: 'ViewerPath';
+  __viewer: ViewerId;
+};
+
+/**
+ * Extract viewer ID from a viewer path string
+ */
+export function extractViewerId(viewerPath: string): ViewerId | null {
+  const match = viewerPath.match(/^(left|right)_/);
+  return match ? (match[1] as ViewerId) : null;
+}
+
+/**
+ * Extract the generic path part (without viewer prefix)
+ */
+export function extractGenericPath(viewerPath: string): string {
+  return viewerPath.replace(/^(left|right)_/, '');
+}
+
+/**
+ * Type guard: check if a string is a valid viewer path
+ */
+export function isViewerPath(path: string): path is ViewerPath {
+  return /^(left|right)_/.test(path);
+}
+
+/**
+ * Create a viewer-specific path (safe constructor)
+ */
+export function createViewerPath(viewerId: ViewerId, genericPath: NumericPath): ViewerPath;
+export function createViewerPath(viewerId: ViewerId, genericPath: string): ViewerPath {
+  if (!isNumericPath(genericPath)) {
+    throw new Error(`createViewerPath: Cannot create viewer path for non-numeric path "${genericPath}". ID-based paths should remain viewer-agnostic.`);
+  }
+  const viewerPath = `${viewerId}_${genericPath}`;
+  return viewerPath as ViewerPath;
+}
+
+
+/**
+ * Safe conversion: viewer path to generic path with type preservation
+ * Since ViewerPath is only used for numeric paths, this always returns NumericPath
+ */
+export function viewerPathToGeneric(viewerPath: ViewerPath): NumericPath {
+  const genericPathString = extractGenericPath(viewerPath);
+  return createNumericPath(genericPathString);
+}
+
+/**
+ * Validate and create viewer path from potentially unsafe string
+ */
+export function validateViewerPath(path: string, source: string = 'unknown'): ViewerPath {
+  if (!path || typeof path !== 'string') {
+    throw new Error(`Invalid viewer path from ${source}: expected non-empty string, got ${typeof path}`);
+  }
+  
+  const viewerId = extractViewerId(path);
+  if (!viewerId) {
+    throw new Error(`Invalid viewer path from ${source}: must start with "left_" or "right_", got "${path}"`);
+  }
+  
+  const genericPath = extractGenericPath(path);
+  if (!genericPath) {
+    throw new Error(`Invalid viewer path from ${source}: no generic path after viewer prefix, got "${path}"`);
+  }
+  
+  return createViewerPath(viewerId, genericPath);
+}
+
+/**
+ * Unsafe conversion for legacy code (use sparingly)
+ */
+export function unsafeViewerPath(path: string): ViewerPath {
+  return path as ViewerPath;
+}

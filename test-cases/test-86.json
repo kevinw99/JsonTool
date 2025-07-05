@@ -1,0 +1,20 @@
+{
+  "id": 86,
+  "request": "update diff numbering from #7-13 to #1-7\n\nUpdated all documentation and test comments to reflect the correct diff numbering as shown in the current UI:\n\n- Diff #1: contributionType change (was #7)\n- Diffs #2-6: contribution array changes (was #8-12)\n- Diff #7: added contribution object (was #13)\n\nThis matches the simplified data structure currently loaded in the app and ensures consistent reference numbering for future development.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-05T20:19:19.394Z",
+  "testSteps": [
+    "1. Load JSON comparison view",
+    "2. Resize browser window to various sizes (mobile: 375px, tablet: 768px, desktop: 1200px)",
+    "3. Verify layout remains functional at all sizes",
+    "4. Check text alignment and overflow handling",
+    "5. Verify no horizontal scrolling on mobile",
+    "6. Test with long JSON property names"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

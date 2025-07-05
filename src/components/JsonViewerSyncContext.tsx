@@ -3,22 +3,22 @@ import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
-import type { IdBasedPath } from '../utils/PathTypes';
-import { hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes';
+import type { IdBasedPath, ViewerPath, ViewerId } from '../utils/PathTypes';
+import { hasIdBasedSegments, createIdBasedPath, createViewerPath } from '../utils/PathTypes';
 import { resolveIdBasedPathToNumeric } from '../utils/pathResolution'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
   showDiffsOnly: boolean;
   showColoredDiff: boolean;
-  expandedPaths: Set<string>; // Stores generic numeric paths (e.g., "root.some.array[0]")
+  expandedPaths: Set<ViewerPath>; // Stores viewer-specific numeric paths (e.g., "left_root.some.array[0]") - ID-based paths remain viewer-agnostic
   ignoredDiffs: Set<string>; // All effectively ignored diffs (includes patterns)
   rawIgnoredDiffs: Set<string>; // Only explicitly ignored diffs (for UI display)
   ignoredPatterns: Map<string, string>; // Map<id, pattern> for ignored patterns
   setViewMode: (mode: 'text' | 'tree') => void;
   setShowDiffsOnly: (show: boolean) => void;
   setShowColoredDiff: (show: boolean) => void;
-  toggleExpand: (path: string, sourceViewerId?: string) => void; // Can accept both numeric and ID-based paths
+  toggleExpand: (path: string, sourceViewerId?: ViewerId) => void; // Can accept both numeric and ID-based paths
   setExpandAll: (expand: boolean) => void;
   syncEnabled: boolean;
   setSyncEnabled: (enabled: boolean) => void;
@@ -77,8 +77,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
   initialShowDiffsOnly = false, 
   initialSyncEnabled = true, 
   diffResults = [], 
-  viewerId1 = "viewer1", // Default viewer IDs
-  viewerId2 = "viewer2",
+  viewerId1 = "left", // Default viewer IDs
+  viewerId2 = "right",
   jsonData, // JSON data for ID-based correlation
   idKeysUsed = [] // ID keys for path conversion
 }) => {
@@ -86,9 +86,12 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
     const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
     const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); 
-    // Initialize with a Set including the generic root path
-    const [expandedPaths, setExpandedPathsState] = useState<Set<string>>(
-      new Set(['root']) // Generic root path
+    // Initialize with a Set including the viewer-specific root paths
+    const [expandedPaths, setExpandedPathsState] = useState<Set<ViewerPath>>(
+      new Set([
+        createViewerPath('left', 'root'),
+        createViewerPath('right', 'root')
+      ])
     );
     const [syncEnabled, setSyncEnabled] = useState<boolean>(initialSyncEnabled);
     const [ignoredDiffs, setIgnoredDiffsState] = useState<Set<string>>(new Set());
@@ -148,7 +151,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     useEffect(() => {
       // Ensure "root" is expanded on initial load or changes to initialShowDiffsOnly
-      setExpandedPathsState(prev => new Set(prev).add('root')); 
+      setExpandedPathsState(prev => new Set(prev).add(createViewerPath('left', 'root')).add(createViewerPath('right', 'root'))); 
       setShowDiffsOnlyState(initialShowDiffsOnly); 
     }, [initialShowDiffsOnly]); // Dependencies simplified
 
@@ -176,7 +179,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
     }, [diffResults, jsonData, idKeysUsed]);
 
-    const toggleExpand = useCallback((path: string, sourceViewerId?: string) => {
+    const toggleExpand = useCallback((path: string, sourceViewerId?: ViewerId) => {
       console.log(`[JsonViewerSyncContext toggleExpand] Simple path: "${path}"`);
       
       if (!sourceViewerId) {
@@ -196,7 +199,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       // Convert to numeric path for consistent storage
       let sourceNumericPath = genericPath;
       if (hasIdBasedSegment && jsonData && idKeysUsed) {
-        const sourceData = sourceViewerId === 'viewer1' ? jsonData.left : jsonData.right;
+        const sourceData = sourceViewerId === 'left' ? jsonData.left : jsonData.right;
         const sourceContext: PathConversionContext = { jsonData: sourceData, idKeysUsed: idKeysUsed };
         
         try {
@@ -215,7 +218,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
       
       // Create viewer-specific path for storage (always numeric)
-      const viewerSpecificPath = `${sourceViewerId}_${sourceNumericPath}`;
+      const viewerSpecificPath = createViewerPath(sourceViewerId, sourceNumericPath);
       console.log(`[JsonViewerSyncContext toggleExpand] Viewer-specific path: "${viewerSpecificPath}"`);
       
       // Always toggle expansion for the source viewer's path
@@ -235,20 +238,20 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         // Sync to other viewer (for both simple and ID-based paths)
         if (syncEnabled) {
-          const otherViewerId = sourceViewerId === 'viewer1' ? 'viewer2' : 'viewer1';
+          const otherViewerId = sourceViewerId === 'left' ? 'right' : 'left';
           
           if (hasIdBasedSegment && jsonData && idKeysUsed) {
             // Handle ID-based path sync (existing logic)
             console.log(`[JsonViewerSyncContext toggleExpand] 🎯 ID-based sync: Finding corresponding path in other viewer`);
             
-            const sourceData = sourceViewerId === 'viewer1' ? jsonData.left : jsonData.right;
-            const otherData = otherViewerId === 'viewer1' ? jsonData.left : jsonData.right;
+            const sourceData = sourceViewerId === 'left' ? jsonData.left : jsonData.right;
+            const otherData = otherViewerId === 'left' ? jsonData.left : jsonData.right;
             
             console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Data selection debug:`);
             console.log(`[JsonViewerSyncContext toggleExpand] 🔍 sourceViewerId: ${sourceViewerId}`);
             console.log(`[JsonViewerSyncContext toggleExpand] 🔍 otherViewerId: ${otherViewerId}`);
-            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using sourceData: ${sourceViewerId === 'viewer1' ? 'LEFT' : 'RIGHT'}`);
-            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using otherData: ${otherViewerId === 'viewer1' ? 'LEFT' : 'RIGHT'}`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using sourceData: ${sourceViewerId === 'left' ? 'LEFT' : 'RIGHT'}`);
+            console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using otherData: ${otherViewerId === 'left' ? 'LEFT' : 'RIGHT'}`);
             
             // Use PathConverter to find corresponding numeric path in other viewer
             const otherContext: PathConversionContext = { jsonData: otherData, idKeysUsed: idKeysUsed };
@@ -264,7 +267,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               
               // If we found a corresponding path in the other viewer, create viewer-specific path and toggle it
               if (otherNumericPath) {
-                const otherViewerSpecificPath = `${otherViewerId}_${otherNumericPath}`;
+                const otherViewerSpecificPath = createViewerPath(otherViewerId, otherNumericPath);
                 console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Other viewer-specific path: "${otherViewerSpecificPath}"`);
                 
                 if (wasExpanded) {
@@ -283,7 +286,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           } else {
             // Handle simple path sync (new logic)
             console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Simple path sync: Adding corresponding path in other viewer`);
-            const otherViewerSpecificPath = `${otherViewerId}_${sourceNumericPath}`;
+            const otherViewerSpecificPath = createViewerPath(otherViewerId, sourceNumericPath);
             console.log(`[JsonViewerSyncContext toggleExpand] 🎯 Other viewer simple path: "${otherViewerSpecificPath}"`);
             
             if (wasExpanded) {
@@ -305,12 +308,18 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         // Placeholder for full expansion logic
         // console.log("[JsonViewerSyncContext] setExpandAll(true) - full expansion not yet implemented");
         // For now, can iterate diffResults and add all unique ID-based paths and their ancestors
-        const allPathsToExpand = new Set<string>(['root']);
+        const allPathsToExpand = new Set<ViewerPath>();
+        
+        // Add root for both viewers
+        allPathsToExpand.add(createViewerPath('left', 'root'));
+        allPathsToExpand.add(createViewerPath('right', 'root'));
+        
         diffResults.forEach(diff => {
           if (diff.idBasedPath) {
             // Add the diff path itself with viewer prefixes
-            allPathsToExpand.add(`viewer1_${diff.idBasedPath}`);
-            allPathsToExpand.add(`viewer2_${diff.idBasedPath}`);
+            allPathsToExpand.add(createViewerPath('left', diff.idBasedPath));
+            allPathsToExpand.add(createViewerPath('right', diff.idBasedPath));
+            
             // Add all its ancestors
             let currentPath = diff.idBasedPath;
             while (currentPath.includes('.') || currentPath.includes('[')) {
@@ -319,13 +328,12 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               const parentEndIndex = Math.max(lastDot, lastBracket);
               if (parentEndIndex > -1) {
                 currentPath = currentPath.substring(0, parentEndIndex);
-                if (currentPath && currentPath !== 'root') { // Avoid adding empty string or re-adding root if path was like "root.foo"
-                    allPathsToExpand.add(`viewer1_${currentPath}`);
-                    allPathsToExpand.add(`viewer2_${currentPath}`);
+                if (currentPath && currentPath !== 'root') {
+                    allPathsToExpand.add(createViewerPath('left', currentPath));
+                    allPathsToExpand.add(createViewerPath('right', currentPath));
                 } else if (currentPath === 'root') {
-                    allPathsToExpand.add('viewer1_root');
-                    allPathsToExpand.add('viewer2_root');
-                    break; // Reached root
+                    // Already added root paths above
+                    break;
                 }
               } else {
                 break; // No more parents
@@ -336,7 +344,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setExpandedPathsState(allPathsToExpand);
 
       } else {
-        setExpandedPathsState(new Set(['root'])); // Collapse to root
+        setExpandedPathsState(new Set([createViewerPath('left', 'root'), createViewerPath('right', 'root')])); // Collapse to root
       }
     }, [diffResults]); // Dependency on diffResults for expansion logic
 
@@ -453,8 +461,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         // Expand and navigate both viewers simultaneously
         setExpandedPathsState(currentExpandedPaths => {
-          const newExpandedPaths = new Set<string>(currentExpandedPaths);
-          newExpandedPaths.add('root'); // Ensure root is always expanded
+          const newExpandedPaths = new Set<ViewerPath>(currentExpandedPaths);
+          newExpandedPaths.add(createViewerPath('left', 'root')); // Ensure root is always expanded
+          newExpandedPaths.add(createViewerPath('right', 'root'));
           
           // Helper function to add expansion paths for a given viewer and path
           const addExpansionPaths = (viewerPrefix: string, numericPath: string) => {
@@ -470,15 +479,15 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               } else {
                 currentPath += `.${segment}`;
               }
-              const viewerPath = `${viewerPrefix}_${currentPath}`;
+              const viewerPath = createViewerPath(viewerPrefix as ViewerId, currentPath);
               newExpandedPaths.add(viewerPath);
               console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
             }
           };
           
           // Add expansion paths for both viewers
-          addExpansionPaths('viewer1', leftPathWithRoot);
-          addExpansionPaths('viewer2', rightPathWithRoot);
+          addExpansionPaths('left', leftPathWithRoot);
+          addExpansionPaths('right', rightPathWithRoot);
           
           return newExpandedPaths;
         });
@@ -521,7 +530,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       console.log('[goToDiff] 🎯 Single path navigation:', pathToExpand);
       
       // Check if this is an ID-based path using PathTypes utility
-      const isIdPath = hasIdBasedSegments(pathToExpand);
+      const isIdPath = hasIdBasedSegments(createIdBasedPath(pathToExpand));
       
       if (isIdPath && jsonData && idKeysUsed) {
         // Convert ID-based path to numeric paths for both viewers
@@ -577,11 +586,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       console.log('[syncToCounterpart] 🎯 Input:', nodePath, 'from', viewerId);
       
       // Normalize the path to remove viewer-specific prefix
-      let normalizedPath = nodePath.replace(/^root_(viewer1|viewer2)_/, '');
+      let normalizedPath = nodePath.replace(/^root_(left|right)_/, '');
       console.log('[syncToCounterpart] 📍 Normalized path:', normalizedPath);
       
       // Check if this is an ID-based path
-      const isIdPath = hasIdBasedSegments(normalizedPath);
+      const isIdPath = hasIdBasedSegments(createIdBasedPath(normalizedPath));
       
       if (isIdPath && jsonData && idKeysUsed) {
         console.log('[syncToCounterpart] 🔍 ID-based path detected - using path resolution');

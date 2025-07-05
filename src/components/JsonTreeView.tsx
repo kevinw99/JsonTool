@@ -6,8 +6,8 @@ import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
-import type { IdBasedPath } from '../utils/PathTypes';
-import { createIdBasedPath } from '../utils/PathTypes';
+import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
+import { createIdBasedPath, createViewerPath } from '../utils/PathTypes';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -122,13 +122,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   // Calculate the generic numeric path for this node, to be used with context state (expandedPaths, highlightPath)
   const genericNumericPathForNode = useMemo(() => {
-    // 1. Strip viewer-specific prefix (e.g., "root_viewer1_" or "root_viewer2_") to get a base path.
-    let basePath = path.replace(/^root_(viewer1|viewer2)_/, '');
+    // 1. Strip viewer-specific prefix (e.g., "root_left_" or "root_right_") to get a base path.
+    let basePath = path.replace(/^root_(left|right)_/, '');
 
     // 2. Convert ID-based array indices to numeric indices using PathConverter
     if (basePath.includes('[id=')) {
       // Get JSON data and ID keys from context for PathConverter
-      const jsonData = viewerId === 'viewer1' ? 
+      const jsonData = viewerId === 'left' ? 
         (context as any)?.jsonData?.left : 
         (context as any)?.jsonData?.right;
       const idKeysUsed = (context as any)?.idKeysUsed;
@@ -205,7 +205,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   const isExpanded = (() => {
     // Check viewer-specific path expansion state
-    const viewerSpecificPath = `${viewerId}_${genericNumericPathForNode}`;
+    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, genericNumericPathForNode);
     const expanded = expandedPaths.has(viewerSpecificPath);
     
     // Explicit logging for contributions nodes
@@ -303,7 +303,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     // Use the original path (with ID-based brackets) for highlighting
     // Strip the viewer prefix to match diff path format
-    let pathForHighlighting = path.replace(/^root_(viewer1|viewer2)_/, '');
+    let pathForHighlighting = path.replace(/^root_(left|right)_/, '');
     if (pathForHighlighting.startsWith('root.')) {
       pathForHighlighting = pathForHighlighting.substring(5); // Remove "root."
     } else if (pathForHighlighting === 'root') {
@@ -397,7 +397,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   const toggleExpansion = (e: React.MouseEvent) => {
     e.stopPropagation();
     console.log(`[JsonNode VId:${viewerId}] Toggling expansion for path: "${path}"`);
-    toggleExpand(path, viewerId);
+    toggleExpand(path, viewerId as ViewerId);
     if (onNodeToggle) {
         onNodeToggle(path);
     }
@@ -922,8 +922,8 @@ const debugNodeInfo = (nodeData: {
     console.log('🎯 Correlation Target Analysis:', {
       shouldCorrelateByPosition: isArraySorted,
       currentDisplayPosition: currentIndex,
-      targetSide: nodeData.viewerId === 'viewer1' ? 'viewer2' : 'viewer1',
-      expectedTargetPath: `root_${nodeData.viewerId === 'viewer1' ? 'viewer2' : 'viewer1'}_${arrayPath}[${currentIndex}]${afterArrayPath || ''}`,
+      targetSide: nodeData.viewerId === 'left' ? 'right' : 'left',
+      expectedTargetPath: `root_${nodeData.viewerId === 'left' ? 'right' : 'left'}_${arrayPath}[${currentIndex}]${afterArrayPath || ''}`,
       correlationStrategy: isArraySorted ? 'POSITIONAL (after sorting both sides)' : 'ID-BASED (preserve original mapping)',
       actualNumericIndexMissing: nodeData.actualNumericIndex === undefined,
       troubleshootingNote: nodeData.actualNumericIndex === undefined ? 

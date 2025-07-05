@@ -1,0 +1,28 @@
+{
+  "id": 87,
+  "request": "implement dual highlighting and clean up GoTo navigation\n\n- Add dual-path highlighting support for GoTo navigation\n  - New persistentHighlightPaths Set for multiple simultaneous highlights\n  - Both left and right panel nodes now get blue border highlighting\n  - Fixes issue where right panel node wasn't highlighted for Diff #1\n\n- Refactor GoTo navigation system with PathConverter integration\n  - Replace old goToDiff with goToDiffWithPaths-based implementation\n  - Remove 200+ lines of manual path traversal code\n  - Use pathResolution utility instead of duplicate conversion logic\n  - All numeric paths now properly associated with viewers\n\n- Clean up technical debt in JsonViewerSyncContext\n  - Remove obsolete functions: handleIdBasedSync, findNumericPathForIdBasedPath,\n    convertNumericToIdBasedPath, performDeterministicAlignment\n  - Fix function declaration order to resolve dependency issues\n  - Remove unused imports and variables\n  - Ensure strict type safety with PathTypes utilities\n\n- Create comprehensive pathResolution tests\n  - Verify correct array index resolution (contributions[0] vs contributions[1])\n  - Test edge cases and error handling\n  - Confirm PathConverter integration works correctly\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-05T23:25:05.304Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}
