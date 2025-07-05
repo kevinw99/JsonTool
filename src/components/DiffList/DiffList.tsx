@@ -110,24 +110,45 @@ export const DiffList: React.FC<DiffListProps> = ({
 
   // Helper function to get parent array path for better expansion
   const getParentArrayPath = (fullPath: string): string | null => {
-    // For paths like "root.a.b[1].c[2].d", we want to return "root.a.b[1].c"
     // For "root.accountParams[1].contributions[0].contributionType", we want "root.accountParams[1].contributions"
+    // Strategy: Remove the last property and the array index before it
     
-    // Find the last property after an array index
+    console.log('[DiffList] 🔍 Getting parent path for:', fullPath);
+    
     const segments = fullPath.split('.');
+    console.log('[DiffList] 🔍 Segments:', segments);
     
-    // Work backwards to find the last array segment before a property
+    // Find the last segment that's a simple property (no brackets)
     for (let i = segments.length - 1; i >= 0; i--) {
-      if (!segments[i].includes('[')) {
-        // This is a property, check if the previous segment is an array
-        if (i > 0 && segments[i - 1].includes('[')) {
-          // The previous segment is the array we need to expand
-          return segments.slice(0, i).join('.');
+      const segment = segments[i];
+      console.log(`[DiffList] 🔍 Checking segment ${i}: "${segment}"`);
+      
+      if (!segment.includes('[') && !segment.includes(']')) {
+        console.log(`[DiffList] 🔍 Found property segment: "${segment}"`);
+        
+        // This is a property, now check if the previous segment is an array element
+        if (i > 0) {
+          const prevSegment = segments[i - 1];
+          console.log(`[DiffList] 🔍 Previous segment: "${prevSegment}"`);
+          
+          if (prevSegment.includes('[') && prevSegment.includes(']')) {
+            // Previous segment is an array element like "contributions[0]"
+            // Extract just the array name by removing the [index] part
+            const arrayName = prevSegment.replace(/\[.*\]$/, '');
+            console.log(`[DiffList] 🔍 Array name: "${arrayName}"`);
+            
+            // Build parent path: everything up to i-1, but replace the last segment with just the array name
+            const parentSegments = segments.slice(0, i - 1).concat([arrayName]);
+            const parentPath = parentSegments.join('.');
+            console.log(`[DiffList] ✅ Parent path: "${parentPath}"`);
+            return parentPath;
+          }
         }
       }
     }
     
-    return null; // No parent array found
+    console.log('[DiffList] ❌ No parent array found');
+    return null;
   };
 
   // Helper function to find numeric path for an ID-based path in a specific JSON viewer
