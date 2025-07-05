@@ -77,13 +77,28 @@ export const DiffList: React.FC<DiffListProps> = ({
       const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
       const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
       
-      // Use simpler direct navigation to first expand paths, then highlight
-      goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
-      
-      // After a short delay, highlight both elements manually
-      setTimeout(() => {
-        highlightBothElements(leftPathWithRoot, rightPathWithRoot);
-      }, 500);
+      // First, expand to the parent array to ensure it's available
+      const parentPath = getParentArrayPath(leftPathWithRoot);
+      if (parentPath) {
+        console.log('[DiffList] 📂 Expanding parent array first:', parentPath);
+        goToDiff(validateAndCreateNumericPath(parentPath, 'DiffResult.parentPath'));
+        
+        // Then navigate to the actual target after parent is expanded
+        setTimeout(() => {
+          goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
+          
+          // Finally highlight both elements
+          setTimeout(() => {
+            highlightBothElements(leftPathWithRoot, rightPathWithRoot);
+          }, 500);
+        }, 800);
+      } else {
+        // No parent array, navigate directly
+        goToDiff(validateAndCreateNumericPath(leftPathWithRoot, 'DiffResult.leftPath'));
+        setTimeout(() => {
+          highlightBothElements(leftPathWithRoot, rightPathWithRoot);
+        }, 500);
+      }
       
     } else {
       // Fallback to simple numeric path
@@ -91,6 +106,25 @@ export const DiffList: React.FC<DiffListProps> = ({
       const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
       goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.numericPath fallback'));
     }
+  };
+
+  // Helper function to get parent array path for better expansion
+  const getParentArrayPath = (fullPath: string): string | null => {
+    // For paths like "root.a.b[1].c[2].d", we want to return "root.a.b[1].c"
+    // This ensures the parent array is expanded before trying to find the specific element
+    const segments = fullPath.split('.');
+    
+    // Find the last segment that contains an array index
+    for (let i = segments.length - 1; i >= 0; i--) {
+      if (segments[i].includes('[') && segments[i].includes(']')) {
+        // This segment has an array index, so the parent path is everything before the next property
+        if (i < segments.length - 1) {
+          return segments.slice(0, i + 1).join('.');
+        }
+      }
+    }
+    
+    return null; // No parent array found
   };
 
   // Helper function to find numeric path for an ID-based path in a specific JSON viewer
