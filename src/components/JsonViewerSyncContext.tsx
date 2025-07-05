@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
-import { buildHighlightingMaps, debugHighlightingInfo, type HighlightingInfo } from '../utils/HighlightingProcessor'; 
+import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
+import { convertIndexPathToIdPath, type PathConversionContext } from '../utils/PathConverter';
+import type { NumericPath, IdBasedPath } from '../utils/PathTypes';
+import { unsafeNumericPath, validateAndCreateNumericPath } from '../utils/PathTypes'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -25,21 +28,21 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   removeIgnoredPattern: (id: string) => void;
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: string) => boolean;
-  goToDiff: (diffPath: string) => void; 
-  highlightPath: string | null;
+  goToDiff: (diffPath: NumericPath) => void; // Diff paths are always numeric paths from jsonCompare
+  highlightPath: string | null; // Keep as string for compatibility with existing Set<string> operations
   setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
   persistentHighlightPath: string | null; // New property for persistent border highlighting
   setPersistentHighlightPath: (path: string | null) => void;
   clearAllIgnoredDiffs: () => void;
   diffResults: DiffResult[]; 
-  highlightingInfo: HighlightingInfo | null; // New: preprocessed highlighting maps
+  highlightingProcessor: NewHighlightingProcessor | null; // New: PathConverter-based highlighting processor
   viewerId1: string; // Still needed for root path construction if JsonNode needs it initially, though generic paths are preferred
   viewerId2: string; 
   toggleShowDiffsOnly: () => void;
   // Context menu actions
   forceSortedArrays: Set<string>; // Paths of arrays that should be forcibly sorted
   toggleArraySorting: (arrayPath: string) => void;
-  syncToCounterpart: (nodePath: string, viewerId: string) => void;
+  syncToCounterpart: (nodePath: IdBasedPath, viewerId: string) => void; // Receives ID-based paths from JsonTreeView
   // Manual sync control functions
   disableSyncScrolling: () => void;
   enableSyncScrolling: () => void;
@@ -115,8 +118,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
     const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
     
-    // New: State for preprocessed highlighting information
-    const [highlightingInfo, setHighlightingInfo] = useState<HighlightingInfo | null>(null);
+    // New: State for PathConverter-based highlighting processor
+    const [highlightingProcessor, setHighlightingProcessor] = useState<NewHighlightingProcessor | null>(null);
 
     // Context menu related state
     const [forceSortedArrays, setForceSortedArraysState] = useState<Set<string>>(new Set());
@@ -155,29 +158,22 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       syncScrollRef.current = syncEnabled;
     }, [syncEnabled]);
 
-    // New: Build highlighting maps when diffResults change
+    // New: Create highlighting processor when diffResults change
     useEffect(() => {
       if (diffResults && diffResults.length > 0) {
-        // Create context for path conversion
-        const context = {
-          jsonData: jsonData?.left || jsonData?.right,
-          idKeysUsed: idKeysUsed
-        };
-        const info = buildHighlightingMaps(diffResults, context);
-        setHighlightingInfo(info);
+        const processor = new NewHighlightingProcessor(diffResults);
+        setHighlightingProcessor(processor);
         
         // Enhanced debug logging
-        console.log('🎨 Built highlighting info:', {
-          exactDiffs: info.exactDiffs.size,
-          parentContainers: info.parentContainers.size,
-          addedPaths: info.addedPaths.size,
-          changedPaths: info.changedPaths.size
+        console.log('🎨 Created new highlighting processor:', {
+          totalDiffs: diffResults.length,
+          diffTypes: diffResults.reduce((acc, diff) => {
+            acc[diff.type] = (acc[diff.type] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
         });
-        
-        // Uncomment for detailed debugging
-        // debugHighlightingInfo(info);
       } else {
-        setHighlightingInfo(null);
+        setHighlightingProcessor(null);
       }
     }, [diffResults, jsonData, idKeysUsed]);
 
@@ -322,7 +318,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    const goToDiff = useCallback((numericPathToExpand: string) => {
+    const goToDiff = useCallback((numericPathToExpand: NumericPath) => {
       console.log(`[goToDiff] 🎯 Called for path: "${numericPathToExpand}"`);
       
       // For array paths from ID Keys, we typically want to highlight the array itself
@@ -346,7 +342,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           newExpandedPaths.add('root'); // Ensure root is always expanded
 
           const segments: string[] = [];
-          let remainingPath = numericPathToExpand;
+          let remainingPath: string = numericPathToExpand; // Internal string manipulation
           let baseIsRoot = false;
 
           if (remainingPath.startsWith('root')) {
@@ -438,14 +434,50 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             console.log(`[JsonViewerSyncContext goToDiff] 🔄 Scroll attempt ${attempt}/${maxAttempts}`);
             
             // Try multiple selectors to find the target element
-            // Include viewer-specific paths since DOM elements have viewer prefixes
-            const selectors = [
+            // Include both numeric and ID-based path formats
+            const selectors: string[] = [
+              // Try numeric paths first
               `[data-path="${pathWithRoot}"]`,
               `[data-path="${targetPath}"]`,
               `[data-path="root_viewer1_${pathWithRoot}"]`,
               `[data-path="root_viewer2_${pathWithRoot}"]`,
               `[data-path="root_viewer1_${targetPath}"]`,
-              `[data-path="root_viewer2_${targetPath}"]`,
+              `[data-path="root_viewer2_${targetPath}"]`
+            ];
+
+            // Try to convert numeric path to ID-based path for both viewers
+            if (jsonData && idKeysUsed) {
+              for (const viewer of ['viewer1', 'viewer2']) {
+                const viewerData = viewer === 'viewer1' ? jsonData.left : jsonData.right;
+                if (viewerData) {
+                  const pathContext: PathConversionContext = {
+                    jsonData: viewerData,
+                    idKeysUsed: idKeysUsed
+                  };
+                  
+                  // Convert numeric path to ID-based path
+                  const idBasedPath = convertIndexPathToIdPath(unsafeNumericPath(targetPath), pathContext, { 
+                    targetViewer: viewer,
+                    preservePrefix: true 
+                  });
+                  
+                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 ${viewer} conversion: "${targetPath}" → "${idBasedPath}"`);
+                  
+                  if (idBasedPath && String(idBasedPath) !== String(targetPath)) {
+                    // Add ID-based selectors
+                    selectors.push(`[data-path="${idBasedPath}"]`);
+                    if (idBasedPath.startsWith('root.')) {
+                      selectors.push(`[data-path="root_${viewer}_${idBasedPath}"]`);
+                    } else {
+                      selectors.push(`[data-path="root_${viewer}_root.${idBasedPath}"]`);
+                    }
+                  }
+                }
+              }
+            }
+
+            // Add fallback selectors
+            selectors.push(
               `[data-numeric-path="${pathWithRoot}"]`,
               `[data-numeric-path="${targetPath}"]`,
               `[data-generic-path="${pathWithRoot}"]`,
@@ -454,7 +486,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               `.json-node[data-path="${targetPath}"]`,
               `.json-node[data-path*="${pathWithRoot}"]`,
               `.json-node[data-path*="${targetPath}"]`
-            ];
+            );
             
             let targetElement = null;
             for (const selector of selectors) {
@@ -665,7 +697,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         }, 1200); // Increased delay to ensure DOM updates and expansions complete
       }, 50); // A small delay to ensure re-triggering.
 
-    }, [setHighlightPathState]); // Dependencies simplified
+    }, [setHighlightPathState, jsonData, idKeysUsed]); // Added jsonData and idKeysUsed for path conversion
 
     const toggleShowDiffsOnly = useCallback(() => {
         setShowDiffsOnlyState(prev => !prev);
@@ -684,7 +716,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       });
     }, []);
 
-    const syncToCounterpart = useCallback((nodePath: string, viewerId: string) => {
+    const syncToCounterpart = useCallback((nodePath: IdBasedPath, viewerId: string) => {
       console.log('[HIGHLIGHT] 🎯 Sync to Counterpart - Input:', nodePath, 'from', viewerId);
       
       // Normalize the path to remove viewer-specific prefix
@@ -693,13 +725,13 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Check if we have JSON data for ID-based correlation
       if (jsonData) {
-        console.log('[HIGHLIGHT] 🔍 Converting numeric to display path for correlation');
-        // Convert numeric path to display path
-        const displayPath = convertNumericToDisplayPath(normalizedPath, jsonData.left);
-        if (displayPath && displayPath !== normalizedPath && displayPath.includes('[') && displayPath.includes('=')) {
+        console.log('[HIGHLIGHT] 🔍 Converting numeric to ID-based path for correlation');
+        // Convert numeric path to ID-based path
+        const idBasedPath = convertNumericToIdBasedPath(normalizedPath, jsonData.left);
+        if (idBasedPath && idBasedPath !== normalizedPath && idBasedPath.includes('[') && idBasedPath.includes('=')) {
           console.log('[Context] 🔍 Found ID-based elements - using smart correlation');
-          console.log('[Context] 📍 Display path:', displayPath);
-          handleIdBasedSync(displayPath, viewerId);
+          console.log('[Context] 📍 ID-based path:', idBasedPath);
+          handleIdBasedSync(idBasedPath, viewerId);
         } else {
           console.log('[Context] 📍 No ID-based elements found - using simple approach');
           simpleSyncToCounterpart(normalizedPath);
@@ -712,10 +744,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, [jsonData]);
 
     // Helper function to convert numeric path to display path with ID keys
-    const convertNumericToDisplayPath = useCallback((numericPath: string, jsonData: any): string => {
+    const convertNumericToIdBasedPath = useCallback((numericPath: string, jsonData: any): string => {
       if (!jsonData) return numericPath;
       
-      console.log('[Context] 🔄 Converting numeric path to display path:', numericPath);
+      console.log('[Context] 🔄 Converting numeric path to ID-based path:', numericPath);
       console.log('[Context] 🔄 JSON data keys:', Object.keys(jsonData));
       
       // Remove "root." prefix if present
@@ -724,7 +756,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       const segments = cleanPath.split('.');
       let currentData = jsonData;
-      let displayPath = '';
+      let idBasedPath = '';
       
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
@@ -740,8 +772,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           if (arrayName) {
             // Named array: "arrayName[index]"
-            if (displayPath) displayPath += '.';
-            displayPath += arrayName;
+            if (idBasedPath) idBasedPath += '.';
+            idBasedPath += arrayName;
             
             // Navigate to array
             if (!currentData || typeof currentData !== 'object' || !(arrayName in currentData)) {
@@ -776,23 +808,23 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             
             if (foundIdKey && foundIdValue !== null) {
               // Use ID-based path segment
-              displayPath += `[${foundIdKey}=${String(foundIdValue)}]`;
+              idBasedPath += `[${foundIdKey}=${String(foundIdValue)}]`;
               console.log(`[Context] 🔍 Found ID key "${foundIdKey}" with value "${foundIdValue}" for array ${arrayName}`);
             } else {
               // Fallback to numeric index
-              displayPath += `[${index}]`;
+              idBasedPath += `[${index}]`;
               console.log(`[Context] 📍 No ID key found for array ${arrayName}, using numeric index`);
             }
           } else {
             // Fallback to numeric index
-            displayPath += `[${index}]`;
+            idBasedPath += `[${index}]`;
           }
           
           currentData = currentData[index];
         } else {
           // Handle simple property access
-          if (displayPath) displayPath += '.';
-          displayPath += segment;
+          if (idBasedPath) idBasedPath += '.';
+          idBasedPath += segment;
           
           if (currentData && typeof currentData === 'object') {
             currentData = currentData[segment];
@@ -800,19 +832,19 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         }
       }
       
-      console.log('[Context] ✅ Converted to display path:', displayPath);
-      return displayPath;
+      console.log('[Context] ✅ Converted to ID-based path:', idBasedPath);
+      return idBasedPath;
     }, []);
 
     // Helper function for ID-based sync correlation
-    const handleIdBasedSync = useCallback((displayPath: string, sourceViewerId: string) => {
-      console.log('[Context] 🔍 Starting ID-based sync for:', displayPath);
+    const handleIdBasedSync = useCallback((idBasedPath: string, sourceViewerId: string) => {
+      console.log('[Context] 🔍 Starting ID-based sync for:', idBasedPath);
       
       // Step 1: Find the corresponding numeric path in LEFT viewer
-      const leftNumericPath = findNumericPathForDisplayPath(displayPath, 'left');
+      const leftNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'left');
       
       // Step 2: Find the corresponding numeric path in RIGHT viewer  
-      const rightNumericPath = findNumericPathForDisplayPath(displayPath, 'right');
+      const rightNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'right');
       
       console.log('[Context] 🎯 Sync results:');
       console.log('[Context] 🎯 LEFT numeric path:', leftNumericPath);
@@ -833,13 +865,13 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
       } else {
         console.log('[Context] ❌ Could not find both paths - falling back to simple sync');
-        simpleSyncToCounterpart(displayPath);
+        simpleSyncToCounterpart(idBasedPath);
       }
     }, [jsonData]);
 
-    // Helper function to find numeric path for a display path in a specific JSON viewer
-    const findNumericPathForDisplayPath = useCallback((displayPath: string, side: 'left' | 'right'): string | null => {
-      console.log(`[Context] 🔍 ${side.toUpperCase()} - Searching for:`, displayPath);
+    // Helper function to find numeric path for an ID-based path in a specific JSON viewer
+    const findNumericPathForIdBasedPath = useCallback((idBasedPath: string, side: 'left' | 'right'): string | null => {
+      console.log(`[Context] 🔍 ${side.toUpperCase()} - Searching for:`, idBasedPath);
       
       if (!jsonData) {
         console.log(`[Context] ❌ No JSON data available`);
@@ -853,7 +885,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
       
       try {
-        const numericPath = traverseJsonByDisplayPath(targetData, displayPath);
+        const numericPath = traverseJsonByIdBasedPath(targetData, idBasedPath);
         console.log(`[Context] ✅ ${side.toUpperCase()} found:`, numericPath);
         return numericPath;
       } catch (error) {
@@ -862,10 +894,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
     }, [jsonData]);
 
-    // Helper function to traverse JSON and convert display path to numeric path
-    const traverseJsonByDisplayPath = useCallback((data: any, displayPath: string): string | null => {
-      // Parse display path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributionType"
-      const segments = displayPath.split('.');
+    // Helper function to traverse JSON and convert ID-based path to numeric path
+    const traverseJsonByIdBasedPath = useCallback((data: any, idBasedPath: string): string | null => {
+      // Parse ID-based path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributionType"
+      const segments = idBasedPath.split('.');
       
       let currentData = data;
       let numericPath = '';
@@ -962,12 +994,12 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Step 1: Expand and scroll to LEFT path first
       console.log('[Context] 📂 Step 1: Using goToDiff for LEFT path expansion');
-      goToDiff(leftPath);
+      goToDiff(validateAndCreateNumericPath(leftPath, 'performDeterministicAlignment.leftPath'));
       
       // Step 2: Expand RIGHT path as well (to ensure both are expanded)
       setTimeout(() => {
         console.log('[Context] 📂 Step 2: Using goToDiff for RIGHT path expansion');
-        goToDiff(rightPath);
+        goToDiff(validateAndCreateNumericPath(rightPath, 'performDeterministicAlignment.rightPath'));
         
         // Step 3: After both expansions, manually highlight elements with perfect alignment
         setTimeout(() => {
@@ -1096,7 +1128,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       disableSyncScrolling();
       
       // First, highlight the target node in both viewers
-      goToDiff(normalizedPath);
+      goToDiff(validateAndCreateNumericPath(normalizedPath, 'simpleSyncToCounterpart.normalizedPath'));
       
       // Use a more aggressive approach with multiple alignment attempts
       const performAlignment = (attempt: number = 1) => {
@@ -1419,7 +1451,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setPersistentHighlightPath,
         clearAllIgnoredDiffs,
         diffResults,
-        highlightingInfo, // New: preprocessed highlighting maps
+        highlightingProcessor, // New: PathConverter-based highlighting processor
         viewerId1, 
         viewerId2,
         toggleShowDiffsOnly,
@@ -1461,7 +1493,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         setPersistentHighlightPath,
         clearAllIgnoredDiffs,
         diffResults,
-        highlightingInfo, // New dependency
+        highlightingProcessor, // New dependency
         viewerId1,
         viewerId2,
         toggleShowDiffsOnly,

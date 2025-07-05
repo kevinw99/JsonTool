@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
+import { validateAndCreateNumericPath } from '../utils/PathTypes';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
@@ -107,10 +108,10 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     });
   };
 
-  const buildNumericPath = (displayPath: string): string => {
+  const buildNumericPath = (idBasedPath: string): string => {
     
     // Remove the trailing [] to get the path to the array container
-    let targetPath = displayPath;
+    let targetPath = idBasedPath;
     if (targetPath.endsWith('[]')) {
       targetPath = targetPath.slice(0, -2);
     }
@@ -165,7 +166,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     setPersistentHighlightPath(numericPath);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(numericPath);
+    goToDiff(validateAndCreateNumericPath(numericPath, 'IdKeysPanel.arrayPath'));
   };
 
   const handleOccurrenceClick = (originalPath: string) => {
@@ -184,7 +185,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     setPersistentHighlightPath(numericPath);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(numericPath);
+    goToDiff(validateAndCreateNumericPath(numericPath, 'IdKeysPanel.arrayPath'));
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {

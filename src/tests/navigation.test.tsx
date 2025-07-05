@@ -206,17 +206,17 @@ describe('Navigation Feature Tests', () => {
       // Test clicking on different ID key paths
       const testCases = [
         {
-          displayPath: 'boomerForecastV3Requests.household.accounts[]',
+          idBasedPath: 'boomerForecastV3Requests.household.accounts[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].household.accounts',
           description: 'simple nested array'
         },
         {
-          displayPath: 'boomerForecastV3Requests.household.jobs[]',
+          idBasedPath: 'boomerForecastV3Requests.household.jobs[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].household.jobs',
           description: 'another simple nested array'
         },
         {
-          displayPath: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
+          idBasedPath: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].parameters.accountParams[0].contributions',
           description: 'deeply nested array with intermediate arrays'
         }
@@ -224,7 +224,7 @@ describe('Navigation Feature Tests', () => {
 
       for (const testCase of testCases) {
         // Find the clickable path element
-        const pathElement = screen.getByText(testCase.displayPath);
+        const pathElement = screen.getByText(testCase.idBasedPath);
         expect(pathElement).toBeInTheDocument();
 
         // Click on the path

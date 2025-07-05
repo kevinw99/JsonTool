@@ -5,8 +5,9 @@ import { JsonViewerSyncContext } from './JsonViewerSyncContext';
 import { ContextMenu } from './ContextMenu/ContextMenu';
 import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
-import { getDiffHighlightingClass } from '../utils/HighlightingProcessor';
-import { type PathConversionContext, normalizePathForComparison } from '../utils/PathConverter';
+import { type PathConversionContext } from '../utils/PathConverter';
+import type { IdBasedPath } from '../utils/PathTypes';
+import { createIdBasedPath } from '../utils/PathTypes';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -49,7 +50,7 @@ export const getItemPathSuffix = (item: JsonValue, index: number, idKey: string 
 
 interface JsonNodeProps {
   data: JsonValue;
-  path: string; 
+  path: IdBasedPath; // Paths in JsonTreeView are always ID-based (may include [id=value] segments)
   level: number;
   viewerId: string;
   nodeKey?: string; 
@@ -58,7 +59,7 @@ interface JsonNodeProps {
   idKeySetting: string | null; 
   actualNumericIndex?: number; // Added to store the true numeric index for array items
   showDiffsOnly?: boolean; // Added prop
-  onNodeToggle?: (path: string) => void; // Added prop
+  onNodeToggle?: (path: IdBasedPath) => void; // Updated to use strict type
   isCompareMode?: boolean; // Added prop to indicate if we're comparing two files
 }
 
@@ -96,7 +97,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     highlightPath, // Assumed to be numerically indexed for array segments from context
     persistentHighlightPath, // For persistent border highlighting
     diffResults: diffResultsData,
-    highlightingInfo, // New: preprocessed highlighting maps
+    highlightingProcessor, // New: PathConverter-based highlighting processor
     showDiffsOnly: showDiffsOnlyContext, 
     ignoredDiffs,
     forceSortedArrays, // New property for forced array sorting
@@ -268,50 +269,33 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   }, [isPendingScroll, isExpanded, hasChildren]);
   
   const getNodeDiffStatus = (): string[] => {
-    // Early return if no highlighting info available
-    if (!highlightingInfo || !normalizedPathForDiff) return [];
+    // Early return if no highlighting processor available
+    if (!highlightingProcessor || !jsonSide) return [];
 
-    const classes: string[] = [];
-
-    // Build PathConversionContext for comprehensive path variations  
+    // Build PathConversionContext for path normalization
     const pathContext: PathConversionContext = {
-      jsonData: jsonSide === 'left' ? jsonData?.left : jsonData?.right, // Use appropriate side data
+      jsonData: jsonSide === 'left' ? jsonData?.left : jsonData?.right,
       idKeysUsed: idKeysUsed || []
     };
 
-    // Step 1: Get all normalized path variations using PathConverter utility
-    const allPathVariations = normalizePathForComparison(normalizedPathForDiff, pathContext);
-
-    // Step 2: O(1) exact match lookup using all path variations
-    for (const pathVariation of allPathVariations) {
-      const exactDiff = highlightingInfo.exactDiffs.get(pathVariation);
-      if (exactDiff && !ignoredDiffs.has(exactDiff.numericPath) && jsonSide) {
-        const highlightClass = getDiffHighlightingClass(exactDiff.type, jsonSide);
-        if (highlightClass) {
-          classes.push(highlightClass);
-          return classes;
-        }
-      }
-
-      // Also check display path diffs
-      const displayDiff = highlightingInfo.displayPathToDiff.get(pathVariation);
-      if (displayDiff && !ignoredDiffs.has(displayDiff.numericPath) && jsonSide) {
-        const highlightClass = getDiffHighlightingClass(displayDiff.type, jsonSide);
-        if (highlightClass) {
-          classes.push(highlightClass);
-          return classes;
-        }
-      }
+    // Use the original path (with ID-based brackets) for highlighting
+    // Strip the viewer prefix to match diff path format
+    let pathForHighlighting = path.replace(/^root_(viewer1|viewer2)_/, '');
+    if (pathForHighlighting.startsWith('root.')) {
+      pathForHighlighting = pathForHighlighting.substring(5); // Remove "root."
+    } else if (pathForHighlighting === 'root') {
+      pathForHighlighting = ''; // Root becomes empty string for comparison
     }
 
-    // Step 3: O(1) parent container lookup using all path variations
-    for (const pathVariation of allPathVariations) {
-      if (highlightingInfo.parentContainers.has(pathVariation)) {
-        classes.push('json-parent-changed');
-        return classes;
-      }
-    }
+    // Use the new highlighting processor with the original ID-based path
+    const classes = highlightingProcessor.getHighlightingClasses(
+      createIdBasedPath(pathForHighlighting),
+      jsonSide,
+      pathContext
+    );
 
+    // Filter out ignored diffs by checking if any of the underlying diffs are ignored
+    // This is a simplified approach - we may need to enhance this if needed
     return classes;
   };
   
@@ -386,7 +370,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // console.log(`[JsonNode VId:${viewerId}] User Toggling Expansion for path: \\"${path}\\". Calling toggleExpand with generic numeric path: \\"${genericNumericPathForNode}\\"`);
     toggleExpand(genericNumericPathForNode);
     if (onNodeToggle) { // Call onNodeToggle if provided
-        onNodeToggle(genericNumericPathForNode);
+        onNodeToggle(path); // Use original ID-based path
     }
   };
 
@@ -465,7 +449,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           idKeySetting,
           forceSortedArrays,
           actualNumericIndex,
-          highlightingInfo,
           ignoredDiffs
         });
       }
@@ -608,7 +591,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
               return sortedData.map((itemValue, sortedIndex) => {
                 const originalIndex = sortedIndexMap.get(sortedIndex) ?? sortedIndex;
                 const itemPathSuffix = getItemPathSuffix(itemValue, originalIndex, idKeySetting);
-                const childPath = `${path}${itemPathSuffix}`;
+                const childPath: IdBasedPath = createIdBasedPath(`${path}${itemPathSuffix}`);
                 return (
                   <JsonNode
                     key={`${viewerId}-${childPath}`}
@@ -671,7 +654,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         {isExpanded && hasChildren && (
           <div className="json-node-children">
             {entries.map(([key, value], index) => {
-              const childPath = `${path}.${key}`;
+              const childPath: IdBasedPath = createIdBasedPath(`${path}.${key}`);
               return (
                 <JsonNode
                   key={`${viewerId}-${childPath}`}
@@ -748,7 +731,7 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
     <div className="json-tree-view responsive-no-wrap">
       <JsonNode
         data={data}
-        path={`root_${viewerId}_root`}
+        path={createIdBasedPath(`root_${viewerId}_root`)}
         level={0}
         viewerId={viewerId}
         jsonSide={jsonSide}
@@ -773,7 +756,6 @@ const debugNodeInfo = (nodeData: {
   hasChildren: boolean;
   diffInfo: any;
   isExpanded: boolean;
-  highlightingInfo: any;
   ignoredDiffs: Set<string>;
   viewerId: string;
   isCompareMode: boolean;
@@ -804,68 +786,11 @@ const debugNodeInfo = (nodeData: {
   });
 
   // 🎨 HIGHLIGHTING DEBUG INFORMATION
-  if (nodeData.highlightingInfo && nodeData.normalizedPathForDiff) {
-    const normalizedPath = nodeData.normalizedPathForDiff;
-    
-    // Build PathConversionContext for comprehensive debug analysis
-    const debugPathContext: PathConversionContext = {
-      jsonData: nodeData.value,
-      idKeysUsed: nodeData.idKeySetting ? [{ 
-        arrayPath: '', 
-        idKey: nodeData.idKeySetting, 
-        isComposite: false, 
-        arraySize1: 0, 
-        arraySize2: 0 
-      }] : []
-    };
-
-    // Get basic path variations for debugging (we'll implement proper normalization later)
-    const pathVariations = [
-      normalizedPath, 
-      `root.${normalizedPath}`,
-      normalizedPath.replace(/^root\./, '')
-    ].filter(Boolean);
-    
-    console.log('🎨 Highlighting Analysis:', {
-      currentHighlightClasses: nodeData.diffInfo.classes,
-      normalizedPath: normalizedPath,
-      pathVariations: pathVariations
-    });
-    
-    // Check exact diff matches
-    const exactMatches = pathVariations.map(path => ({
-      path,
-      numericMatch: nodeData.highlightingInfo.exactDiffs.get(path),
-      displayMatch: nodeData.highlightingInfo.displayPathToDiff.get(path)
-    })).filter(result => result.numericMatch || result.displayMatch);
-    
-    console.log('🎯 Exact Diff Matches:', exactMatches);
-    
-    // Check parent container status
-    const parentMatches = pathVariations.filter(path => 
-      nodeData.highlightingInfo.parentContainers.has(path)
-    );
-    
-    console.log('👨‍👩‍👧‍👦 Parent Container Matches:', parentMatches);
-    
-    // Show all available diffs for comparison
-    const allExactDiffs = Array.from(nodeData.highlightingInfo.exactDiffs.entries()).slice(0, 10);
-    const allParentContainers = Array.from(nodeData.highlightingInfo.parentContainers).slice(0, 10);
-    
-    console.log('📋 Available Exact Diffs (first 10):', allExactDiffs);
-    console.log('📋 Available Parent Containers (first 10):', allParentContainers);
-    
-    // Path correlation debugging
-    const correlationResults = pathVariations.map(path => ({
-      path,
-      inExactDiffs: nodeData.highlightingInfo.exactDiffs.has(path),
-      inDisplayDiffs: nodeData.highlightingInfo.displayPathToDiff.has(path),
-      inParentContainers: nodeData.highlightingInfo.parentContainers.has(path),
-      isIgnored: nodeData.ignoredDiffs.has(path)
-    }));
-    
-    console.log('🔗 Path Correlation Results:', correlationResults);
-  }
+  console.log('🎨 Highlighting Analysis:', {
+    currentHighlightClasses: nodeData.diffInfo.classes,
+    normalizedPath: nodeData.normalizedPathForDiff,
+    isIgnored: nodeData.diffInfo.isIgnored
+  });
 
   // 🎯 CORRELATION DEBUGGING - Key information for investigating sync issues
   const arrayItemMatch = nodeData.genericNumericPathForNode.match(/^(.*)\[(\d+)\](.*)$/);

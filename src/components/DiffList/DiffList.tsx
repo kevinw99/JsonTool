@@ -1,7 +1,8 @@
 import React from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
 // Ensure DiffResult is imported from the correct location
-import type { DiffResult } from '../../utils/jsonCompare'; 
+import type { DiffResult } from '../../utils/jsonCompare';
+import { createNumericPath, validateAndCreateNumericPath } from '../../utils/PathTypes';
 import './DiffList.css';
 
 interface DiffListProps {
@@ -48,34 +49,34 @@ export const DiffList: React.FC<DiffListProps> = ({
 
   const handleGoToDiff = (diff: DiffResult) => {
     console.log('[DiffList] 🎯 GoTo diff clicked - checking for ID-based correlation');
-    console.log('[DiffList] 📍 displayPath:', diff.displayPath);
+    console.log('[DiffList] 📍 idBasedPath:', diff.idBasedPath);
     console.log('[DiffList] 📍 numericPath:', diff.numericPath);
     
     // Check if this diff involves ID-based arrays
-    const displayPath = diff.displayPath;
-    const hasIdBasedArrays = displayPath && displayPath.includes('[id=');
+    const idBasedPath = diff.idBasedPath;
+    const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
     
     if (hasIdBasedArrays && jsonData) {
       console.log('[DiffList] 🔍 Found ID-based arrays - using smart correlation');
-      handleIdBasedCorrelation(displayPath, diff);
+      handleIdBasedCorrelation(idBasedPath, diff);
     } else {
       console.log('[DiffList] 📍 Using simple numeric path approach');
       // Fallback to simple numeric path
       const numericPath = diff.numericPath;
       const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
-      goToDiff(pathWithRoot);
+      goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.numericPath'));
     }
   };
 
   // Smart ID-based correlation function
-  const handleIdBasedCorrelation = (displayPath: string, diff: DiffResult) => {
-    console.log('[DiffList] 🔍 Starting ID-based correlation for:', displayPath);
+  const handleIdBasedCorrelation = (idBasedPath: string, diff: DiffResult) => {
+    console.log('[DiffList] 🔍 Starting ID-based correlation for:', idBasedPath);
     
     // Step 1: Find the corresponding numeric path in LEFT viewer
-    const leftNumericPath = findNumericPathForDisplayPath(displayPath, 'left');
+    const leftNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'left');
     
     // Step 2: Find the corresponding numeric path in RIGHT viewer  
-    const rightNumericPath = findNumericPathForDisplayPath(displayPath, 'right');
+    const rightNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'right');
     
     console.log('[DiffList] 🎯 Correlation results:');
     console.log('[DiffList] 🎯 LEFT numeric path:', leftNumericPath);
@@ -98,13 +99,13 @@ export const DiffList: React.FC<DiffListProps> = ({
       console.log('[DiffList] ❌ Could not find both paths - falling back to numeric path');
       const numericPath = diff.numericPath;
       const pathWithRoot = numericPath.startsWith('root.') ? numericPath : `root.${numericPath}`;
-      goToDiff(pathWithRoot);
+      goToDiff(validateAndCreateNumericPath(pathWithRoot, 'DiffResult.numericPath fallback'));
     }
   };
 
-  // Helper function to find numeric path for a display path in a specific JSON viewer
-  const findNumericPathForDisplayPath = (displayPath: string, side: 'left' | 'right'): string | null => {
-    console.log(`[DiffList] 🔍 ${side.toUpperCase()} - Searching for:`, displayPath);
+  // Helper function to find numeric path for an ID-based path in a specific JSON viewer
+  const findNumericPathForIdBasedPath = (idBasedPath: string, side: 'left' | 'right'): string | null => {
+    console.log(`[DiffList] 🔍 ${side.toUpperCase()} - Searching for:`, idBasedPath);
     
     if (!jsonData) {
       console.log(`[DiffList] ❌ No JSON data available`);
@@ -118,7 +119,7 @@ export const DiffList: React.FC<DiffListProps> = ({
     }
     
     try {
-      const numericPath = traverseJsonByDisplayPath(targetData, displayPath);
+      const numericPath = traverseJsonByIdBasedPath(targetData, idBasedPath);
       console.log(`[DiffList] ✅ ${side.toUpperCase()} found:`, numericPath);
       return numericPath;
     } catch (error) {
@@ -127,10 +128,10 @@ export const DiffList: React.FC<DiffListProps> = ({
     }
   };
 
-  // Helper function to traverse JSON and convert display path to numeric path
-  const traverseJsonByDisplayPath = (data: any, displayPath: string): string | null => {
-    // Parse display path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType"
-    const segments = displayPath.split('.');
+  // Helper function to traverse JSON and convert ID-based path to numeric path
+  const traverseJsonByIdBasedPath = (data: any, idBasedPath: string): string | null => {
+    // Parse ID-based path: "boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType"
+    const segments = idBasedPath.split('.');
     
     let currentData = data;
     let numericPath = '';
@@ -208,19 +209,19 @@ export const DiffList: React.FC<DiffListProps> = ({
     
     // Step 1: Expand and scroll to LEFT path first
     console.log('[DiffList] 📂 Step 1: Using goToDiff for LEFT path expansion');
-    goToDiff(leftPath);
+    goToDiff(createNumericPath(leftPath));
     
     // Step 2: Expand RIGHT path as well (to ensure both are expanded)
     setTimeout(() => {
       console.log('[DiffList] 📂 Step 2: Using goToDiff for RIGHT path expansion');
-      goToDiff(rightPath);
+      goToDiff(createNumericPath(rightPath));
       
       // Step 3: After both expansions, manually highlight elements and ensure sync is enabled
       setTimeout(() => {
         console.log('[DiffList] ✨ Step 3: Finding and highlighting both elements manually');
         
         // IMPORTANT: Ensure sync is enabled after navigation
-        const syncButton = document.querySelector('.sync-toggle-button');
+        const syncButton = document.querySelector('.sync-toggle-button') as HTMLElement;
         if (syncButton && !syncButton.classList.contains('toggled-on')) {
           console.log('[DiffList] ⚠️ Sync was disabled during navigation, re-enabling...');
           syncButton.click();
@@ -340,7 +341,7 @@ export const DiffList: React.FC<DiffListProps> = ({
                 <div className="diff-item-content">
                   <span className="diff-number">{index + 1}.</span>
                   <span className="diff-path-inline">
-                    {diff.displayPath.startsWith('root.') ? diff.displayPath.substring(5) : diff.displayPath}
+                    {diff.idBasedPath.startsWith('root.') ? diff.idBasedPath.substring(5) : diff.idBasedPath}
                   </span>
                   <span 
                     className="diff-summary-inline"
