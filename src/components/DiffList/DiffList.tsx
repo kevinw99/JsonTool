@@ -111,15 +111,18 @@ export const DiffList: React.FC<DiffListProps> = ({
   // Helper function to get parent array path for better expansion
   const getParentArrayPath = (fullPath: string): string | null => {
     // For paths like "root.a.b[1].c[2].d", we want to return "root.a.b[1].c"
-    // This ensures the parent array is expanded before trying to find the specific element
+    // For "root.accountParams[1].contributions[0].contributionType", we want "root.accountParams[1].contributions"
+    
+    // Find the last property after an array index
     const segments = fullPath.split('.');
     
-    // Find the last segment that contains an array index
+    // Work backwards to find the last array segment before a property
     for (let i = segments.length - 1; i >= 0; i--) {
-      if (segments[i].includes('[') && segments[i].includes(']')) {
-        // This segment has an array index, so the parent path is everything before the next property
-        if (i < segments.length - 1) {
-          return segments.slice(0, i + 1).join('.');
+      if (!segments[i].includes('[')) {
+        // This is a property, check if the previous segment is an array
+        if (i > 0 && segments[i - 1].includes('[')) {
+          // The previous segment is the array we need to expand
+          return segments.slice(0, i).join('.');
         }
       }
     }
@@ -169,30 +172,19 @@ export const DiffList: React.FC<DiffListProps> = ({
         }
         
         // Find item with target ID
-        console.log(`[DiffList] 🔍 Looking for ID "${targetId}" in ${arrayName} array:`, currentData);
-        
-        const foundIndex = currentData.findIndex((item: any, index: number) => {
+        const foundIndex = currentData.findIndex((item: any) => {
           if (typeof item !== 'object' || item === null) return false;
           
-          console.log(`[DiffList] 🔍   Item ${index}:`, item);
-          
           // Check if any property matches the target ID
-          for (const [key, value] of Object.entries(item)) {
-            console.log(`[DiffList] 🔍     Checking ${key}: "${value}" vs "${targetId}"`);
-            if (String(value) === targetId) {
-              console.log(`[DiffList] ✅     Found match!`);
-              return true;
-            }
+          for (const value of Object.values(item)) {
+            if (String(value) === targetId) return true;
           }
           return false;
         });
         
         if (foundIndex === -1) {
-          console.log(`[DiffList] ❌ Could not find item with ID "${targetId}" in ${arrayName}`);
           throw new Error(`Could not find item with ID ${targetId} in ${arrayName}`);
         }
-        
-        console.log(`[DiffList] ✅ Found item at index ${foundIndex}`);
         
         // Add numeric index
         numericPath += `[${foundIndex}]`;
