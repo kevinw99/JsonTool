@@ -2,9 +2,10 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
-import { convertIndexPathToIdPath, convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
-import type { NumericPath, IdBasedPath } from '../utils/PathTypes';
-import { unsafeNumericPath, unsafeIdBasedPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes'; 
+import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
+import type { IdBasedPath } from '../utils/PathTypes';
+import { hasIdBasedSegments, createIdBasedPath } from '../utils/PathTypes';
+import { resolveIdBasedPathToNumeric } from '../utils/pathResolution'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -29,10 +30,13 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: string) => boolean;
   goToDiff: (diffPath: string) => void; // Diff paths can be either numeric or ID-based
+  goToDiffWithPaths: (leftPath: string, rightPath: string) => void; // Navigate with separate paths for each viewer
   highlightPath: string | null; // Keep as string for compatibility with existing Set<string> operations
   setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
   persistentHighlightPath: string | null; // New property for persistent border highlighting
   setPersistentHighlightPath: (path: string | null) => void;
+  persistentHighlightPaths: Set<string>; // Multiple paths for dual highlighting
+  setPersistentHighlightPaths: (paths: Set<string>) => void;
   clearAllIgnoredDiffs: () => void;
   diffResults: DiffResult[]; 
   highlightingProcessor: NewHighlightingProcessor | null; // New: PathConverter-based highlighting processor
@@ -118,6 +122,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     });
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
     const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
+    const [persistentHighlightPaths, setPersistentHighlightPaths] = useState<Set<string>>(new Set());
     
     // New: State for PathConverter-based highlighting processor
     const [highlightingProcessor, setHighlightingProcessor] = useState<NewHighlightingProcessor | null>(null);
@@ -128,13 +133,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     // Ref to track sync scroll state for temporary disabling during alignment
     const syncScrollRef = useRef<boolean>(true);
     
-    // Track last sync alignment to maintain deterministic behavior
-    const lastSyncAlignment = useRef<{
-      viewer1ScrollTop: number;
-      viewer2ScrollTop: number;
-      targetPath: string;
-      timestamp: number;
-    } | null>(null);
 
     const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
       _setViewMode(mode);
@@ -253,7 +251,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             console.log(`[JsonViewerSyncContext toggleExpand] 🔍 Using otherData: ${otherViewerId === 'viewer1' ? 'LEFT' : 'RIGHT'}`);
             
             // Use PathConverter to find corresponding numeric path in other viewer
-            const sourceContext: PathConversionContext = { jsonData: sourceData, idKeysUsed: idKeysUsed };
             const otherContext: PathConversionContext = { jsonData: otherData, idKeysUsed: idKeysUsed };
             
             try {
@@ -307,14 +304,15 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       if (expand) {
         // Placeholder for full expansion logic
         // console.log("[JsonViewerSyncContext] setExpandAll(true) - full expansion not yet implemented");
-        // For now, can iterate diffResults and add all unique numericPaths and their ancestors
+        // For now, can iterate diffResults and add all unique ID-based paths and their ancestors
         const allPathsToExpand = new Set<string>(['root']);
         diffResults.forEach(diff => {
-          if (diff.numericPath) {
-            // Add the diff path itself
-            allPathsToExpand.add(diff.numericPath);
+          if (diff.idBasedPath) {
+            // Add the diff path itself with viewer prefixes
+            allPathsToExpand.add(`viewer1_${diff.idBasedPath}`);
+            allPathsToExpand.add(`viewer2_${diff.idBasedPath}`);
             // Add all its ancestors
-            let currentPath = diff.numericPath;
+            let currentPath = diff.idBasedPath;
             while (currentPath.includes('.') || currentPath.includes('[')) {
               const lastDot = currentPath.lastIndexOf('.');
               const lastBracket = currentPath.lastIndexOf('[');
@@ -322,9 +320,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               if (parentEndIndex > -1) {
                 currentPath = currentPath.substring(0, parentEndIndex);
                 if (currentPath && currentPath !== 'root') { // Avoid adding empty string or re-adding root if path was like "root.foo"
-                    allPathsToExpand.add(currentPath);
+                    allPathsToExpand.add(`viewer1_${currentPath}`);
+                    allPathsToExpand.add(`viewer2_${currentPath}`);
                 } else if (currentPath === 'root') {
-                    allPathsToExpand.add('root'); // Ensure root is there
+                    allPathsToExpand.add('viewer1_root');
+                    allPathsToExpand.add('viewer2_root');
                     break; // Reached root
                 }
               } else {
@@ -430,484 +430,131 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    const goToDiff = useCallback((pathToExpand: string) => {
+    const goToDiffWithPaths = useCallback((leftPath: string, rightPath: string) => {
+      console.log('[goToDiffWithPaths] 🎯 Navigating to LEFT:', leftPath, 'RIGHT:', rightPath);
       
-      // Convert ID-based paths to numeric paths if needed
-      let numericPathToExpand = pathToExpand;
-      let primaryViewer = 'viewer1'; // Default to left panel
+      // Ensure paths have root prefix
+      const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
+      const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
       
-      if (pathToExpand.includes('[id=') && jsonData) {
-        // This is an ID-based path, try to convert for both viewers
-        const leftContext: PathConversionContext = { jsonData: jsonData.left, idKeysUsed: idKeysUsed || [] };
-        const rightContext: PathConversionContext = { jsonData: jsonData.right, idKeysUsed: idKeysUsed || [] };
-        
-        const leftConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), leftContext);
-        const rightConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), rightContext);
-        
-        if (leftConverted && rightConverted) {
-          // Path exists in both viewers, use left as primary
-          numericPathToExpand = leftConverted;
-          console.log('[JsonViewerSyncContext] 🔄 Path exists in both viewers, using left:', pathToExpand, '→', numericPathToExpand);
-        } else if (leftConverted) {
-          // Only exists in left
-          numericPathToExpand = leftConverted;
-          primaryViewer = 'viewer1';
-          console.log('[JsonViewerSyncContext] 🔄 Path only in LEFT viewer:', pathToExpand, '→', numericPathToExpand);
-        } else if (rightConverted) {
-          // Only exists in right
-          numericPathToExpand = rightConverted;
-          primaryViewer = 'viewer2';
-          console.log('[JsonViewerSyncContext] 🔄 Path only in RIGHT viewer:', pathToExpand, '→', numericPathToExpand);
-        } else {
-          console.warn('[JsonViewerSyncContext] ⚠️ Failed to convert ID-based path in either viewer:', pathToExpand);
-        }
-      }
-      
-      let pathToHighlight = numericPathToExpand;
-      
-      // Reset highlight to re-trigger the effect in JsonNode, even for the same path.
+      // Set highlighting for both paths
       setHighlightPathState(null);
-
-      // Use a timeout to allow the null state to propagate before setting the new path.
-      // This ensures the `isHighlighted && !prevIsHighlighted` condition in JsonNode's useEffect fires correctly.
       setTimeout(() => {
-        setHighlightPathState(pathToHighlight); // highlightPath is generic numeric
+        setHighlightPathState(leftPathWithRoot);
+        setPersistentHighlightPath(leftPathWithRoot);
         
-        // Set persistent highlight for border highlighting that persists until next navigation
-        setPersistentHighlightPath(pathToHighlight);
-
+        // Set multiple persistent highlights for both paths
+        const highlightPaths = new Set<string>();
+        highlightPaths.add(leftPathWithRoot);
+        highlightPaths.add(rightPathWithRoot);
+        setPersistentHighlightPaths(highlightPaths);
+        
+        console.log('[goToDiffWithPaths] 🎨 Set dual highlighting for:', Array.from(highlightPaths));
+        
+        // Expand and navigate both viewers simultaneously
         setExpandedPathsState(currentExpandedPaths => {
           const newExpandedPaths = new Set<string>(currentExpandedPaths);
           newExpandedPaths.add('root'); // Ensure root is always expanded
           
-          // Pass primaryViewer from outer scope
-          const currentPrimaryViewer = primaryViewer;
-
-          const segments: string[] = [];
-          let remainingPath: string = numericPathToExpand; // Internal string manipulation
-          let baseIsRoot = false;
-
-          if (remainingPath.startsWith('root')) {
-              baseIsRoot = true;
-              if (remainingPath.startsWith('root.')) {
-                  remainingPath = remainingPath.substring(5);
-              } else if (remainingPath === 'root') {
-                  remainingPath = ''; 
-              }
-          }
-          
-          if (baseIsRoot) segments.push('root');
-
-          if (remainingPath) { 
-              const pathSegmentRegex = /([^.\[]+)|\[([^\]]+)\]/g; 
-              let match;
-              while ((match = pathSegmentRegex.exec(remainingPath)) !== null) {
-                  // If it's an array index like [0], push the entire bracket notation
-                  // If it's a property name, push just the name
-                  if (match[0].startsWith('[')) {
-                      segments.push(match[0]); // Full bracket notation like [0]
-                  } else {
-                      segments.push(match[1] || match[0]); // Property name
-                  }
-              }
-          }
-          
-          console.log('[goToDiff] 📍 Parsed segments:', segments);
-          console.log('[goToDiff] 📍 Path to expand:', numericPathToExpand);
-
-          const ancestorGenericPaths: string[] = [];
-          let currentAncestorPath = '';
-          
-          // For array paths like "root.data.items[5]", we want to expand:
-          // - "root" 
-          // - "root.data"
-          // - "root.data.items" (the array itself)
-          // We need to continue through the full path to reach the target
-          
-          for (let i = 0; i < segments.length; i++) { 
-            const segment = segments[i];
+          // Helper function to add expansion paths for a given viewer and path
+          const addExpansionPaths = (viewerPrefix: string, numericPath: string) => {
+            const segments = numericPath.replace(/^root\.?/, '').split(/(?=\[)|\./).filter(Boolean);
+            if (numericPath.startsWith('root')) segments.unshift('root');
             
-            if (currentAncestorPath === '') {
-              currentAncestorPath = segment;
-            } else {
-              if (segment.startsWith('[') && segment.endsWith(']')) {
-                // This is an array index - add the current path (array) as ancestor
-                ancestorGenericPaths.push(currentAncestorPath);
-                // Expand ancestor path
-                // Continue building the path through the array index
-                currentAncestorPath += segment; 
+            let currentPath = '';
+            for (const segment of segments) {
+              if (currentPath === '') {
+                currentPath = segment;
+              } else if (segment.startsWith('[')) {
+                currentPath += segment;
               } else {
-                currentAncestorPath += `.${segment}`;
+                currentPath += `.${segment}`;
               }
-            }
-            
-            // Add all paths as ancestors - INCLUDING the final target
-            if (!ancestorGenericPaths.includes(currentAncestorPath)) {
-              ancestorGenericPaths.push(currentAncestorPath);
-                }
-          }
-          
-
-          console.log('[goToDiff] 📂 Paths to expand:', ancestorGenericPaths);
-          
-          // IMPORTANT: Add viewer prefix to paths for proper expansion
-          // The expandedPaths state uses viewer-prefixed paths like "viewer1_root"
-          // Use the primaryViewer determined earlier (which viewer has the path)
-          const viewerPrefix = currentPrimaryViewer + '_';
-          const otherViewer = currentPrimaryViewer === 'viewer1' ? 'viewer2' : 'viewer1';
-          const otherViewerPrefix = otherViewer + '_';
-          
-          ancestorGenericPaths.forEach(genericAncestor => {
-            if (genericAncestor) { 
-              // Add with primary viewer prefix
-              const viewerPath = viewerPrefix + genericAncestor;
+              const viewerPath = `${viewerPrefix}_${currentPath}`;
               newExpandedPaths.add(viewerPath);
-              console.log('[goToDiff] 📂 Added to expandedPaths:', viewerPath);
-              
-              // For paths that exist in both viewers, also add the other viewer path
-              // But skip if we know the path only exists in one viewer
-              if (pathToExpand.includes('[id=') && jsonData) {
-                // Check if path exists in other viewer before adding
-                const otherContext: PathConversionContext = { 
-                  jsonData: otherViewer === 'viewer1' ? jsonData.left : jsonData.right, 
-                  idKeysUsed: idKeysUsed || [] 
-                };
-                const otherConverted = convertIdPathToIndexPath(unsafeIdBasedPath(pathToExpand), otherContext);
-                if (otherConverted) {
-                  const otherViewerPath = otherViewerPrefix + genericAncestor;
-                  newExpandedPaths.add(otherViewerPath);
-                  console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
-                }
-              } else {
-                // For non-ID paths, assume they exist in both viewers
-                const otherViewerPath = otherViewerPrefix + genericAncestor;
-                newExpandedPaths.add(otherViewerPath);
-                console.log('[goToDiff] 📂 Added sync path:', otherViewerPath);
-              }
-            }
-          });
-          
-          return newExpandedPaths;
-        });
-
-        // Add additional scrolling logic after a delay to ensure DOM is updated
-        // Increased timeout to allow tree expansion to complete
-        setTimeout(() => {
-          
-          // The target path should be what we want to scroll to
-          let targetPath = numericPathToExpand;
-          // JsonTreeView DOM elements have paths with "root." prefix, so we need to add it if missing
-          const pathWithRoot = targetPath.startsWith('root.') ? targetPath : `root.${targetPath}`;
-          
-          // Also prepare viewer-prefixed versions for data-original-path
-          // Use the currentPrimaryViewer from the parent scope
-          const primaryOriginalPath = currentPrimaryViewer + '_' + pathWithRoot;
-          const otherOriginalPath = (currentPrimaryViewer === 'viewer1' ? 'viewer2' : 'viewer1') + '_' + pathWithRoot;
-          
-          // Debug: Check what data-path attributes exist that are similar
-          const allDataPathElements = document.querySelectorAll('[data-path]');
-          
-          const partialMatches = Array.from(allDataPathElements).filter(el => {
-            const path = el.getAttribute('data-path');
-            return path && (path.includes('boomerForecastV3Requests') || path.includes('metadata') || path.includes('externalRequestDateTime'));
-          });
-          
-          // Debug: Found ${partialMatches.length} elements with similar paths
-          
-          // Function to attempt finding and scrolling to the target element
-          const attemptScrollToTarget = (attempt: number = 1, maxAttempts: number = 5) => {
-            // Attempt ${attempt}/${maxAttempts}
-            
-            // Try multiple selectors to find the target element
-            // Include both data-path and data-original-path attributes
-            const selectors: string[] = [
-              // Try data-path first
-              `[data-path="${pathWithRoot}"]`,
-              `[data-path="${targetPath}"]`,
-              // Try data-original-path with viewer prefixes
-              `[data-original-path="${primaryOriginalPath}"]`,
-              `[data-original-path="${otherOriginalPath}"]`,
-              `[data-original-path="viewer1_${targetPath}"]`,
-              `[data-original-path="viewer2_${targetPath}"]`
-            ];
-
-            // Try to convert numeric path to ID-based path for both viewers
-            if (jsonData && idKeysUsed) {
-              for (const viewer of ['viewer1', 'viewer2']) {
-                const viewerData = viewer === 'viewer1' ? jsonData.left : jsonData.right;
-                if (viewerData) {
-                  const pathContext: PathConversionContext = {
-                    jsonData: viewerData,
-                    idKeysUsed: idKeysUsed
-                  };
-                  
-                  // Convert numeric path to ID-based path
-                  const idBasedPath = convertIndexPathToIdPath(unsafeNumericPath(targetPath), pathContext, { 
-                    targetViewer: viewer,
-                    preservePrefix: true 
-                  });
-                  
-                  // Conversion: ${viewer} "${targetPath}" → "${idBasedPath}"
-                  
-                  if (idBasedPath && String(idBasedPath) !== String(targetPath)) {
-                    // Add ID-based selectors
-                    selectors.push(`[data-path="${idBasedPath}"]`);
-                    if (idBasedPath.startsWith('root.')) {
-                      selectors.push(`[data-path="root_${viewer}_${idBasedPath}"]`);
-                    } else {
-                      selectors.push(`[data-path="root_${viewer}_root.${idBasedPath}"]`);
-                    }
-                  }
-                }
-              }
-            }
-
-            // Add fallback selectors
-            selectors.push(
-              `[data-numeric-path="${pathWithRoot}"]`,
-              `[data-numeric-path="${targetPath}"]`,
-              `[data-generic-path="${pathWithRoot}"]`,
-              `[data-generic-path="${targetPath}"]`,
-              `.json-node[data-path="${pathWithRoot}"]`,
-              `.json-node[data-path="${targetPath}"]`,
-              `.json-node[data-path*="${pathWithRoot}"]`,
-              `.json-node[data-path*="${targetPath}"]`
-            );
-            
-            let targetElement = null;
-            for (const selector of selectors) {
-              targetElement = document.querySelector(selector);
-              if (targetElement) {
-                  break;
-              }
-            }
-            
-            if (targetElement) {
-              // Found the element, scroll to it
-            console.log(`[JsonViewerSyncContext goToDiff] 🎯 Target element details:`, {
-              tagName: targetElement.tagName,
-              className: targetElement.className,
-              dataPath: targetElement.getAttribute('data-path'),
-              textContent: targetElement.textContent?.substring(0, 100) + '...',
-              offsetTop: (targetElement as HTMLElement).offsetTop,
-              offsetLeft: (targetElement as HTMLElement).offsetLeft,
-              clientHeight: (targetElement as HTMLElement).clientHeight,
-              scrollTop: (targetElement as HTMLElement).scrollTop
-            });
-            
-            // Use the scroll container for better control
-            // SyncScroll components use data-sync-group attribute
-            const scrollContainer = targetElement.closest('[data-sync-group]');
-            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Scroll container found:`, scrollContainer ? 'YES' : 'NO');
-            console.log(`[JsonViewerSyncContext goToDiff] 🔍 Scroll container details:`, {
-              tagName: scrollContainer?.tagName,
-              className: scrollContainer?.className,
-              syncGroup: scrollContainer?.getAttribute('data-sync-group'),
-              scrollTop: scrollContainer?.scrollTop,
-              scrollHeight: scrollContainer?.scrollHeight,
-              clientHeight: scrollContainer?.clientHeight
-            });
-            
-            if (scrollContainer) {
-              // Force a reflow to ensure all DOM changes are applied
-              targetElement.getBoundingClientRect();
-              scrollContainer.getBoundingClientRect();
-              
-              const containerRect = scrollContainer.getBoundingClientRect();
-              const nodeRect = targetElement.getBoundingClientRect();
-              
-              console.log(`[JsonViewerSyncContext goToDiff] 📦 Container details:`, {
-                scrollTop: scrollContainer.scrollTop,
-                scrollHeight: scrollContainer.scrollHeight,
-                clientHeight: scrollContainer.clientHeight,
-                containerRect: {
-                  top: containerRect.top,
-                  height: containerRect.height
-                }
-              });
-              
-              console.log(`[JsonViewerSyncContext goToDiff] 🎯 Node details:`, {
-                nodeRect: {
-                  top: nodeRect.top,
-                  height: nodeRect.height
-                }
-              });
-              
-              // Calculate the desired scrollTop to center the node
-              const offsetTopInContainer = nodeRect.top - containerRect.top;
-              const desiredScrollTop = scrollContainer.scrollTop + offsetTopInContainer - (containerRect.height / 2) + (nodeRect.height / 2);
-              
-              console.log(`[JsonViewerSyncContext goToDiff] 🧮 Scroll calculation:`, {
-                offsetTopInContainer,
-                currentScrollTop: scrollContainer.scrollTop,
-                desiredScrollTop,
-                willScrollBy: desiredScrollTop - scrollContainer.scrollTop
-              });
-              
-              // Try multiple scrolling approaches
-              
-              // Approach 1: Direct scrollTop assignment
-              const originalScrollTop = scrollContainer.scrollTop;
-              scrollContainer.scrollTop = desiredScrollTop;
-              
-              
-              // Verify immediately
-              setTimeout(() => {
-                const actualScrollTop = scrollContainer.scrollTop;
-                console.log(`[JsonViewerSyncContext goToDiff] 📍 Immediate verification - container scrollTop: ${actualScrollTop}`);
-                
-                // If direct assignment didn't work, try scrollTo
-                if (Math.abs(actualScrollTop - desiredScrollTop) > 50) {
-                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 Direct scroll failed, trying scrollTo`);
-                  
-                  requestAnimationFrame(() => {
-                    scrollContainer.scrollTo({
-                      top: desiredScrollTop,
-                      behavior: 'auto' // Use auto instead of smooth to bypass potential conflicts
-                    });
-                    
-                    setTimeout(() => {
-                      console.log(`[JsonViewerSyncContext goToDiff] 📍 Post-scrollTo verification - container scrollTop: ${scrollContainer.scrollTop}`);
-                    }, 100);
-                  });
-                }
-              }, 100);
-            } else {
-              console.log(`[JsonViewerSyncContext goToDiff] ⚠️ Scroll container not found, using fallback scrollIntoView`);
-              console.log(`[JsonViewerSyncContext goToDiff] 🔍 Element parent hierarchy:`, {
-                parentElement: targetElement.parentElement?.className,
-                grandParent: targetElement.parentElement?.parentElement?.className,
-                greatGrandParent: targetElement.parentElement?.parentElement?.parentElement?.className
-              });
-              
-              // Try to find any scrollable parent, prioritizing SyncScroll containers
-              let scrollableParent = targetElement.closest('[data-sync-group]');
-              if (!scrollableParent) {
-                scrollableParent = targetElement.parentElement;
-                while (scrollableParent) {
-                  const style = window.getComputedStyle(scrollableParent);
-                  if (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
-                    console.log(`[JsonViewerSyncContext goToDiff] 🔍 Found scrollable parent:`, scrollableParent.className);
-                    break;
-                  }
-                  scrollableParent = scrollableParent.parentElement;
-                }
-              }
-              
-              if (scrollableParent) {
-                console.log(`[JsonViewerSyncContext goToDiff] 🔍 Using scrollable parent:`, {
-                  tagName: scrollableParent.tagName,
-                  className: scrollableParent.className,
-                  syncGroup: scrollableParent.getAttribute('data-sync-group'),
-                  scrollTop: scrollableParent.scrollTop,
-                  scrollHeight: scrollableParent.scrollHeight,
-                  clientHeight: scrollableParent.clientHeight
-                });
-                
-                // Calculate scroll position to center the target element
-                const containerRect = scrollableParent.getBoundingClientRect();
-                const nodeRect = targetElement.getBoundingClientRect();
-                const offsetTopInContainer = nodeRect.top - containerRect.top;
-                const desiredScrollTop = scrollableParent.scrollTop + offsetTopInContainer - (containerRect.height / 2) + (nodeRect.height / 2);
-                
-                console.log(`[JsonViewerSyncContext goToDiff] 🧠 Fallback scroll calculation:`, {
-                  currentScrollTop: scrollableParent.scrollTop,
-                  desiredScrollTop,
-                  offsetTopInContainer,
-                  containerHeight: containerRect.height,
-                  nodeHeight: nodeRect.height
-                });
-                
-                // Temporarily disable sync scroll to prevent interference
-                const syncScrollElement = scrollableParent.hasAttribute('data-sync-group') ? scrollableParent : scrollableParent.querySelector('[data-sync-group]');
-                
-                if (syncScrollElement) {
-                  // Find the other sync scroll element and disable sync temporarily
-                  const syncGroup = syncScrollElement.getAttribute('data-sync-group');
-                  const allSyncElements = document.querySelectorAll(`[data-sync-group="${syncGroup}"]`);
-                  
-                  console.log(`[JsonViewerSyncContext goToDiff] 🔄 Temporarily disabling sync for ${allSyncElements.length} elements`);
-                  
-                  // Disable sync by adding a temporary class
-                  allSyncElements.forEach(el => el.classList.add('temp-disable-sync'));
-                  
-                  // Perform the scroll
-                  scrollableParent.scrollTop = desiredScrollTop;
-                  
-                  // Re-enable sync after a short delay
-                  setTimeout(() => {
-                    allSyncElements.forEach(el => el.classList.remove('temp-disable-sync'));
-                    console.log(`[JsonViewerSyncContext goToDiff] 🔄 Re-enabled sync for scroll elements`);
-                  }, 200);
-                } else {
-                  // No sync scroll element, just scroll directly
-                  scrollableParent.scrollTop = desiredScrollTop;
-                }
-              }
-              
-              // Fallback to standard scrollIntoView with more specific options
-              targetElement.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center',
-                inline: 'nearest'
-              });
-            }
-            
-            // Flash the element after scrolling
-            setTimeout(() => {
-              console.log(`[JsonViewerSyncContext goToDiff] ✨ Flashing target element`);
-              targetElement.classList.add('json-flash');
-              setTimeout(() => {
-                targetElement.classList.remove('json-flash');
-              }, 1000);
-            }, 200);
-            } else if (attempt < maxAttempts) {
-              // Element not found, but we still have attempts left
-              setTimeout(() => attemptScrollToTarget(attempt + 1, maxAttempts), 500);
-            } else {
-              // Final attempt failed
-              console.log(`[goToDiff] ❌ Target not found: "${targetPath}"`);
-              
-              // Enhanced debugging: Show what elements ARE available
-              const allDataPathElements = document.querySelectorAll('[data-path]');
-              console.log(`[goToDiff] 🔍 Total elements with data-path: ${allDataPathElements.length}`);
-              
-              // Show elements that might be close to our target
-              const pathSegments = targetPath.split('.');
-              const lastSegment = pathSegments[pathSegments.length - 1];
-              const secondLastSegment = pathSegments.length > 1 ? pathSegments[pathSegments.length - 2] : '';
-              
-              console.log(`[goToDiff] 🔍 Looking for elements containing "${lastSegment}" or "${secondLastSegment}"`);
-              
-              const relatedElements = Array.from(allDataPathElements).filter(el => {
-                const path = el.getAttribute('data-path') || '';
-                return path.includes(lastSegment) || (secondLastSegment && path.includes(secondLastSegment));
-              });
-              
-              console.log(`[goToDiff] 🔍 Found ${relatedElements.length} related elements:`);
-              relatedElements.slice(0, 10).forEach((el, i) => {
-                console.log(`[goToDiff] 🔍   ${i + 1}: ${el.getAttribute('data-path')}`);
-              });
-              
-              // Show elements that contain 'contributions' specifically
-              const contributionsElements = Array.from(allDataPathElements).filter(el => {
-                const path = el.getAttribute('data-path') || '';
-                return path.includes('contributions');
-              });
-              
-              console.log(`[goToDiff] 🔍 Found ${contributionsElements.length} elements with 'contributions':`);
-              contributionsElements.slice(0, 5).forEach((el, i) => {
-                console.log(`[goToDiff] 🔍   ${i + 1}: ${el.getAttribute('data-path')}`);
-              });
+              console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
             }
           };
           
-          // Start the scroll attempt process
-          attemptScrollToTarget();
-        }, 1200); // Increased delay to ensure DOM updates and expansions complete
-      }, 50); // A small delay to ensure re-triggering.
+          // Add expansion paths for both viewers
+          addExpansionPaths('viewer1', leftPathWithRoot);
+          addExpansionPaths('viewer2', rightPathWithRoot);
+          
+          return newExpandedPaths;
+        });
+        
+        // Scroll to both target elements
+        setTimeout(() => {
+          const leftElement = document.querySelector(`[data-path="${leftPathWithRoot}"]`);
+          const rightElement = document.querySelector(`[data-path="${rightPathWithRoot}"]`);
+          
+          console.log('[goToDiffWithPaths] 🎯 Found elements - LEFT:', !!leftElement, 'RIGHT:', !!rightElement);
+          
+          // Scroll left viewer
+          if (leftElement) {
+            const leftContainer = leftElement.closest('.json-viewer-scroll-container');
+            if (leftContainer) {
+              const rect = leftElement.getBoundingClientRect();
+              const containerRect = leftContainer.getBoundingClientRect();
+              const scrollTop = Math.max(0, leftContainer.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
+              leftContainer.scrollTop = scrollTop;
+              console.log('[goToDiffWithPaths] ⬅️ Scrolled left viewer to:', scrollTop);
+            }
+          }
+          
+          // Scroll right viewer
+          if (rightElement) {
+            const rightContainer = rightElement.closest('.json-viewer-scroll-container');
+            if (rightContainer) {
+              const rect = rightElement.getBoundingClientRect();
+              const containerRect = rightContainer.getBoundingClientRect();
+              const scrollTop = Math.max(0, rightContainer.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
+              rightContainer.scrollTop = scrollTop;
+              console.log('[goToDiffWithPaths] ➡️ Scrolled right viewer to:', scrollTop);
+            }
+          }
+        }, 1200);
+      }, 50);
+    }, [setHighlightPathState, setPersistentHighlightPath, setExpandedPathsState]);
 
-    }, [setHighlightPathState, jsonData, idKeysUsed]); // Added jsonData and idKeysUsed for path conversion
+    const goToDiff = useCallback((pathToExpand: string) => {
+      console.log('[goToDiff] 🎯 Single path navigation:', pathToExpand);
+      
+      // Check if this is an ID-based path using PathTypes utility
+      const isIdPath = hasIdBasedSegments(pathToExpand);
+      
+      if (isIdPath && jsonData && idKeysUsed) {
+        // Convert ID-based path to numeric paths for both viewers
+        const result = resolveIdBasedPathToNumeric(
+          pathToExpand,
+          jsonData,
+          idKeysUsed
+        );
+        
+        if (result.leftPath && result.rightPath) {
+          // Path exists in both viewers - use the new dual navigation
+          console.log('[goToDiff] 🔄 ID path exists in both viewers, using goToDiffWithPaths');
+          goToDiffWithPaths(result.leftPath, result.rightPath);
+          return;
+        } else if (result.leftPath) {
+          // Only exists in left viewer
+          console.log('[goToDiff] ⬅️ ID path only in LEFT viewer');
+          goToDiffWithPaths(result.leftPath, result.leftPath);
+          return;
+        } else if (result.rightPath) {
+          // Only exists in right viewer
+          console.log('[goToDiff] ➡️ ID path only in RIGHT viewer');
+          goToDiffWithPaths(result.rightPath, result.rightPath);
+          return;
+        } else {
+          console.warn('[goToDiff] ⚠️ Failed to resolve ID-based path:', pathToExpand);
+        }
+      }
+      
+      // For non-ID paths (already numeric), navigate to same path in both viewers
+      console.log('[goToDiff] 📍 Using numeric path for both viewers:', pathToExpand);
+      goToDiffWithPaths(pathToExpand, pathToExpand);
+    }, [jsonData, idKeysUsed, goToDiffWithPaths]);
 
     const toggleShowDiffsOnly = useCallback(() => {
         setShowDiffsOnlyState(prev => !prev);
@@ -927,198 +574,39 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, []);
 
     const syncToCounterpart = useCallback((nodePath: IdBasedPath, viewerId: string) => {
-      console.log('[HIGHLIGHT] 🎯 Sync to Counterpart - Input:', nodePath, 'from', viewerId);
+      console.log('[syncToCounterpart] 🎯 Input:', nodePath, 'from', viewerId);
       
       // Normalize the path to remove viewer-specific prefix
       let normalizedPath = nodePath.replace(/^root_(viewer1|viewer2)_/, '');
-      console.log('[HIGHLIGHT] 📍 Normalized path:', normalizedPath);
+      console.log('[syncToCounterpart] 📍 Normalized path:', normalizedPath);
       
-      // Check if we have JSON data for ID-based correlation
-      if (jsonData) {
-        console.log('[HIGHLIGHT] 🔍 Converting numeric to ID-based path for correlation');
-        // Convert numeric path to ID-based path
-        const idBasedPath = convertNumericToIdBasedPath(normalizedPath, jsonData.left);
-        if (idBasedPath && idBasedPath !== normalizedPath && idBasedPath.includes('[') && idBasedPath.includes('=')) {
-          console.log('[Context] 🔍 Found ID-based elements - using smart correlation');
-          console.log('[Context] 📍 ID-based path:', idBasedPath);
-          handleIdBasedSync(idBasedPath, viewerId);
-        } else {
-          console.log('[Context] 📍 No ID-based elements found - using simple approach');
-          simpleSyncToCounterpart(normalizedPath);
-        }
-      } else {
-        console.log('[Context] 📍 No JSON data - using simple numeric path approach');
-        // Fallback to simple approach
-        simpleSyncToCounterpart(normalizedPath);
-      }
-    }, [jsonData]);
-
-    // Removed ref update effect as manual expansion no longer triggers sync
-
-    // Helper function to convert numeric path to display path with ID keys
-    const convertNumericToIdBasedPath = useCallback((numericPath: string, jsonData: any): string => {
-      if (!jsonData) return numericPath;
+      // Check if this is an ID-based path
+      const isIdPath = hasIdBasedSegments(normalizedPath);
       
-      console.log('[Context] 🔄 Converting numeric path to ID-based path:', numericPath);
-      console.log('[Context] 🔄 JSON data keys:', Object.keys(jsonData));
-      
-      // Remove "root." prefix if present
-      const cleanPath = numericPath.startsWith('root.') ? numericPath.substring(5) : numericPath;
-      console.log('[Context] 🔄 Clean path after removing root:', cleanPath);
-      
-      const segments = cleanPath.split('.');
-      let currentData = jsonData;
-      let idBasedPath = '';
-      
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        console.log(`[Context] 🔄 Processing segment ${i}: "${segment}"`);
-        console.log(`[Context] 🔄 Current data type:`, typeof currentData);
-        console.log(`[Context] 🔄 Current data keys:`, currentData && typeof currentData === 'object' ? Object.keys(currentData) : 'not an object');
-        
-        // Handle array access: "arrayName[index]" or just "[index]"
-        const arrayMatch = segment.match(/^([^[]*)\[(\d+)\]$/);
-        if (arrayMatch) {
-          const [, arrayName, indexStr] = arrayMatch;
-          const index = parseInt(indexStr);
-          
-          if (arrayName) {
-            // Named array: "arrayName[index]"
-            if (idBasedPath) idBasedPath += '.';
-            idBasedPath += arrayName;
-            
-            // Navigate to array
-            if (!currentData || typeof currentData !== 'object' || !(arrayName in currentData)) {
-              console.log(`[Context] ❌ Array "${arrayName}" not found in current data`);
-              return numericPath; // Fallback
-            }
-            currentData = currentData[arrayName];
-          }
-          // For "[index]" without array name, currentData should already be an array
-          
-          if (!Array.isArray(currentData)) {
-            console.log('[Context] ❌ Expected array but found:', typeof currentData);
-            return numericPath; // Fallback
-          }
-          
-          // Check if this array has ID keys
-          const arrayItem = currentData[index];
-          if (arrayItem && typeof arrayItem === 'object' && arrayItem !== null) {
-            // Try to find an ID key in this array item
-            const candidateKeys = ['id', 'key', 'uuid', 'name', '_id', 'accountType', 'assetId'];
-            let foundIdKey = null;
-            let foundIdValue = null;
-            
-            for (const candidateKey of candidateKeys) {
-              if (candidateKey in arrayItem && 
-                  (typeof arrayItem[candidateKey] === 'string' || typeof arrayItem[candidateKey] === 'number')) {
-                foundIdKey = candidateKey;
-                foundIdValue = arrayItem[candidateKey];
-                break;
-              }
-            }
-            
-            if (foundIdKey && foundIdValue !== null) {
-              // Use ID-based path segment
-              idBasedPath += `[${foundIdKey}=${String(foundIdValue)}]`;
-              console.log(`[Context] 🔍 Found ID key "${foundIdKey}" with value "${foundIdValue}" for array ${arrayName}`);
-            } else {
-              // Fallback to numeric index
-              idBasedPath += `[${index}]`;
-              console.log(`[Context] 📍 No ID key found for array ${arrayName}, using numeric index`);
-            }
-          } else {
-            // Fallback to numeric index
-            idBasedPath += `[${index}]`;
-          }
-          
-          currentData = currentData[index];
-        } else {
-          // Handle simple property access
-          if (idBasedPath) idBasedPath += '.';
-          idBasedPath += segment;
-          
-          if (currentData && typeof currentData === 'object') {
-            currentData = currentData[segment];
-          }
-        }
-      }
-      
-      console.log('[Context] ✅ Converted to ID-based path:', idBasedPath);
-      return idBasedPath;
-    }, []);
-
-    // Helper function for ID-based sync correlation
-    const handleIdBasedSync = useCallback((idBasedPath: string, sourceViewerId: string) => {
-      console.log('[Context] 🔍 Starting ID-based sync for:', idBasedPath);
-      
-      // Step 1: Find the corresponding numeric path in LEFT viewer
-      const leftNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'left');
-      
-      // Step 2: Find the corresponding numeric path in RIGHT viewer  
-      const rightNumericPath = findNumericPathForIdBasedPath(idBasedPath, 'right');
-      
-      console.log('[Context] 🎯 Sync results:');
-      console.log('[Context] 🎯 LEFT numeric path:', leftNumericPath);
-      console.log('[Context] 🎯 RIGHT numeric path:', rightNumericPath);
-      
-      if (leftNumericPath && rightNumericPath) {
-        console.log('[Context] ✅ Found both paths - syncing corresponding elements');
-        
-        // Add root prefix if needed
-        const leftPathWithRoot = leftNumericPath.startsWith('root.') ? leftNumericPath : `root.${leftNumericPath}`;
-        const rightPathWithRoot = rightNumericPath.startsWith('root.') ? rightNumericPath : `root.${rightNumericPath}`;
-        
-        console.log('[Context] 🎯 LEFT path with root:', leftPathWithRoot);
-        console.log('[Context] 🎯 RIGHT path with root:', rightPathWithRoot);
-        
-        // Use the deterministic alignment function
-        performDeterministicAlignment(leftPathWithRoot, rightPathWithRoot);
-        
-      } else {
-        console.log('[Context] ❌ Could not find both paths - falling back to simple sync');
-        simpleSyncToCounterpart(idBasedPath);
-      }
-    }, [jsonData, idKeysUsed]);
-
-    // Helper function to find numeric path for an ID-based path in a specific JSON viewer
-    const findNumericPathForIdBasedPath = useCallback((idBasedPath: string, side: 'left' | 'right'): string | null => {
-      console.log(`[Context] 🔍 ${side.toUpperCase()} - Searching for:`, idBasedPath);
-      
-      if (!jsonData || !idKeysUsed) {
-        console.log(`[Context] ❌ No JSON data or ID keys available`);
-        return null;
-      }
-      
-      const targetData = side === 'left' ? jsonData.left : jsonData.right;
-      if (!targetData) {
-        console.log(`[Context] ❌ No ${side} JSON data`);
-        return null;
-      }
-      
-      try {
-        // Use the proper PathConverter utility for ID-based to numeric conversion
-        const pathContext: PathConversionContext = {
-          jsonData: targetData,
-          idKeysUsed: idKeysUsed
-        };
-        
-        // Convert ID-based path to numeric path using PathConverter
-        const idBasedPathFormatted = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
-        const numericPath = convertIdPathToIndexPath(
-          idBasedPathFormatted as IdBasedPath, 
-          pathContext,
-          { removeAllPrefixes: true }
+      if (isIdPath && jsonData && idKeysUsed) {
+        console.log('[syncToCounterpart] 🔍 ID-based path detected - using path resolution');
+        // Convert ID-based path to numeric paths for both viewers
+        const result = resolveIdBasedPathToNumeric(
+          normalizedPath,
+          jsonData,
+          idKeysUsed
         );
         
-        console.log(`[Context] ✅ ${side.toUpperCase()} PathConverter result:`, numericPath);
-        return numericPath;
-      } catch (error) {
-        console.log(`[Context] ❌ ${side.toUpperCase()} PathConverter error:`, error);
-        return null;
+        if (result.leftPath && result.rightPath) {
+          console.log('[syncToCounterpart] ✅ Resolved paths - LEFT:', result.leftPath, 'RIGHT:', result.rightPath);
+          goToDiffWithPaths(result.leftPath, result.rightPath);
+        } else {
+          console.log('[syncToCounterpart] ⚠️ Could not resolve ID paths, using simple sync');
+          goToDiff(normalizedPath);
+        }
+      } else {
+        console.log('[syncToCounterpart] 📍 Numeric path - using simple navigation');
+        // For numeric paths, navigate to same path in both viewers
+        goToDiff(normalizedPath);
       }
-    }, [jsonData, idKeysUsed]);
+    }, [jsonData, idKeysUsed, goToDiffWithPaths, goToDiff]);
 
+    // Removed ref update effect as manual expansion no longer triggers sync
 
     // Helper function to disable sync scrolling
     const disableSyncScrolling = useCallback(() => {
@@ -1138,309 +626,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         container.classList.remove('temp-disable-sync');
       });
     }, []);
-
-    // Deterministic alignment function that handles different paths for each viewer
-    const performDeterministicAlignment = useCallback((leftPath: string, rightPath: string) => {
-      console.log('[Context] 🔧 Deterministic alignment - LEFT:', leftPath, 'RIGHT:', rightPath);
-      
-      // FORCE perfect alignment - disable scroll sync immediately
-      disableSyncScrolling();
-      
-      // Step 1: Expand and scroll to LEFT path first
-      console.log('[Context] 📂 Step 1: Using goToDiff for LEFT path expansion');
-      goToDiff(validateAndCreateNumericPath(leftPath, 'performDeterministicAlignment.leftPath'));
-      
-      // Step 2: Expand RIGHT path as well (to ensure both are expanded)
-      setTimeout(() => {
-        console.log('[Context] 📂 Step 2: Using goToDiff for RIGHT path expansion');
-        goToDiff(validateAndCreateNumericPath(rightPath, 'performDeterministicAlignment.rightPath'));
-        
-        // Step 3: After both expansions, manually highlight elements with perfect alignment
-        setTimeout(() => {
-          console.log('[Context] ✨ Step 3: Finding and aligning both elements manually');
-          
-          // Find LEFT element
-          const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
-          console.log(`[Context] 🔍 Found ${leftElements.length} LEFT elements for path: ${leftPath}`);
-          
-          // Find RIGHT element  
-          const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
-          console.log(`[Context] 🔍 Found ${rightElements.length} RIGHT elements for path: ${rightPath}`);
-          
-          // Clear all existing highlights first
-          document.querySelectorAll('.highlighted-node, .persistent-highlight').forEach(el => {
-            el.classList.remove('highlighted-node', 'persistent-highlight');
-          });
-          
-          let leftElement: Element | null = null;
-          let rightElement: Element | null = null;
-          
-          // Highlight LEFT elements (only in left viewer)
-          leftElements.forEach((element, index) => {
-            const rect = element.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const isLeftViewer = rect.left < viewportWidth / 2;
-            
-            console.log(`[Context] 🔍 LEFT element ${index + 1}: rect.left=${rect.left}, isLeftViewer=${isLeftViewer}`);
-            
-            if (isLeftViewer) {
-              element.classList.add('highlighted-node', 'persistent-highlight');
-              leftElement = element;
-              console.log(`[Context] ✅ Highlighted LEFT element ${index + 1}`);
-            }
-          });
-          
-          // Highlight RIGHT elements (only in right viewer)  
-          rightElements.forEach((element, index) => {
-            const rect = element.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const isRightViewer = rect.left >= viewportWidth / 2;
-            
-            console.log(`[Context] 🔍 RIGHT element ${index + 1}: rect.left=${rect.left}, isRightViewer=${isRightViewer}`);
-            
-            if (isRightViewer) {
-              element.classList.add('highlighted-node', 'persistent-highlight');
-              rightElement = element;
-              console.log(`[Context] ✅ Highlighted RIGHT element ${index + 1}`);
-            }
-          });
-          
-          // Perfect vertical alignment
-          if (leftElement && rightElement) {
-            console.log('[Context] 📏 Starting vertical alignment process');
-            
-            // Find the actual scrollable containers - try multiple selectors
-            const leftContainer = leftElement.closest('.json-viewer-container') || 
-                                 leftElement.closest('.json-tree-container') ||
-                                 leftElement.closest('[class*="viewer"]') ||
-                                 leftElement.closest('.left-panel');
-            const rightContainer = rightElement.closest('.json-viewer-container') || 
-                                  rightElement.closest('.json-tree-container') ||
-                                  rightElement.closest('[class*="viewer"]') ||
-                                  rightElement.closest('.right-panel');
-            
-            console.log('[Context] 📏 Found containers:', !!leftContainer, !!rightContainer);
-            
-            if (leftContainer && rightContainer) {
-              // Get more accurate positioning
-              const leftElementRect = leftElement.getBoundingClientRect();
-              const rightElementRect = rightElement.getBoundingClientRect();
-              const leftContainerRect = leftContainer.getBoundingClientRect();
-              const rightContainerRect = rightContainer.getBoundingClientRect();
-              
-              console.log('[Context] 📏 Element positions:');
-              console.log('[Context] 📏   LEFT element top:', leftElementRect.top);
-              console.log('[Context] 📏   RIGHT element top:', rightElementRect.top);
-              console.log('[Context] 📏   LEFT container top:', leftContainerRect.top);
-              console.log('[Context] 📏   RIGHT container top:', rightContainerRect.top);
-              
-              // Calculate the target position (center of viewport)
-              const viewportCenter = window.innerHeight / 2;
-              
-              // Calculate how much we need to scroll each container
-              // to position the element at the center of the viewport
-              const leftTargetScroll = (leftElement as HTMLElement).offsetTop - (leftContainerRect.height / 2);
-              const rightTargetScroll = (rightElement as HTMLElement).offsetTop - (rightContainerRect.height / 2);
-              
-              console.log('[Context] 📏 Target scroll positions:');
-              console.log('[Context] 📏   LEFT target:', leftTargetScroll);
-              console.log('[Context] 📏   RIGHT target:', rightTargetScroll);
-              console.log('[Context] 📏   Current LEFT scroll:', leftContainer.scrollTop);
-              console.log('[Context] 📏   Current RIGHT scroll:', rightContainer.scrollTop);
-              
-              // Use smooth scrolling for better visual feedback
-              leftContainer.scrollTo({
-                top: leftTargetScroll,
-                behavior: 'smooth'
-              });
-              
-              rightContainer.scrollTo({
-                top: rightTargetScroll,
-                behavior: 'smooth'
-              });
-              
-              console.log('[Context] 🎉 Perfect dual alignment initiated with smooth scroll');
-            } else {
-              console.log('[Context] ❌ Could not find scrollable containers');
-              console.log('[Context] 📏 LEFT element parent classes:', leftElement.parentElement?.className);
-              console.log('[Context] 📏 RIGHT element parent classes:', rightElement.parentElement?.className);
-            }
-          }
-          
-          // Re-enable scroll sync after alignment
-          setTimeout(() => {
-            enableSyncScrolling();
-          }, 2000);
-          
-        }, 1500); // Wait for RIGHT expansion to complete
-      }, 1000); // Wait for LEFT expansion to complete
-    }, [disableSyncScrolling, enableSyncScrolling, goToDiff]);
-
-    // Simple sync fallback (original logic)
-    const simpleSyncToCounterpart = useCallback((normalizedPath: string) => {
-      // FORCE perfect alignment - disable scroll sync immediately
-      disableSyncScrolling();
-      
-      // First, highlight the target node in both viewers
-      goToDiff(validateAndCreateNumericPath(normalizedPath, 'simpleSyncToCounterpart.normalizedPath'));
-      
-      // Use a more aggressive approach with multiple alignment attempts
-      const performAlignment = (attempt: number = 1) => {
-        console.log(`[Context] 🎯 Alignment attempt ${attempt}/3`);
-        
-        // Find the target elements with more precise timing
-        const pathWithRoot = normalizedPath.startsWith('root.') ? normalizedPath : `root.${normalizedPath}`;
-        
-        // More comprehensive selector strategies
-        const findElement = (viewerPrefix: string) => {
-          const selectors = [
-            `[data-path="root_${viewerPrefix}_${pathWithRoot}"]`,
-            `[data-path*="${viewerPrefix}"][data-path$="${pathWithRoot}"]`,
-            `[data-path*="${viewerPrefix}"][data-path*="${pathWithRoot}"]`,
-            `.json-node[data-path*="${viewerPrefix}"][data-path*="${normalizedPath}"]`
-          ];
-          
-          for (const selector of selectors) {
-            const element = document.querySelector(selector) as HTMLElement;
-            if (element) {
-              console.log(`[Context] ✅ Found ${viewerPrefix} element with selector: ${selector}`);
-              return element;
-            }
-          }
-          console.log(`[Context] ❌ Failed to find ${viewerPrefix} element`);
-          return null;
-        };
-        
-        const viewer1Element = findElement('viewer1');
-        const viewer2Element = findElement('viewer2');
-        
-        if (viewer1Element && viewer2Element) {
-          const container1 = viewer1Element.closest('.json-viewer-scroll-container') as HTMLElement;
-          const container2 = viewer2Element.closest('.json-viewer-scroll-container') as HTMLElement;
-          
-          if (container1 && container2) {
-            // Force layout calculation to get accurate positions
-            viewer1Element.getBoundingClientRect();
-            viewer2Element.getBoundingClientRect();
-            container1.getBoundingClientRect();
-            container2.getBoundingClientRect();
-            
-            // Calculate positions after forced reflow
-            const rect1 = viewer1Element.getBoundingClientRect();
-            const rect2 = viewer2Element.getBoundingClientRect();
-            const containerRect1 = container1.getBoundingClientRect();
-            const containerRect2 = container2.getBoundingClientRect();
-            
-            console.log(`[Context] 📐 Precise alignment calculation:`, {
-              attempt,
-              viewer1: { 
-                elementTop: rect1.top, 
-                containerTop: containerRect1.top, 
-                currentScroll: container1.scrollTop,
-                elementHeight: rect1.height
-              },
-              viewer2: { 
-                elementTop: rect2.top, 
-                containerTop: containerRect2.top, 
-                currentScroll: container2.scrollTop,
-                elementHeight: rect2.height
-              }
-            });
-            
-            // Calculate EXACT center alignment with more precision
-            const container1CenterY = containerRect1.top + (containerRect1.height / 2);
-            const container2CenterY = containerRect2.top + (containerRect2.height / 2);
-            
-            // Calculate how much to scroll to center each element
-            const element1CenterY = rect1.top + (rect1.height / 2);
-            const element2CenterY = rect2.top + (rect2.height / 2);
-            
-            const scrollAdjustment1 = element1CenterY - container1CenterY;
-            const scrollAdjustment2 = element2CenterY - container2CenterY;
-            
-            const targetScrollTop1 = Math.max(0, container1.scrollTop + scrollAdjustment1);
-            const targetScrollTop2 = Math.max(0, container2.scrollTop + scrollAdjustment2);
-            
-            console.log(`[Context] 🎯 EXACT target positions:`, {
-              container1: { current: container1.scrollTop, target: targetScrollTop1, adjustment: scrollAdjustment1 },
-              container2: { current: container2.scrollTop, target: targetScrollTop2, adjustment: scrollAdjustment2 }
-            });
-            
-            // Perform immediate, precise scrolling with no animation to avoid timing issues
-            container1.scrollTop = targetScrollTop1;
-            container2.scrollTop = targetScrollTop2;
-            
-            // Verify alignment immediately and retry if needed
-            setTimeout(() => {
-              const actualScroll1 = container1.scrollTop;
-              const actualScroll2 = container2.scrollTop;
-              const alignmentError1 = Math.abs(actualScroll1 - targetScrollTop1);
-              const alignmentError2 = Math.abs(actualScroll2 - targetScrollTop2);
-              
-              console.log(`[Context] 📊 Alignment verification:`, {
-                attempt,
-                viewer1: { target: targetScrollTop1, actual: actualScroll1, error: alignmentError1 },
-                viewer2: { target: targetScrollTop2, actual: actualScroll2, error: alignmentError2 }
-              });
-              
-              // If alignment is off by more than 5 pixels and we have attempts left, retry
-              if ((alignmentError1 > 5 || alignmentError2 > 5) && attempt < 3) {
-                console.log(`[Context] 🔄 Alignment not precise enough, retrying...`);
-                setTimeout(() => performAlignment(attempt + 1), 300);
-              } else {
-                // Final alignment achieved or max attempts reached
-                console.log(`[Context] ✅ FINAL ALIGNMENT COMPLETE - attempt ${attempt}`);
-                
-                // Add visual feedback
-                viewer1Element.classList.add('json-sync-feedback');
-                viewer2Element.classList.add('json-sync-feedback');
-                
-                // Store the aligned scroll positions for maintaining sync
-                const alignedState = {
-                  viewer1ScrollTop: container1.scrollTop,
-                  viewer2ScrollTop: container2.scrollTop,
-                  targetPath: normalizedPath,
-                  timestamp: Date.now()
-                };
-                
-                // Store alignment state for maintaining sync
-                lastSyncAlignment.current = alignedState;
-                console.log(`[Context] 💾 Stored aligned state:`, alignedState);
-                
-                // Keep scroll sync disabled for a longer period to prevent drift
-                setTimeout(() => {
-                  // Remove visual feedback
-                  viewer1Element.classList.remove('json-sync-feedback');
-                  viewer2Element.classList.remove('json-sync-feedback');
-                  
-                  // Re-enable scroll sync after perfect alignment
-                  enableSyncScrolling();
-                  console.log(`[Context] 🔗 Re-enabled scroll sync after perfect alignment`);
-                }, 2000); // Keep disabled longer to prevent immediate drift
-              }
-            }, 100); // Quick verification
-            
-            return true; // Successfully started alignment
-          }
-        }
-        
-        // If we reach here, elements weren't found - retry if we have attempts left
-        if (attempt < 3) {
-          console.log(`[Context] ⏳ Elements not found, retrying in 500ms...`);
-          setTimeout(() => performAlignment(attempt + 1), 500);
-        } else {
-          console.warn(`[Context] ❌ Failed to find target elements after ${attempt} attempts`);
-          // Re-enable sync even on failure
-          enableSyncScrolling();
-        }
-        
-        return false;
-      };
-      
-      // Start alignment with a delay to ensure goToDiff completes
-      setTimeout(() => performAlignment(), 1200);
-      
-    }, [goToDiff, disableSyncScrolling, enableSyncScrolling]);
 
     // Wildcard pattern matching function
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {
@@ -1599,10 +784,13 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         updateIgnoredPattern,
         isPathIgnoredByPattern,
         goToDiff,
+        goToDiffWithPaths,
         highlightPath,
         setHighlightPath: memoizedSetHighlightPath,
         persistentHighlightPath,
         setPersistentHighlightPath,
+        persistentHighlightPaths,
+        setPersistentHighlightPaths,
         clearAllIgnoredDiffs,
         diffResults,
         highlightingProcessor, // New: PathConverter-based highlighting processor
@@ -1641,10 +829,12 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         updateIgnoredPattern,
         isPathIgnoredByPattern,
         goToDiff,
+        goToDiffWithPaths,
         highlightPath,
         memoizedSetHighlightPath,
         persistentHighlightPath,
         setPersistentHighlightPath,
+        persistentHighlightPaths,
         clearAllIgnoredDiffs,
         diffResults,
         highlightingProcessor, // New dependency

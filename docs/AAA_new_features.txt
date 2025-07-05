@@ -13,3 +13,6 @@ Text mode:
   as a chrome plugin
   as a intellij plugin
 
+can we  " ensure numeric paths are always  associated with viewers." by making a type to either force a  │
+│   numbericPath always have a viewer/panel attribute, or create a new type, then force attribute not        │
+│   null?
