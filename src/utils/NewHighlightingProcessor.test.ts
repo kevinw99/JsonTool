@@ -398,9 +398,9 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
     });
 
     test('RIGHT PANEL: All prtcpnt-pre_0 contributions[i] should be changed', () => {
-      // Based on generated diffs, the pre contribution is at index 1, not 2
+      // Based on generated diffs, the pre contribution is at index 2 in right panel
       for (let i = 0; i < 5; i++) {
-        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[${i}]`);
+        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
         const classes = processor.getHighlightingClasses(
           path,
           'right',
@@ -428,10 +428,11 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
     });
 
     test('Both panels: catchup contributionType should be changed', () => {
-      // Based on generated diffs, the catchup contributionType change is at contributions[0]
-      // Left panel - catchup contributionType should be changed
+      // Based on generated diffs, the catchup contributionType change is at:
+      // Left panel: contributions[0] (id=45626988::2_prtcpnt-catchup-50-separate_0)
+      // Right panel: contributions[1] (id=45626988::2_prtcpnt-catchup-50-separate_0)
       const leftPath: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
-      const rightPath: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      const rightPath: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributionType');
       
       const leftClasses = processor.getHighlightingClasses(
         leftPath,
@@ -439,7 +440,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
         contextLeft
       );
       
-      // Right panel - catchup contributionType should be changed (also at index 0)
+      // Right panel - catchup contributionType should be changed (at index 1)
       const rightClasses = processor.getHighlightingClasses(
         rightPath,
         'right',

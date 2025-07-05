@@ -1,0 +1,28 @@
+{
+  "id": 83,
+  "request": "resolve test failures after numericPath removal\n\n- Added fetch mocks for sample1.json and sample2.json in test setup\n- Wrapped React component renders in act() to fix state update warnings\n- Updated test files to use idBasedPath instead of removed numericPath\n- Fixed most React testing library warnings\n- Tests now passing: 78 passed, 23 failed (significant improvement)\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T19:43:23.550Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

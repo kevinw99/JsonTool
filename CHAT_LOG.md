@@ -1115,6 +1115,26 @@ This fixes GoTo navigation for diffs where the path only exists in one viewer."
 **Status**: 🚧 In Progress  
 
 
+### Request #83 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "resolve test failures after numericPath removal
+
+- Added fetch mocks for sample1.json and sample2.json in test setup
+- Wrapped React component renders in act() to fix state update warnings
+- Updated test files to use idBasedPath instead of removed numericPath
+- Fixed most React testing library warnings
+- Tests now passing: 78 passed, 23 failed (significant improvement)
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`a0da6d7`](https://github.com/user/repo/commit/a0da6d7)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, HIGHLIGHTING_SYSTEM_DOCUMENTATION.md...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
