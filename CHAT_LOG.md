@@ -1135,6 +1135,26 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #84 - 🐛 Bug Fix
+**Date**: 2025-07-05  
+**Request**: "correct array indices in NewHighlightingProcessor tests
+
+- Fixed RIGHT PANEL paths to use correct indices based on data structure
+- catchup contribution: right panel uses index [1] not [0]
+- pre contribution: right panel uses index [2] not [1]
+- All NewHighlightingProcessor tests now passing (31/31)
+- Overall test progress: 80 passed, 21 failed (was 78 passed, 23 failed)
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`162b1f0`](https://github.com/user/repo/commit/162b1f0)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/utils/NewHighlightingProcessor.test.ts...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

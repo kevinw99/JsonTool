@@ -1,0 +1,20 @@
+{
+  "id": 84,
+  "request": "correct array indices in NewHighlightingProcessor tests\n\n- Fixed RIGHT PANEL paths to use correct indices based on data structure\n- catchup contribution: right panel uses index [1] not [0]\n- pre contribution: right panel uses index [2] not [1]\n- All NewHighlightingProcessor tests now passing (31/31)\n- Overall test progress: 80 passed, 21 failed (was 78 passed, 23 failed)\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-05T19:55:23.140Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}
