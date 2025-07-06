@@ -155,6 +155,221 @@ describe('PathResolution - GoTo Navigation Logic', () => {
     });
   });
 
+  describe('Diff #2 - Contribution Values Array Changes', () => {
+    
+    it('should resolve Diff #2 contributions array values to correct indices', () => {
+      console.log('🧪 Testing Diff #2 path resolution for array value changes');
+      
+      // Find a real Diff #2 - contributions array element change
+      const diff2 = compareResult.diffs.find(diff => 
+        diff.idBasedPath.includes('contributions') &&
+        diff.idBasedPath.includes('45626988::2_prtcpnt-pre_0') &&
+        diff.idBasedPath.includes('contributions[0]') &&
+        diff.type === 'changed'
+      );
+      
+      expect(diff2).toBeTruthy();
+      
+      console.log('✅ Found real Diff #2:', diff2!.idBasedPath);
+
+      // Test the core path resolution logic
+      const result = resolveIdBasedPathToNumeric(
+        diff2!.idBasedPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 Diff #2 PathResolution results:');
+      console.log(`  Left path: ${result.leftPath}`);
+      console.log(`  Right path: ${result.rightPath}`);
+      
+      // CRITICAL ASSERTIONS: Verify correct array indices for contribution values
+      
+      // Left panel: pre-tax contribution is at index 1, and we're looking at contributions[0]
+      expect(result.leftPath).toContain('contributions[1].contributions[0]');
+      
+      // Right panel: pre-tax contribution is at index 2 (due to added item at index 0)
+      expect(result.rightPath).toContain('contributions[2].contributions[0]');
+      
+      // Verify the paths are well-formed for array access
+      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[1\]\.contributions\[0\]$/);
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[2\]\.contributions\[0\]$/);
+      
+      console.log('✅ PathResolution correctly resolved array indices for Diff #2');
+    });
+
+    it('should handle array element access for GoToDiff navigation', () => {
+      // Test accessing specific array element (e.g., contributions[0])
+      const arrayElementPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]';
+      
+      const result = resolveIdBasedPathToNumeric(
+        arrayElementPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      // Should resolve to specific array indices
+      expect(result.leftPath).toContain('contributions[1].contributions[0]');
+      expect(result.rightPath).toContain('contributions[2].contributions[0]');
+      
+      console.log('✅ Array element access resolved correctly');
+    });
+  });
+
+  describe('Diff #7 - Added Contribution Object', () => {
+    
+    it('should resolve Diff #7 added contribution object to correct location', () => {
+      console.log('🧪 Testing Diff #7 path resolution for added contribution object');
+      
+      // Find the real Diff #7 - added contribution object
+      const diff7 = compareResult.diffs.find(diff => 
+        diff.idBasedPath.includes('45626988::2_prtcpnt-after_0') &&
+        diff.type === 'added'
+      );
+      
+      expect(diff7).toBeTruthy();
+      expect(diff7!.type).toBe('added');
+      
+      console.log('✅ Found real Diff #7:', diff7!.idBasedPath);
+
+      // Test the core path resolution logic
+      const result = resolveIdBasedPathToNumeric(
+        diff7!.idBasedPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 Diff #7 PathResolution results:');
+      console.log(`  Left path: ${result.leftPath}`);
+      console.log(`  Right path: ${result.rightPath}`);
+      
+      // CRITICAL ASSERTIONS: For added items
+      
+      // Left panel: Should be null or not found (item doesn't exist)
+      expect(result.leftPath).toBeNull();
+      
+      // Right panel: Added contribution should be at index 0
+      expect(result.rightPath).toContain('contributions[0]');
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[0\]$/);
+      
+      console.log('✅ PathResolution correctly handled added object for Diff #7');
+    });
+
+    it('should handle deep nested path resolution for added objects', () => {
+      // Test accessing property of added object
+      const deepPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributionType';
+      
+      const result = resolveIdBasedPathToNumeric(
+        deepPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      // Left should be null (object doesn't exist)
+      expect(result.leftPath).toBeNull();
+      
+      // Right should resolve to property of added object
+      expect(result.rightPath).toContain('contributions[0].contributionType');
+      
+      console.log('✅ Deep nested path for added object resolved correctly');
+    });
+  });
+
+  describe('syncToCounterpart Functionality Tests', () => {
+    
+    it('should test syncToCounterpart logic for Diff #1 from left panel', () => {
+      console.log('🧪 Testing syncToCounterpart logic for Diff #1');
+      
+      // Simulate left panel node path for contributionType
+      const leftNodePath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType';
+      
+      // This should resolve to the counterpart in right panel
+      const result = resolveIdBasedPathToNumeric(
+        leftNodePath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 syncToCounterpart Diff #1 results:');
+      console.log(`  Left (source): ${result.leftPath}`);
+      console.log(`  Right (target): ${result.rightPath}`);
+      
+      // Verify syncToCounterpart would find correct counterpart
+      expect(result.leftPath).toContain('contributions[0].contributionType');
+      expect(result.rightPath).toContain('contributions[1].contributionType');
+      
+      // Both should be well-formed paths
+      expect(result.leftPath).toMatch(/contributionType$/);
+      expect(result.rightPath).toMatch(/contributionType$/);
+      
+      console.log('✅ syncToCounterpart logic works for Diff #1');
+    });
+
+    it('should test syncToCounterpart logic for Diff #2 from left panel', () => {
+      console.log('🧪 Testing syncToCounterpart logic for Diff #2');
+      
+      // Simulate left panel node path for contributions array
+      const leftNodePath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions';
+      
+      const result = resolveIdBasedPathToNumeric(
+        leftNodePath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 syncToCounterpart Diff #2 results:');
+      console.log(`  Left (source): ${result.leftPath}`);
+      console.log(`  Right (target): ${result.rightPath}`);
+      
+      // Verify array correlation works
+      expect(result.leftPath).toContain('contributions[1].contributions');
+      expect(result.rightPath).toContain('contributions[2].contributions');
+      
+      console.log('✅ syncToCounterpart logic works for Diff #2');
+    });
+
+    it('should test syncToCounterpart logic for Diff #7 from left panel', () => {
+      console.log('🧪 Testing syncToCounterpart logic for Diff #7 (missing counterpart)');
+      
+      // Simulate left panel trying to sync to right-only object
+      const rightOnlyPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]';
+      
+      const result = resolveIdBasedPathToNumeric(
+        rightOnlyPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 syncToCounterpart Diff #7 results:');
+      console.log(`  Left (source): ${result.leftPath}`);
+      console.log(`  Right (target): ${result.rightPath}`);
+      
+      // Left should be null (doesn't exist)
+      expect(result.leftPath).toBeNull();
+      // Right should resolve correctly
+      expect(result.rightPath).toContain('contributions[0]');
+      
+      console.log('✅ syncToCounterpart gracefully handles missing counterpart');
+    });
+
+    it('should handle syncToCounterpart for array elements', () => {
+      // Test syncing specific array element
+      const arrayElementPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[2]';
+      
+      const result = resolveIdBasedPathToNumeric(
+        arrayElementPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      // Should resolve array element indices correctly
+      expect(result.leftPath).toContain('contributions[1].contributions[2]');
+      expect(result.rightPath).toContain('contributions[2].contributions[2]');
+      
+      console.log('✅ syncToCounterpart works for array elements');
+    });
+  });
+
   describe('Single Side Resolution', () => {
     
     it('should resolve single side paths correctly', () => {
