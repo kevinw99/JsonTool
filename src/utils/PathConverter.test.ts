@@ -138,15 +138,15 @@ describe('PathConverter', () => {
     });
 
     test('preserves viewer prefix during conversion', () => {
-      const idPath: IdBasedPath = createIdBasedPath('root_viewer1_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('root_left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('root_viewer1_boomerForecastV3Requests[0].parameters.accountParams[1]');
+      expect(indexPath).toBe('root_left_boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('preserves complex prefix during conversion', () => {
-      const idPath: IdBasedPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('root_right_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1]');
+      expect(indexPath).toBe('root_right_root.boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('no prefix in, no prefix out', () => {
@@ -156,13 +156,13 @@ describe('PathConverter', () => {
     });
 
     test('changes viewer prefix when targetViewer specified', () => {
-      const idPath: IdBasedPath = createIdBasedPath('root_viewer1_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextLeft, { targetViewer: 'viewer2' });
-      expect(indexPath).toBe('root_viewer2_boomerForecastV3Requests[0].parameters.accountParams[1]');
+      const idPath: IdBasedPath = createIdBasedPath('root_left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft, { targetViewer: 'right' });
+      expect(indexPath).toBe('root_right_boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('removes all prefixes when specified', () => {
-      const idPath: IdBasedPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('root_left_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft, { removeAllPrefixes: true });
       expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
