@@ -1,0 +1,28 @@
+{
+  "id": 89,
+  "request": "implement ViewerPath-based highlighting system to resolve double blue border issue\n\n## Problem Fixed\n- Double blue borders appeared on right panel when using \"Sync to Counterpart\"\n- Root cause: Dual highlighting systems (persistentHighlightPath + persistentHighlightPaths)\n  overlapped, causing same nodes to be highlighted by both systems\n\n## Solution: ViewerPath-Based Highlighting\n- Unified highlighting system using Set<ViewerPath> instead of dual systems\n- Each panel now checks only its own viewer-specific paths for highlighting\n- Left panel: checks \"left_root.contributionType\"\n- Right panel: checks \"right_root.contributionType\"\n- No overlap between viewers = no double borders\n\n## Key Changes\n**JsonViewerSyncContext.tsx:**\n- Removed redundant persistentHighlightPath state\n- Updated persistentHighlightPaths to use Set<ViewerPath>\n- Modified goToDiffWithPaths to create viewer-specific highlight paths:\n  ```typescript\n  highlightPaths.add(createViewerPath('left', leftPathWithRoot));\n  highlightPaths.add(createViewerPath('right', rightPathWithRoot));\n  ```\n\n**JsonTreeView.tsx:**\n- Simplified highlighting logic to use ViewerPath system:\n  ```typescript\n  const viewerSpecificPath = createViewerPath(viewerId, genericNumericPathForNode);\n  return persistentHighlightPaths.has(viewerSpecificPath);\n  ```\n\n## Benefits\n- ✅ Consistent highlighting behavior for \"Go To\" and \"Sync to Counterpart\"\n- ✅ No more double blue borders\n- ✅ Viewer-specific highlighting prevents cross-panel conflicts\n- ✅ Unified system handles both single nodes and arrays\n- ✅ Type-safe with existing ViewerPath infrastructure\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-06T00:24:55.113Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

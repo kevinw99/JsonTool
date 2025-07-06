@@ -1,0 +1,28 @@
+{
+  "id": 93,
+  "request": "resolve ID Keys panel click navigation type errors\n\n## Problem Fixed\n- Clicking on ID Keys panel entries wasn't triggering blue border highlighting\n- TypeScript errors: goToDiff expected IdBasedPath but received string\n- Navigation to JSON nodes from ID Keys panel was broken\n\n## Root Cause\n- goToDiff() function expects IdBasedPath branded type (line 32 in JsonViewerSyncContext interface)\n- handlePathClick() and handleOccurrenceClick() were passing raw string paths\n- Missing type conversion using validateAndCreateIdBasedPath()\n\n## Solution\n- Fixed both click handlers to properly convert numeric paths to IdBasedPath\n- handlePathClick(): Convert numericPath using validateAndCreateIdBasedPath()\n- handleOccurrenceClick(): Convert numericPath using validateAndCreateIdBasedPath()\n- Removed unused import warning for validateAndCreateIdBasedPath\n\n## Expected Behavior (Fixed)\n✅ Clicking ID Keys panel entry #1 → navigates to array location\n✅ Blue border highlighting appears on target nodes in both panels\n✅ Persistent highlighting maintained until next navigation\n✅ TypeScript compilation success with strict type safety\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (ID keys)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-06T02:39:35.590Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

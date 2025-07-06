@@ -1,0 +1,28 @@
+{
+  "id": 91,
+  "request": "update path prefix regex patterns for left/right viewer naming\n\n## Problem\nManual node expansion was failing due to incorrect path prefix handling.\nThe regex patterns were still using the old viewer1/viewer2 naming convention\ninstead of the new left/right naming, causing malformed ViewerPath generation.\n\n## Root Cause\n- JsonViewerSyncContext: `/^root_viewer\\d+_/` regex didn't match `root_left_` paths\n- PathConverter: `/^root_(viewer\\d+)_/` regex didn't match new viewer naming\n- This caused double prefixing: `left_root_left_root.path` instead of `left_root.path`\n\n## Solution\n- Updated JsonViewerSyncContext regex: `/^root_(left < /dev/null | right)_/`\n- Updated PathConverter regex: `/^root_(left|right)_/`\n- Updated interface comments to reflect \"left\"/\"right\" examples\n\n## Expected Behavior (Fixed)\nInput: \"root_left_root.boomerForecastV3Requests\"\n→ Generic: \"root.boomerForecastV3Requests\"\n→ ViewerPath: \"left_root.boomerForecastV3Requests\" ✅\n→ Other viewer: \"right_root.boomerForecastV3Requests\" ✅\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-06T01:11:41.291Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

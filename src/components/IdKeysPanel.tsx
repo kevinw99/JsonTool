@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
-import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
-import type { ViewerPath } from '../utils/PathTypes';
+import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath, validateAndCreateArrayPatternPath } from '../utils/PathTypes';
+import type { ViewerPath, ArrayPatternPath, NumericPath } from '../utils/PathTypes';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
   idKeysUsed: IdKeyInfo[];
-  jsonData: any;
 }
 
 interface ConsolidatedIdKey {
-  consolidatedPath: string;
+  consolidatedPath: ArrayPatternPath;
   idKey: string;
   isComposite: boolean;
   occurrences: {
-    originalPath: string;
+    originalPath: NumericPath;
     arraySize1: number;
     arraySize2: number;
   }[];
@@ -64,21 +63,27 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
     consolidatedPath = cleanSegments.join('.');
     
     const consolidatedKey = `${consolidatedPath}::${idKeyInfo.idKey}`;
+    const consolidatedArrayPattern = validateAndCreateArrayPatternPath(consolidatedPath, 'consolidateIdKeys');
+    
+    // Don't validate as numeric path if it contains ID-based segments
+    const originalNumericPath = originalPath.includes('[id=') 
+      ? originalPath as NumericPath  // Cast without validation for ID-based paths
+      : validateAndCreateNumericPath(originalPath, 'consolidateIdKeys.originalPath');
 
     if (consolidatedMap.has(consolidatedKey)) {
       const existing = consolidatedMap.get(consolidatedKey)!;
       existing.occurrences.push({
-        originalPath: originalPath, // Use the path without "root." prefix
+        originalPath: originalNumericPath,
         arraySize1: idKeyInfo.arraySize1,
         arraySize2: idKeyInfo.arraySize2
       });
     } else {
       consolidatedMap.set(consolidatedKey, {
-        consolidatedPath,
+        consolidatedPath: consolidatedArrayPattern,
         idKey: idKeyInfo.idKey,
         isComposite: idKeyInfo.isComposite,
         occurrences: [{
-          originalPath: originalPath, // Use the path without "root." prefix
+          originalPath: originalNumericPath,
           arraySize1: idKeyInfo.arraySize1,
           arraySize2: idKeyInfo.arraySize2
         }]
@@ -87,11 +92,11 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
   });
 
   return Array.from(consolidatedMap.values()).sort((a, b) => 
-    a.consolidatedPath.localeCompare(b.consolidatedPath)
+    (a.consolidatedPath as string).localeCompare(b.consolidatedPath as string)
   );
 };
 
-export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }) => {
+export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed }) => {
   const { goToDiff, setPersistentHighlightPaths } = useJsonViewerSync();
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   
@@ -109,92 +114,95 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     });
   };
 
-  const buildNumericPath = (idBasedPath: string): string => {
+  /**
+   * Convert ArrayPatternPath to NumericPath by using the goToDiff function
+   * which handles ID-based path resolution
+   * Example: "boomerForecastV3Requests.parameters.accountParams.contributions[]" 
+   *       → ID-based path that goToDiff can resolve
+   */
+  const convertArrayPatternToIdBasedPath = (arrayPattern: ArrayPatternPath): IdBasedPath => {
+    let targetPath = arrayPattern as string;
     
-    // Remove the trailing [] to get the path to the array container
-    let targetPath = idBasedPath;
+    // Remove the trailing [] to get the base path
     if (targetPath.endsWith('[]')) {
       targetPath = targetPath.slice(0, -2);
     }
     
-    // Build the numeric path by inspecting the JSON structure
-    const segments = targetPath.split('.');
-    let currentData = jsonData;
-    let numericPath = 'root';
-    
-    
-    try {
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        
-        if (currentData && typeof currentData === 'object' && segment in currentData) {
-          numericPath += `.${segment}`;
-          currentData = currentData[segment];
-          
-          
-          // If the current data is an array, navigate to the first element and continue
-          // unless this is the last segment (target array)
-          if (Array.isArray(currentData) && currentData.length > 0) {
-            if (i < segments.length - 1) {
-              // This is an intermediate array, pick first element and continue
-              numericPath += '[0]';
-              currentData = currentData[0];
-            } else {
-              // This is the target array, DON'T add [0] - we want to target the array itself
-            }
-          }
-        } else {
-          // If we can't find the segment, break and use what we have
-          numericPath += `.${segment}`;
-          break;
-        }
+    // Find a matching occurrence from the consolidated data
+    const consolidated = consolidatedIdKeys.find(item => item.consolidatedPath === arrayPattern);
+    if (consolidated && consolidated.occurrences.length > 0) {
+      // Use the first occurrence's original path which may have ID-based segments
+      let firstOccurrence = consolidated.occurrences[0].originalPath as string;
+      
+      // Ensure it has root prefix
+      if (!firstOccurrence.startsWith('root.')) {
+        firstOccurrence = `root.${firstOccurrence}`;
       }
       
-    } catch (error) {
-      console.warn('[IdKeysPanel] Error building numeric path:', error);
-      // Fallback to simple path construction
-      numericPath = `root.${targetPath}[0]`;
+      // Return as IdBasedPath without numeric validation since it may contain ID segments
+      return validateAndCreateIdBasedPath(firstOccurrence, 'IdKeysPanel.convertArrayPatternToIdBasedPath');
     }
     
-    return numericPath;
+    // Fallback: construct a simple numeric path with [0] indices
+    const segments = targetPath.split('.');
+    let reconstructedPath = '';
+    
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (i === 0) {
+        reconstructedPath = segment;
+      } else {
+        reconstructedPath += `.${segment}`;
+      }
+      
+      // Check if this segment should have an array index
+      const pathSoFar = segments.slice(0, i + 1).join('.');
+      const hasArrayAtThisLevel = idKeysUsed.some(item => {
+        const itemPath = item.arrayPath.startsWith('root.') ? item.arrayPath.substring(5) : item.arrayPath;
+        return itemPath.startsWith(pathSoFar) && 
+               itemPath.length > pathSoFar.length && 
+               itemPath[pathSoFar.length] === '[';
+      });
+      
+      if (hasArrayAtThisLevel) {
+        reconstructedPath += '[0]';
+      }
+    }
+    
+    // Add root prefix
+    reconstructedPath = `root.${reconstructedPath}`;
+    
+    return validateAndCreateIdBasedPath(reconstructedPath, 'IdKeysPanel.convertArrayPatternToIdBasedPath');
   };
 
-  const handlePathClick = (pathToExpand: string) => {
+  const handlePathClick = (arrayPatternPath: ArrayPatternPath) => {
+    // Convert to ID-based path which goToDiff can handle
+    const idBasedPath = convertArrayPatternToIdBasedPath(arrayPatternPath);
     
-    const numericPath = buildNumericPath(pathToExpand);
+    // Don't set persistent highlights here - let goToDiff handle it
+    // since it will resolve the proper numeric paths for both viewers
     
-    // Set persistent highlight for border highlighting that persists until next navigation
-    const highlights = new Set<ViewerPath>([
-      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick')),
-      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick'))
-    ]);
-    setPersistentHighlightPaths(highlights);
-    
-    // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick'));
+    // Call goToDiff which will handle ID-based path resolution, expansion and highlighting
+    goToDiff(idBasedPath);
   };
 
-  const handleOccurrenceClick = (originalPath: string) => {
-    
-    // For specific occurrences, we need to build the path differently
-    // The originalPath already contains the specific array index
-    let numericPath = originalPath;
+  const handleOccurrenceClick = (originalPath: NumericPath) => {
+    // For specific occurrences, originalPath may contain ID-based segments
+    let pathStr = originalPath as string;
     
     // Add root prefix if missing
-    if (!numericPath.startsWith('root.')) {
-      numericPath = `root.${numericPath}`;
+    if (!pathStr.startsWith('root.')) {
+      pathStr = `root.${pathStr}`;
     }
     
+    // Create as IdBasedPath since it may contain ID segments
+    const idBasedPath = validateAndCreateIdBasedPath(pathStr, 'IdKeysPanel.handleOccurrenceClick');
     
-    // Set persistent highlight for border highlighting that persists until next navigation
-    const highlights = new Set<ViewerPath>([
-      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick')),
-      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick'))
-    ]);
-    setPersistentHighlightPaths(highlights);
+    // Don't set persistent highlights here - let goToDiff handle it
+    // since it will resolve the proper numeric paths for both viewers
     
-    // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handleOccurrenceClick'));
+    // Call goToDiff which will handle ID-based path resolution, expansion and highlighting
+    goToDiff(idBasedPath);
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {
@@ -222,7 +230,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
                 <span className="path-label">Path:</span>
                 <code 
                   className="path-value clickable"
-                  title={consolidatedIdKey.consolidatedPath.length > 60 ? consolidatedIdKey.consolidatedPath : undefined}
+                  title={(consolidatedIdKey.consolidatedPath as string).length > 60 ? consolidatedIdKey.consolidatedPath as string : undefined}
                   onClick={() => handlePathClick(consolidatedIdKey.consolidatedPath)}
                 >
                   {consolidatedIdKey.consolidatedPath}
@@ -254,7 +262,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
                           <div key={occIndex} className="occurrence-item">
                             <code 
                               className="occurrence-path clickable"
-                              title={occurrence.originalPath.length > 60 ? occurrence.originalPath : undefined}
+                              title={(occurrence.originalPath as string).length > 60 ? occurrence.originalPath as string : undefined}
                               onClick={() => handleOccurrenceClick(occurrence.originalPath)}
                             >
                               {occurrence.originalPath}

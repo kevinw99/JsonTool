@@ -465,21 +465,47 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           
           // Helper function to add expansion paths for a given viewer and path
           const addExpansionPaths = (viewerPrefix: string, numericPath: string) => {
-            const segments = numericPath.replace(/^root\.?/, '').split(/(?=\[)|\./).filter(Boolean);
-            if (numericPath.startsWith('root')) segments.unshift('root');
-            
+            // Split path properly to handle arrays
+            const parts = numericPath.split('.');
             let currentPath = '';
-            for (const segment of segments) {
-              if (currentPath === '') {
-                currentPath = segment;
-              } else if (segment.startsWith('[')) {
-                currentPath += segment;
+            
+            for (let i = 0; i < parts.length; i++) {
+              const part = parts[i];
+              
+              if (i === 0) {
+                currentPath = part; // 'root'
               } else {
-                currentPath += `.${segment}`;
+                // Check if this part contains array indices
+                const arrayMatch = part.match(/^([^[]+)(\[.+\])?$/);
+                if (arrayMatch) {
+                  const [, fieldName, arrayIndices] = arrayMatch;
+                  currentPath += `.${fieldName}`;
+                  
+                  // Add path without array index first
+                  const viewerPath = createViewerPath(viewerPrefix as ViewerId, validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.goToDiffWithPaths.expandPath'));
+                  newExpandedPaths.add(viewerPath);
+                  console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
+                  
+                  // Then add path with array indices if present
+                  if (arrayIndices) {
+                    // Handle multiple array indices like [0][1]
+                    const indices = arrayIndices.match(/\[\d+\]/g);
+                    if (indices) {
+                      for (const index of indices) {
+                        currentPath += index;
+                        const arrayPath = createViewerPath(viewerPrefix as ViewerId, validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.goToDiffWithPaths.expandArrayPath'));
+                        newExpandedPaths.add(arrayPath);
+                        console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} array path:`, arrayPath);
+                      }
+                    }
+                  }
+                } else {
+                  currentPath += `.${part}`;
+                  const viewerPath = createViewerPath(viewerPrefix as ViewerId, validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.goToDiffWithPaths.expandPath'));
+                  newExpandedPaths.add(viewerPath);
+                  console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
+                }
               }
-              const viewerPath = createViewerPath(viewerPrefix as ViewerId, validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.goToDiffWithPaths.expandPath'));
-              newExpandedPaths.add(viewerPath);
-              console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
             }
           };
           

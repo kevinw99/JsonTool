@@ -1,0 +1,20 @@
+{
+  "id": 95,
+  "request": "update PathConverter tests to use left/right viewer naming\n\n## Problem Fixed\n- 4 failing tests in PathConverter.test.ts due to outdated viewer naming convention\n- Tests were using 'viewer1'/'viewer2' but system now uses 'left'/'right'\n- PathConverter's extractPrefix() only matches 'left < /dev/null | right' patterns\n\n## Root Cause\n- Earlier refactoring updated PathConverter to use left/right naming (line 40)\n- Tests were not updated to match the new ViewerId convention\n- Test expectations used old viewer1/viewer2 prefixes\n\n## Solution\n- Updated test inputs from 'root_viewer1_' to 'root_left_'\n- Updated test inputs from 'root_viewer2_' to 'root_right_'\n- Updated targetViewer option from 'viewer2' to 'right'\n- All test expectations now match the current left/right naming convention\n\n## Tests Fixed\n✅ preserves viewer prefix during conversion\n✅ preserves complex prefix during conversion\n✅ changes viewer prefix when targetViewer specified\n✅ removes all prefixes when specified\n\nAll PathConverter tests now pass (36/36) and ID-based path conversion works correctly.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-06T03:26:16.737Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

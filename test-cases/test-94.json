@@ -1,0 +1,28 @@
+{
+  "id": 94,
+  "request": "implement ArrayPatternPath type for structural array patterns\n\n## New Type: ArrayPatternPath\nRepresents structural patterns of nested arrays used for DiffResult grouping and ID key association.\n\n### Format & Examples\n- Format: 'boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions[]'\n- Uses [] to denote array positions (no specific indices or IDs)\n- Final [] indicates the target array where ID-based comparison occurs\n- All paths matching the same pattern share the same ID key for comparison\n\n### Key Features\n✅ **Branded Type Safety**: ArrayPatternPath with __brand for type enforcement\n✅ **Conversion Functions**: From NumericPath/IdBasedPath to ArrayPatternPath\n✅ **Pattern Analysis**: Array depth, target property, parent pattern extraction\n✅ **Runtime Validation**: validateAndCreateArrayPatternPath with error checking\n✅ **Type Guards**: isArrayPatternPath, isValidArrayPattern for safe usage\n\n### Core Functions\n- numericToArrayPattern(): 'root.array[0].items[1]' → 'array[].items[]'\n- idBasedToArrayPattern(): 'root.array[id=123].items[2]' → 'array[].items[]'\n- anyPathToArrayPattern(): Smart conversion from any path type\n- getArrayDepth(): Count nested array levels in pattern\n- getTargetArrayProperty(): Extract final array property name\n- getParentArrayPattern(): Get parent container pattern\n\n### Use Cases\n- **DiffResult Grouping**: Group diffs by structural pattern\n- **ID Key Management**: Associate ID keys with array patterns\n- **Schema Analysis**: Document JSON array structure\n- **Comparison Logic**: Identify arrays that share comparison rules\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-06T03:21:36.113Z",
+  "testSteps": [
+    "1. Load the application",
+    "2. Navigate to the relevant feature area",
+    "3. Perform the requested action/change",
+    "4. Verify expected behavior",
+    "5. Test edge cases and error conditions",
+    "6. Verify no existing functionality is broken"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

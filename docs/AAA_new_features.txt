@@ -19,3 +19,19 @@ can we  " ensure numeric paths are always  associated with viewers." by making a
 
 can you check all methods input and return have strict type on either viewerPath or IdBasedPath?         │
 │   NumericPath or string can not be in input or return
+
+can you create test case for GotoDiff for Diff #2,  #7?
+can you create test case for syncToCounterpart for Diff #1 #2,  #7? starting from the node on the left?
+
+Actually this is a different type of path : boomerForecastV3Requests.parameters.accountParams.contributions[], it
+is used to denote an array of objects, which is the key for DiffResult. however I think it should be
+boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions[], with [] meaning an array of
+objects, and the last array is the target array  the ID key used for comparison. We also have to assume that all
+path matched boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions[], share the same
+ID key for comparison. what do you think? if you agree,
+ can you create a new type for this?
+
+what is the handler name for clicking on the IDkeys entry? when this is clicked , "boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions[]"
+what nodes should be highlighted on the left and right?
+
+can you update the place (like tests and other) use DiffResult.idKeyPath to use the new type?
