@@ -171,7 +171,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     setPersistentHighlightPaths(highlights);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick'));
   };
 
   const handleOccurrenceClick = (originalPath: string) => {
@@ -194,7 +194,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     setPersistentHighlightPaths(highlights);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handleOccurrenceClick'));
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {
