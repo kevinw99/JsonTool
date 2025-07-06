@@ -30,7 +30,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: IdBasedPath) => boolean;
   goToDiff: (diffPath: IdBasedPath) => void; // Diff paths can be either numeric or ID-based
-  goToDiffWithPaths: (leftPath: NumericPath, rightPath: NumericPath) => void; // Navigate with separate paths for each viewer
+  goToDiffWithPaths: (leftPath: NumericPath, rightPath: NumericPath, highlightLeft?: boolean, highlightRight?: boolean) => void; // Navigate with separate paths for each viewer
   highlightPath: NumericPath | null; // Highlighting uses numeric paths
   setHighlightPath: (path: NumericPath | null | ((prevState: NumericPath | null) => NumericPath | null)) => void;
   persistentHighlightPaths: Set<ViewerPath>; // Viewer-specific highlighting using ViewerPath
@@ -435,8 +435,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    const goToDiffWithPaths = useCallback((leftPath: string, rightPath: string) => {
-      console.log('[goToDiffWithPaths] 🎯 Navigating to LEFT:', leftPath, 'RIGHT:', rightPath);
+    const goToDiffWithPaths = useCallback((leftPath: string, rightPath: string, highlightLeft: boolean = true, highlightRight: boolean = true) => {
+      console.log('[goToDiffWithPaths] 🎯 Navigating to LEFT:', leftPath, 'RIGHT:', rightPath, 'Highlight L/R:', highlightLeft, highlightRight);
       
       // Ensure paths have root prefix
       const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
@@ -449,13 +449,17 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       setTimeout(() => {
         setHighlightPathState(validateAndCreateNumericPath(leftPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths'));
         
-        // Set viewer-specific persistent highlights for both paths
+        // Set viewer-specific persistent highlights only for requested viewers
         const highlightPaths = new Set<ViewerPath>();
-        highlightPaths.add(createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.left')));
-        highlightPaths.add(createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.right')));
+        if (highlightLeft) {
+          highlightPaths.add(createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.left')));
+        }
+        if (highlightRight) {
+          highlightPaths.add(createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.right')));
+        }
         setPersistentHighlightPaths(highlightPaths);
         
-        console.log('[goToDiffWithPaths] 🎨 Set dual highlighting for:', Array.from(highlightPaths));
+        console.log('[goToDiffWithPaths] 🎨 Set selective highlighting for:', Array.from(highlightPaths));
         
         // Expand and navigate both viewers simultaneously
         setExpandedPathsState(currentExpandedPaths => {
@@ -539,19 +543,19 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         );
         
         if (result.leftPath && result.rightPath) {
-          // Path exists in both viewers - use the new dual navigation
-          console.log('[goToDiff] 🔄 ID path exists in both viewers, using goToDiffWithPaths');
-          goToDiffWithPaths(result.leftPath, result.rightPath);
+          // Path exists in both viewers - highlight both
+          console.log('[goToDiff] 🔄 ID path exists in both viewers');
+          goToDiffWithPaths(result.leftPath, result.rightPath, true, true);
           return;
         } else if (result.leftPath) {
-          // Only exists in left viewer
+          // Only exists in left viewer - highlight only left
           console.log('[goToDiff] ⬅️ ID path only in LEFT viewer');
-          goToDiffWithPaths(result.leftPath, result.leftPath);
+          goToDiffWithPaths(result.leftPath, result.leftPath, true, false);
           return;
         } else if (result.rightPath) {
-          // Only exists in right viewer
+          // Only exists in right viewer - highlight only right
           console.log('[goToDiff] ➡️ ID path only in RIGHT viewer');
-          goToDiffWithPaths(result.rightPath, result.rightPath);
+          goToDiffWithPaths(result.rightPath, result.rightPath, false, true);
           return;
         } else {
           console.warn('[goToDiff] ⚠️ Failed to resolve ID-based path:', pathToExpand);

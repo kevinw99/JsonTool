@@ -1,9 +1,9 @@
 {
   "id": 90,
-  "request": "enforce strict type system and eliminate viewer identification duplication\n\n## Type System Improvements\n- Replaced all loose string path types with branded types (NumericPath, IdBasedPath, ViewerPath)\n- Added runtime validation functions with clear error messages for path conversions\n- Fixed all UI methods to use strict path types instead of strings\n\n## Eliminated Viewer Duplication\n- Removed redundant jsonSide prop from JsonTreeView components (kept viewerId: ViewerId)\n- Updated FileHeader and FileSelector to use ViewerId instead of side: 'left' < /dev/null | 'right'\n- Consolidated NewHighlightingProcessor to use viewerId parameter consistently\n- Updated App.tsx handleFileSelect to use ViewerId instead of 'file1'|'file2'\n\n## Component Interface Updates\n- JsonNodeProps: removed jsonSide, kept viewerId: ViewerId\n- JsonTreeViewProps: removed jsonSide, kept viewerId: ViewerId\n- FileHeaderProps: side → viewerId\n- FileSelectorProps: side → viewerId\n- All component usage updated throughout App.tsx\n\n## Path Type Enforcement\n- DiffList: all path operations use validateAndCreateIdBasedPath/NumericPath\n- IdKeysPanel: fixed goToDiff parameter types and createViewerPath calls\n- JsonViewerSyncContext: updated highlightPath state to NumericPath|null\n- JsonTreeView: all path validation uses proper branded types\n- Fixed all createViewerPath calls to use validateAndCreateNumericPath\n\n## Benefits\n- 100% TypeScript compilation success with strict types\n- Eliminated 10+ instances of duplicate viewer identification\n- Runtime safety with validation error messages\n- Consistent ViewerId usage across all components\n- Better integration with existing path type system\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, ID keys, main app)",
-  "category": "Critical Bug",
-  "priority": "critical",
-  "created": "2025-07-06T01:08:52.137Z",
+  "request": "clean up CSS organization and implement human-readable color names\n\n## CSS Improvements\n- Reorganized JsonTreeView.css into logical sections with clear headers\n- Replaced hex colors with human-readable CSS color names in variables\n- Consolidated all diff highlighting into single source of truth\n- Removed redundant rules and \\!important declarations\n- Added proper CSS variable organization for maintainability\n\n## Color System Changes\n- lightblue/blue for parent diff highlighting\n- limegreen/darkgreen for added nodes\n- mistyrose/crimson for deleted nodes\n- lightyellow/orange for changed values\n- Preserved original hex values as comments for reference\n\n## Structure Improvements\n- Clear section organization with comment headers\n- Single location for all diff type definitions (A, B, C)\n- Improved CSS specificity without overuse of \\!important\n- Better browser compatibility and responsive design sections\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, ID keys, styling, main app)",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-06T20:05:55.539Z",
   "testSteps": [
     "1. Load sample JSON files (sample1.json, sample2.json)",
     "2. Wait for differences to be calculated",
@@ -12,7 +12,7 @@
     "5. Verify navigation to correct JSON node",
     "6. Verify node is expanded and highlighted"
   ],
-  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
   "sampleData": {
     "primaryFiles": [
       "sample1.json",
