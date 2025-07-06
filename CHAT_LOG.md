@@ -1556,6 +1556,57 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #96 - 🚨 Critical Bug
+**Date**: 2025-07-06  
+**Request**: "resolve ID Keys panel expansion and path resolution issues
+
+## Problems Fixed
+- ID key #1 click not expanding tree nodes properly
+- Path conversion from ArrayPatternPath to NumericPath missing array indices
+- ViewerPath creation errors with ID-based paths containing [id=...] segments
+- Tree expansion logic not handling array indices correctly
+
+## Root Cause Analysis
+1. ArrayPatternPath → NumericPath conversion was removing array indices
+2. ID-based paths with [id=...] segments were being validated as numeric paths
+3. Tree expansion path parsing didn't handle array indices properly
+4. Direct ViewerPath creation from ID-based paths caused type errors
+
+## Solution
+### IdKeysPanel.tsx
+- Updated convertArrayPatternToIdBasedPath() to preserve ID-based segments
+- Modified handlePathClick() to use ID-based path resolution via goToDiff()
+- Fixed handleOccurrenceClick() to handle ID-based paths properly
+- Removed premature ViewerPath creation - let goToDiff resolve paths correctly
+
+### JsonViewerSyncContext.tsx
+- Enhanced addExpansionPaths() helper in goToDiffWithPaths()
+- Fixed path splitting to properly handle array indices like field[0]
+- Added separate handling for array containers vs indexed elements
+- Improved path reconstruction to ensure all parent nodes are expanded
+
+### Path Resolution Flow
+1. ArrayPatternPath → IdBasedPath (preserves ID segments)
+2. IdBasedPath → goToDiff() → resolveIdBasedPathToNumeric()
+3. Numeric paths → proper ViewerPath creation for both viewers
+4. All parent nodes expanded in correct order
+
+## Testing
+- ID key #1 now properly expands all parent nodes in tree
+- Path resolution correctly handles both simple and ID-based paths
+- Tree expansion works for nested arrays with ID-based segments
+- No more type errors when creating ViewerPaths
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (ID keys)"  
+**Commit**: [`5f5fa8d`](https://github.com/user/repo/commit/5f5fa8d)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

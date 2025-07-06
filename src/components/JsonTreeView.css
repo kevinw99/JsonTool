@@ -112,9 +112,20 @@
 
 /* --- Diff Style Overhaul --- */
 
-/* Type A: Parent of a Diff (light blue background for parent's content line) */
-.json-node.json-parent-changed > .json-node-content {
-  background-color: #b3d9ff; /* Much stronger blue background */
+/* Type A: Parent of a Diff (subtle blue background for parent's content line) */
+.json-node.has-children.json-parent-changed > .json-node-content {
+  background-color: #e3f2fd; /* Soft, subtle blue background */
+  border-left: 3px solid #1976d2; /* Modern accent border */
+  width: fit-content; /* Make background only span the content width */
+  /* Force hardware acceleration and ensure proper rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Leaf nodes - no border for parent changed */
+.json-node.leaf-node.json-parent-changed > .json-node-content {
+  background-color: #e3f2fd; /* Soft, subtle blue background */
   width: fit-content; /* Make background only span the content width */
   /* Force hardware acceleration and ensure proper rendering */
   transform: translateZ(0);
@@ -124,7 +135,8 @@
 
 /* Type B: Property Added/Deleted (highlights the node's own content line) */
 .json-node.json-added > .json-node-content {
-  background-color: #90ee90; /* Much stronger green background */
+  background-color: #e8f5e8 !important; /* Soft, subtle green background - force priority */
+  border-left: 3px solid #2e7d32; /* Modern accent border */
   width: fit-content; /* Make background only span the content width */
   /* Force hardware acceleration and ensure proper rendering */
   transform: translateZ(0);
@@ -133,7 +145,8 @@
 }
 
 .json-node.json-deleted > .json-node-content {
-  background-color: #ffb3ba; /* Much stronger red background */
+  background-color: #ffeaea; /* Soft, subtle red background */
+  border-left: 3px solid #d32f2f; /* Modern accent border */
   width: fit-content; /* Make background only span the content width */
   /* Force hardware acceleration and ensure proper rendering */
   transform: translateZ(0);
@@ -143,7 +156,8 @@
 
 /* Type C: Value Changed (highlights the node's own content line) */
 .json-node.json-changed > .json-node-content {
-  background-color: #ffeb99; /* Much stronger yellow background */
+  background-color: #fff8e1; /* Soft, subtle amber background */
+  border-left: 3px solid #f57c00; /* Modern accent border */
   width: fit-content; /* Make background only span the content width */
   /* Force hardware acceleration and ensure proper rendering */
   transform: translateZ(0);
@@ -264,41 +278,49 @@
   }
 }
 
-/* More aggressive fix for browsers that don't render light backgrounds */
+/* Light mode - ensure visibility with slightly stronger backgrounds if needed */
 @media (prefers-color-scheme: light) {
   .json-node.json-parent-changed > .json-node-content {
-    background-color: #6bb6ff !important; /* Even stronger blue */
+    background-color: #e3f2fd !important; /* Keep subtle blue */
+    border-left: 3px solid #1976d2 !important;
   }
   
   .json-node.json-added > .json-node-content {
-    background-color: #66dd66 !important; /* Even stronger green */
+    background-color: #e8f5e8 !important; /* Keep subtle green - force over any other class */
+    border-left: 3px solid #2e7d32 !important;
   }
   
   .json-node.json-deleted > .json-node-content {
-    background-color: #ff6666 !important; /* Even stronger red */
+    background-color: #ffeaea !important; /* Keep subtle red */
+    border-left: 3px solid #d32f2f !important;
   }
   
   .json-node.json-changed > .json-node-content {
-    background-color: #ffdd44 !important; /* Even stronger yellow */
+    background-color: #fff8e1 !important; /* Keep subtle amber */
+    border-left: 3px solid #f57c00 !important;
   }
 }
 
 /* Dark mode compatibility */
 @media (prefers-color-scheme: dark) {
   .json-node.json-parent-changed > .json-node-content {
-    background-color: #1a4480 !important; /* Dark blue */
+    background-color: #0d47a1 !important; /* Dark blue background */
+    border-left: 3px solid #42a5f5 !important; /* Lighter blue accent */
   }
   
   .json-node.json-added > .json-node-content {
-    background-color: #1a4d1a !important; /* Dark green */
+    background-color: #1b5e20 !important; /* Dark green background */
+    border-left: 3px solid #66bb6a !important; /* Lighter green accent */
   }
   
   .json-node.json-deleted > .json-node-content {
-    background-color: #4d1a1a !important; /* Dark red */
+    background-color: #c62828 !important; /* Dark red background */
+    border-left: 3px solid #ef5350 !important; /* Lighter red accent */
   }
   
   .json-node.json-changed > .json-node-content {
-    background-color: #4d4d1a !important; /* Dark yellow */
+    background-color: #e65100 !important; /* Dark amber background */
+    border-left: 3px solid #ffab40 !important; /* Lighter amber accent */
   }
 }
 

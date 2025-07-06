@@ -497,6 +497,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   
   const nodeClasses = [
     'json-node',
+    hasChildren ? 'has-children' : 'leaf-node',
     isLastChild ? 'last-child' : '',
     isHighlighted ? 'highlighted-node' : '',
     isPersistentlyHighlighted ? 'persistent-highlight' : '',
@@ -627,7 +628,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 );
               });
             })()}
-            <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
+            <div className="json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-bracket json-closing-bracket">]</span>
             </div>
           </div>
@@ -688,7 +689,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 />
               );
             })}
-            <div className="json-node json-closing-brace-node" style={{paddingLeft: `${level * 20}px`}}>
+            <div className="json-closing-brace-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-brace json-closing-brace">{'}'}</span>
             </div>
           </div>
