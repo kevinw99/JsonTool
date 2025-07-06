@@ -95,8 +95,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     expandedPaths, 
     toggleExpand, 
     highlightPath, // Assumed to be numerically indexed for array segments from context
-    persistentHighlightPath, // For persistent border highlighting
-    persistentHighlightPaths, // For dual-path highlighting
+    persistentHighlightPaths, // For viewer-specific highlighting
     diffResults: diffResultsData,
     highlightingProcessor, // New: PathConverter-based highlighting processor
     showDiffsOnly: showDiffsOnlyContext, 
@@ -190,17 +189,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   })();
 
   const isPersistentlyHighlighted = (() => {
-    // Check single path highlighting (legacy)
-    if (persistentHighlightPath && persistentHighlightPath === genericNumericPathForNode) {
-      return true;
-    }
-    
-    // Check multi-path highlighting (for dual navigation)
-    if (persistentHighlightPaths && persistentHighlightPaths.has(genericNumericPathForNode)) {
-      return true;
-    }
-    
-    return false;
+    // Check viewer-specific highlighting using ViewerPath
+    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, genericNumericPathForNode);
+    return persistentHighlightPaths && persistentHighlightPaths.has(viewerSpecificPath);
   })();
 
   const isExpanded = (() => {

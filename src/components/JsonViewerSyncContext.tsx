@@ -33,10 +33,8 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   goToDiffWithPaths: (leftPath: string, rightPath: string) => void; // Navigate with separate paths for each viewer
   highlightPath: string | null; // Keep as string for compatibility with existing Set<string> operations
   setHighlightPath: (path: string | null | ((prevState: string | null) => string | null)) => void;
-  persistentHighlightPath: string | null; // New property for persistent border highlighting
-  setPersistentHighlightPath: (path: string | null) => void;
-  persistentHighlightPaths: Set<string>; // Multiple paths for dual highlighting
-  setPersistentHighlightPaths: (paths: Set<string>) => void;
+  persistentHighlightPaths: Set<ViewerPath>; // Viewer-specific highlighting using ViewerPath
+  setPersistentHighlightPaths: (paths: Set<ViewerPath>) => void;
   clearAllIgnoredDiffs: () => void;
   diffResults: DiffResult[]; 
   highlightingProcessor: NewHighlightingProcessor | null; // New: PathConverter-based highlighting processor
@@ -124,8 +122,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       return loadIgnoredPatternsFromStorage();
     });
     const [highlightPath, setHighlightPathState] = useState<string | null>(null);
-    const [persistentHighlightPath, setPersistentHighlightPath] = useState<string | null>(null);
-    const [persistentHighlightPaths, setPersistentHighlightPaths] = useState<Set<string>>(new Set());
+    const [persistentHighlightPaths, setPersistentHighlightPaths] = useState<Set<ViewerPath>>(new Set());
     
     // New: State for PathConverter-based highlighting processor
     const [highlightingProcessor, setHighlightingProcessor] = useState<NewHighlightingProcessor | null>(null);
@@ -445,16 +442,17 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
       const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
       
-      // Set highlighting for both paths
+      // Clear existing highlights before setting new ones
       setHighlightPathState(null);
+      setPersistentHighlightPaths(new Set<ViewerPath>());
+      
       setTimeout(() => {
         setHighlightPathState(leftPathWithRoot);
-        setPersistentHighlightPath(leftPathWithRoot);
         
-        // Set multiple persistent highlights for both paths
-        const highlightPaths = new Set<string>();
-        highlightPaths.add(leftPathWithRoot);
-        highlightPaths.add(rightPathWithRoot);
+        // Set viewer-specific persistent highlights for both paths
+        const highlightPaths = new Set<ViewerPath>();
+        highlightPaths.add(createViewerPath('left', leftPathWithRoot));
+        highlightPaths.add(createViewerPath('right', rightPathWithRoot));
         setPersistentHighlightPaths(highlightPaths);
         
         console.log('[goToDiffWithPaths] 🎨 Set dual highlighting for:', Array.from(highlightPaths));
@@ -524,7 +522,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           }
         }, 1200);
       }, 50);
-    }, [setHighlightPathState, setPersistentHighlightPath, setExpandedPathsState]);
+    }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState]);
 
     const goToDiff = useCallback((pathToExpand: string) => {
       console.log('[goToDiff] 🎯 Single path navigation:', pathToExpand);
@@ -603,6 +601,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         if (result.leftPath && result.rightPath) {
           console.log('[syncToCounterpart] ✅ Resolved paths - LEFT:', result.leftPath, 'RIGHT:', result.rightPath);
+          // Use dual path highlighting - both source and counterpart should be highlighted
           goToDiffWithPaths(result.leftPath, result.rightPath);
         } else {
           console.log('[syncToCounterpart] ⚠️ Could not resolve ID paths, using simple sync');
@@ -796,8 +795,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         goToDiffWithPaths,
         highlightPath,
         setHighlightPath: memoizedSetHighlightPath,
-        persistentHighlightPath,
-        setPersistentHighlightPath,
         persistentHighlightPaths,
         setPersistentHighlightPaths,
         clearAllIgnoredDiffs,
@@ -841,8 +838,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         goToDiffWithPaths,
         highlightPath,
         memoizedSetHighlightPath,
-        persistentHighlightPath,
-        setPersistentHighlightPath,
         persistentHighlightPaths,
         clearAllIgnoredDiffs,
         diffResults,

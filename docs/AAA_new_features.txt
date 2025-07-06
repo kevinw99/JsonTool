@@ -16,3 +16,6 @@ Text mode:
 can we  " ensure numeric paths are always  associated with viewers." by making a type to either force a  │
 │   numbericPath always have a viewer/panel attribute, or create a new type, then force attribute not        │
 │   null?
+
+can you check all methods input and return have strict type on either viewerPath or IdBasedPath?         │
+│   NumericPath or string can not be in input or return

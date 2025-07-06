@@ -1235,6 +1235,45 @@ Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel
 **Status**: 🚧 In Progress  
 
 
+### Request #88 - ✨ Feature
+**Date**: 2025-07-05  
+**Request**: "update viewer naming from viewer1/viewer2 to left/right and simplify type system
+
+## Viewer Naming Changes
+- Updated ViewerId type from 'viewer1'  < /dev/null |  'viewer2' to 'left' | 'right'
+- Updated all references throughout codebase for better clarity:
+  - App.tsx: JsonTreeView components now use "left" and "right"
+  - JsonViewerSyncContext.tsx: All conditional logic and path creation
+  - JsonTreeView.tsx: All viewer ID references and path handling
+  - JsonViewer.tsx: Single-file viewer uses "left"
+  - DiffList.tsx: Console logging updated
+  - PathTypes.ts: Type definitions and validation messages
+
+## Type System Simplification
+- Removed redundant ViewerNumericPath type alias
+- Simplified to single ViewerPath type for viewer-specific numeric paths
+- Removed ViewerIdBasedPath type - ID-based paths remain viewer-agnostic
+- Cleaned up redundant functions:
+  - createViewerNumericPath → merged into createViewerPath
+  - isViewerNumericPath → redundant with isViewerPath
+  - createViewerIdBasedPath → removed (ID paths are viewer-agnostic)
+
+## Benefits
+- Clearer distinction: "left/right" more intuitive than "viewer1/viewer2"
+- Simpler type system: One ViewerPath type instead of multiple aliases
+- Better separation: ID-based paths are universal, numeric paths are viewer-specific
+- Enhanced maintainability: Clearer naming matches visual layout
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)"  
+**Commit**: [`a3ac3a9`](https://github.com/user/repo/commit/a3ac3a9)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, src/App.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

@@ -1,0 +1,28 @@
+{
+  "id": 88,
+  "request": "update viewer naming from viewer1/viewer2 to left/right and simplify type system\n\n## Viewer Naming Changes\n- Updated ViewerId type from 'viewer1'  < /dev/null |  'viewer2' to 'left' | 'right'\n- Updated all references throughout codebase for better clarity:\n  - App.tsx: JsonTreeView components now use \"left\" and \"right\"\n  - JsonViewerSyncContext.tsx: All conditional logic and path creation\n  - JsonTreeView.tsx: All viewer ID references and path handling\n  - JsonViewer.tsx: Single-file viewer uses \"left\"\n  - DiffList.tsx: Console logging updated\n  - PathTypes.ts: Type definitions and validation messages\n\n## Type System Simplification\n- Removed redundant ViewerNumericPath type alias\n- Simplified to single ViewerPath type for viewer-specific numeric paths\n- Removed ViewerIdBasedPath type - ID-based paths remain viewer-agnostic\n- Cleaned up redundant functions:\n  - createViewerNumericPath → merged into createViewerPath\n  - isViewerNumericPath → redundant with isViewerPath\n  - createViewerIdBasedPath → removed (ID paths are viewer-agnostic)\n\n## Benefits\n- Clearer distinction: \"left/right\" more intuitive than \"viewer1/viewer2\"\n- Simpler type system: One ViewerPath type instead of multiple aliases\n- Better separation: ID-based paths are universal, numeric paths are viewer-specific\n- Enhanced maintainability: Clearer naming matches visual layout\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-05T23:48:42.324Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually test across different screen sizes"
+}
