@@ -185,8 +185,8 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       }
       
       // Convert viewer-specific path to generic path
-      // "root_viewer1_root.boomerForecastV3Requests" -> "root.boomerForecastV3Requests"
-      const genericPath = path.replace(/^root_viewer\d+_/, '');
+      // "root_left_root.boomerForecastV3Requests" -> "root.boomerForecastV3Requests"
+      const genericPath = path.replace(/^root_(left|right)_/, '');
       console.log(`[JsonViewerSyncContext toggleExpand] Generic path: "${genericPath}"`);
       
       // Check if this is an ID-based array path that needs sync

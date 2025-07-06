@@ -14,7 +14,7 @@ export interface PathConversionContext {
 }
 
 export interface PathPrefix {
-  viewer?: string;    // e.g., "viewer1", "viewer2"
+  viewer?: string;    // e.g., "left", "right"
   hasRoot?: boolean;  // whether path starts with "root."
 }
 
@@ -30,14 +30,14 @@ export interface ConversionOptions {
 
 /**
  * Extracts prefix information from a path
- * Example: "root_viewer1_root.users[0]" -> { viewer: "viewer1", hasRoot: true }
+ * Example: "root_left_root.users[0]" -> { viewer: "left", hasRoot: true }
  */
 function extractPrefix(path: string): { prefix: PathPrefix; corePath: string } {
   let corePath = path;
   const prefix: PathPrefix = {};
   
   // Extract viewer prefix
-  const viewerMatch = corePath.match(/^root_(viewer\d+)_/);
+  const viewerMatch = corePath.match(/^root_(left|right)_/);
   if (viewerMatch) {
     prefix.viewer = viewerMatch[1];
     corePath = corePath.substring(viewerMatch[0].length);
