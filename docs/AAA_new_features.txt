@@ -6,6 +6,11 @@ Text mode:
 2.ignore by value:
     a. numberic, by percentage
     b. string: by pattern, or one to one mapping
+3. multi-selection : shift+click, ctrl+click
+  a. for ignore
+  b. for copy/paste
+  c. for delete
+
 3. group differnece panel
     a. by last field
     b. by type: differnt, new, delete

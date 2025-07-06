@@ -1,66 +1,94 @@
-/* JsonTreeView.css - Complete Rehaul */
+/* JsonTreeView.css - Clean, Organized Structure */
+
+/* ========================================
+   CSS Variables & Base Styles
+   ======================================== */
 
 :root {
+  /* Layout */
   --indent-size: 20px;
+  --expander-width: 18px;
+  
+  /* Typography */
   --font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace;
   --font-size: 13px;
   --line-height: 1.4;
+  
+  /* Colors */
   --key-color: #881391;
   --expander-color: #666;
+  --bracket-color: #333;
+  --string-color: #032f62;
+  --number-color: #1a01cc;
+  --null-color: #808080;
+  --hint-color: #999;
+  
+  /* Diff Colors - Single Source of Truth */
+  --diff-parent-bg: lightblue; /* #e3f2fd */
+  --diff-parent-border: blue; /* #1976d2 */
+  --diff-added-bg: limegreen; /* #52c41a */
+  --diff-added-border: darkgreen; /* #2e7d32 */
+  --diff-deleted-bg: mistyrose; /* #ffeaea */
+  --diff-deleted-border: crimson; /* #d32f2f */
+  --diff-changed-bg: #FFCC99; /* #fff8e1 */
+  --diff-changed-border: orange; /* #f57c00 */
+  
+  /* Highlight Colors */
+  --highlight-border: #007acc;
+  --flash-color: #ffeb99;
 }
+
+/* ========================================
+   Tree Structure
+   ======================================== */
 
 .json-tree-view {
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
   padding: 8px;
-  /* Remove overflow settings to let parent SyncScroll handle scrolling */
-  white-space: nowrap; /* Prevent wrapping at the tree level */
+  white-space: nowrap;
 }
 
 .json-node {
-  /* Indentation is handled by padding */
   padding-left: var(--indent-size);
   position: relative;
 }
 
-/* This is the container for a single line in the tree */
 .json-node-content {
   display: flex;
   align-items: center;
   cursor: pointer;
-  white-space: nowrap; /* Prevent wrapping to maintain alignment */
-  /* Remove overflow: hidden to not interfere with scroll container */
-  min-width: 0; /* Allow shrinking */
-
-  /* Force background painting */
-  -webkit-transform: translateZ(0);
+  white-space: nowrap;
+  min-width: 0;
+  width: fit-content;
+  
+  /* Hardware acceleration for smooth rendering */
   transform: translateZ(0);
-  /* Ensure proper compositing */
-  will-change: background-color;
-  /* Force repaint on some browsers */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
-/* The expander arrow (►/▼). It's pulled into the parent's padding. */
+/* ========================================
+   Expander Arrow
+   ======================================== */
+
 .expander {
-  /* Fixed width to ensure alignment */
-  width: 18px;
+  width: var(--expander-width);
   text-align: center;
   color: var(--expander-color);
   user-select: none;
-  
-  /* Pull the expander into the padding of .json-node */
-  margin-left: -18px; 
+  margin-left: calc(-1 * var(--expander-width));
 }
 
-/* When a node has no children, the expander is hidden but still takes up space */
 .expander.no-children {
   visibility: hidden;
 }
 
-/* The key of a key-value pair */
+/* ========================================
+   JSON Content Elements
+   ======================================== */
+
 .json-key {
   font-weight: 500;
   color: var(--key-color);
@@ -68,23 +96,16 @@
   white-space: nowrap;
 }
 
-/* The container for the value part of the line */
 .value-container {
   display: flex;
   align-items: center;
   white-space: nowrap;
-  overflow: hidden; /* Hide overflow content */
-  text-overflow: ellipsis; /* Show ... for truncated content */
-  min-width: 0; /* Allow shrinking */
-  flex: 1; /* Take remaining space */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
-.json-value.string { color: #032f62; }
-.json-value.number { color: #1a01cc; }
-.json-value.boolean { font-weight: bold; }
-.json-value.null { color: #808080; font-style: italic; }
-
-/* Ensure JSON values don't wrap and show ellipsis when too long */
 .json-value {
   white-space: nowrap;
   overflow: hidden;
@@ -93,118 +114,80 @@
   flex-shrink: 1;
 }
 
-.json-bracket, .json-brace {
-  color: #333;
+.json-value.string { color: var(--string-color); }
+.json-value.number { color: var(--number-color); }
+.json-value.boolean { font-weight: bold; }
+.json-value.null { color: var(--null-color); font-style: italic; }
+
+.json-bracket, 
+.json-brace {
+  color: var(--bracket-color);
 }
 
 .json-collapsed-hint {
-  color: #999;
+  color: var(--hint-color);
   margin: 0 4px;
   font-style: italic;
 }
 
-/* The closing bracket for expanded objects/arrays */
 .json-closing-node {
   padding-left: var(--indent-size);
   display: flex;
   align-items: center;
 }
 
-/* --- Diff Style Overhaul --- */
+/* ========================================
+   DIFF HIGHLIGHTING - SINGLE SOURCE OF TRUTH
+   ======================================== */
 
-/* Type A: Parent of a Diff (subtle blue background for parent's content line) */
-.json-node.has-children.json-parent-changed > .json-node-content {
-  background-color: #e3f2fd; /* Soft, subtle blue background */
-  border-left: 3px solid #1976d2; /* Modern accent border */
-  width: fit-content; /* Make background only span the content width */
-  /* Force hardware acceleration and ensure proper rendering */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+/* Type A: Parent of a Diff (containers with child changes) */
+/*.json-node.has-children.json-parent-changed > .json-node-content { */
+.json-node.json-parent-changed > .json-node-content {
+  background-color: var(--diff-parent-bg);
+  /*border-left: 3px solid var(--diff-parent-border); */
+
+
 }
 
-/* Leaf nodes - no border for parent changed */
+/* Leaf nodes with parent changed styling (no border) */
 .json-node.leaf-node.json-parent-changed > .json-node-content {
-  background-color: #e3f2fd; /* Soft, subtle blue background */
-  width: fit-content; /* Make background only span the content width */
-  /* Force hardware acceleration and ensure proper rendering */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  background-color: var(--diff-parent-bg);
 }
 
-/* Type B: Property Added/Deleted (highlights the node's own content line) */
+/* Type B: Added/Deleted Nodes */
 .json-node.json-added > .json-node-content {
-  background-color: #e8f5e8 !important; /* Soft, subtle green background - force priority */
-  border-left: 3px solid #2e7d32; /* Modern accent border */
-  width: fit-content; /* Make background only span the content width */
-  /* Force hardware acceleration and ensure proper rendering */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  background-color: var(--diff-added-bg);
+/*  border-left: 3px solid var(--diff-added-border);*/
 }
 
 .json-node.json-deleted > .json-node-content {
-  background-color: #ffeaea; /* Soft, subtle red background */
-  border-left: 3px solid #d32f2f; /* Modern accent border */
-  width: fit-content; /* Make background only span the content width */
-  /* Force hardware acceleration and ensure proper rendering */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  background-color: var(--diff-deleted-bg);
+  border-left: 3px solid var(--diff-deleted-border);
 }
 
-/* Type C: Value Changed (highlights the node's own content line) */
+/* Type C: Value Changed */
 .json-node.json-changed > .json-node-content {
-  background-color: #fff8e1; /* Soft, subtle amber background */
-  border-left: 3px solid #f57c00; /* Modern accent border */
-  width: fit-content; /* Make background only span the content width */
-  /* Force hardware acceleration and ensure proper rendering */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  background-color: var(--diff-changed-bg);
+/*  border-left: 3px solid var(--diff-changed-border); */
 }
 
-/* Flash animation for highlighting target elements */
+/* ========================================
+   Interactive Highlighting
+   ======================================== */
+
+/* Persistent highlight (border only) */
+.json-node.persistent-highlight {
+  border: 2px solid var(--highlight-border);
+  border-radius: 4px;
+  margin: 1px 0;
+}
+
+/* Flash animation for navigation */
 .json-flash {
   animation: flashHighlight 1s ease-out;
   animation-fill-mode: both;
 }
 
-@keyframes flashHighlight {
-  0% {
-    background-color: #ffeb99;
-    border-color: #ffeaa7;
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
-    transform: scale(1);
-  }
-  25% {
-    background-color: #ffeb99;
-    border-color: #ffc107;
-    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
-    transform: scale(1.02);
-  }
-  50% {
-    background-color: #ffeb99;
-    border-color: #ffc107;
-    box-shadow: 0 0 20px rgba(255, 193, 7, 1);
-    transform: scale(1.02);
-  }
-  75% {
-    background-color: #ffeb99;
-    border-color: #ffeaa7;
-    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
-    transform: scale(1.01);
-  }
-  100% {
-    background-color: transparent;
-    border-color: initial;
-    box-shadow: none;
-    transform: scale(1);
-  }
-}
-
-/* Ensure flash works on different element types */
 .json-node.json-flash,
 .json-key.json-flash,
 .json-value.json-flash,
@@ -213,114 +196,31 @@
   z-index: 10;
 }
 
-/* Persistent highlight with border - stays until next node is updated */
-.json-node.persistent-highlight {
-  border: 2px solid #007acc !important;
-  border-radius: 4px !important;
-  margin: 1px 0 !important; /* Prevent layout shift from border */
-  /* No background color - border only highlighting */
-}
-
-/* Simple responsive approach - just hide overflow, no wrapping */
-@media (max-width: 768px) {
-  .json-tree-view {
-    overflow-x: auto !important; /* Allow horizontal scrolling if needed */
+@keyframes flashHighlight {
+  0% {
+    background-color: var(--flash-color);
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+    transform: scale(1);
   }
-  
-  .json-node-content {
-    white-space: nowrap !important; /* Keep everything on one line */
-    overflow: hidden !important; /* Hide content that doesn't fit */
-    flex-wrap: nowrap !important; /* Prevent flex wrapping */
-    min-width: 0 !important; /* Allow shrinking */
+  25% {
+    background-color: var(--flash-color);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+    transform: scale(1.02);
   }
-  
-  .value-container {
-    white-space: nowrap !important; /* Keep values on one line */
-    overflow: hidden !important; /* Hide overflow */
-    text-overflow: ellipsis !important; /* Show ... for truncated content */
-    flex-shrink: 1 !important; /* Allow shrinking */
-    min-width: 0 !important; /* Allow shrinking */
-    max-width: none !important; /* Remove any max-width constraints */
+  50% {
+    background-color: var(--flash-color);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+    transform: scale(1.02);
   }
-  
-  .json-key {
-    white-space: nowrap !important; /* Keep keys on one line */
-    overflow: hidden !important; /* Hide overflow */
-    text-overflow: ellipsis !important; /* Show ... for truncated content */
-    flex-shrink: 0 !important; /* Don't shrink keys too much */
-    max-width: 200px !important; /* Limit key width but allow truncation */
+  75% {
+    background-color: var(--flash-color);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+    transform: scale(1.01);
   }
-  
-  .json-value {
-    overflow: hidden !important; /* Hide overflow */
-    text-overflow: ellipsis !important; /* Show ... for truncated content */
-    white-space: nowrap !important; /* Keep values on one line */
-    flex-shrink: 1 !important; /* Allow values to shrink */
-    min-width: 0 !important; /* Allow shrinking */
-  }
-  
-  .json-collapsed-hint {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    flex-shrink: 1 !important;
-  }
-}
-
-/* Additional CSS rules for Safari and Chrome background issues */
-@supports (backdrop-filter: blur(1px)) {
-  .json-node.json-parent-changed > .json-node-content,
-  .json-node.json-added > .json-node-content,
-  .json-node.json-deleted > .json-node-content,
-  .json-node.json-changed > .json-node-content {
-    /* Force layer creation for proper background rendering */
-    isolation: isolate;
-  }
-}
-
-/* Light mode - ensure visibility with slightly stronger backgrounds if needed */
-@media (prefers-color-scheme: light) {
-  .json-node.json-parent-changed > .json-node-content {
-    background-color: #e3f2fd !important; /* Keep subtle blue */
-    border-left: 3px solid #1976d2 !important;
-  }
-  
-  .json-node.json-added > .json-node-content {
-    background-color: #e8f5e8 !important; /* Keep subtle green - force over any other class */
-    border-left: 3px solid #2e7d32 !important;
-  }
-  
-  .json-node.json-deleted > .json-node-content {
-    background-color: #ffeaea !important; /* Keep subtle red */
-    border-left: 3px solid #d32f2f !important;
-  }
-  
-  .json-node.json-changed > .json-node-content {
-    background-color: #fff8e1 !important; /* Keep subtle amber */
-    border-left: 3px solid #f57c00 !important;
-  }
-}
-
-/* Dark mode compatibility */
-@media (prefers-color-scheme: dark) {
-  .json-node.json-parent-changed > .json-node-content {
-    background-color: #0d47a1 !important; /* Dark blue background */
-    border-left: 3px solid #42a5f5 !important; /* Lighter blue accent */
-  }
-  
-  .json-node.json-added > .json-node-content {
-    background-color: #1b5e20 !important; /* Dark green background */
-    border-left: 3px solid #66bb6a !important; /* Lighter green accent */
-  }
-  
-  .json-node.json-deleted > .json-node-content {
-    background-color: #c62828 !important; /* Dark red background */
-    border-left: 3px solid #ef5350 !important; /* Lighter red accent */
-  }
-  
-  .json-node.json-changed > .json-node-content {
-    background-color: #e65100 !important; /* Dark amber background */
-    border-left: 3px solid #ffab40 !important; /* Lighter amber accent */
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+    transform: scale(1);
   }
 }
 
@@ -357,5 +257,100 @@
   100% {
     opacity: 0;
     transform: translateX(100%);
+  }
+}
+
+/* ========================================
+   Color Scheme Overrides
+   ======================================== */
+
+/* Light mode - stronger colors for better visibility */
+/*@media (prefers-color-scheme: light) {
+  :root {
+    --diff-parent-bg: #e3f2fd;
+    --diff-added-bg: #e8f5e8;
+    --diff-deleted-bg: #ffeaea;
+    --diff-changed-bg: #fff8e1;
+  }
+}*/
+/*
+
+*/
+/* Dark mode - compatible colors */
+/*
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --diff-parent-bg: #0d47a1;
+    --diff-parent-border: #42a5f5;
+    --diff-added-bg: #1b5e20;
+    --diff-added-border: #66bb6a;
+    --diff-deleted-bg: #c62828;
+    --diff-deleted-border: #ef5350;
+    --diff-changed-bg: #e65100;
+    --diff-changed-border: #ffab40;
+  }
+}
+*/
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+  .json-tree-view {
+    overflow-x: auto;
+  }
+  
+  .json-node-content {
+    white-space: nowrap;
+    overflow: hidden;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  
+  .value-container {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  
+  .json-key {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    max-width: 200px;
+  }
+  
+  .json-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  
+  .json-collapsed-hint {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+  }
+}
+
+/* ========================================
+   Browser Compatibility
+   ======================================== */
+
+@supports (backdrop-filter: blur(1px)) {
+  .json-node.json-parent-changed > .json-node-content,
+  .json-node.json-added > .json-node-content,
+  .json-node.json-deleted > .json-node-content,
+  .json-node.json-changed > .json-node-content {
+    isolation: isolate;
   }
 }

@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import type { ViewerId } from '../utils/PathTypes';
 import './FileSelector.css';
 
 interface FileSelectorProps {
   availableFiles: string[];
   onFileSelect: (fileName: string) => void;
-  viewerId: ViewerId;
+  side: 'left' | 'right';
   currentFileName?: string;
 }
 
 export const FileSelector: React.FC<FileSelectorProps> = ({
   availableFiles,
   onFileSelect,
-  viewerId,
+  side,
   currentFileName
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +22,7 @@ export const FileSelector: React.FC<FileSelectorProps> = ({
   };
 
   return (
-    <div className={`file-selector ${viewerId}`}>
+    <div className={`file-selector ${side}`}>
       <button
         className="file-selector-toggle"
         onClick={() => setIsOpen(!isOpen)}

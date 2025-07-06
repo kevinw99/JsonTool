@@ -16,7 +16,6 @@ import { GlobalDropZone } from './components/GlobalDropZone'
 // ViewportTestButton removed - not used in this component
 import './components/JsonLayout.css'
 import type { JsonValue, JsonObject } from './components/JsonTreeView'
-import type { ViewerId } from './utils/PathTypes'
 import { useJsonViewerSync } from './components/JsonViewerSyncContext'
 
 // Single-pass traversal that detects ID keys and sorts arrays immediately
@@ -285,14 +284,14 @@ function App() {
   };
 
   // Handle file selection from public directory
-  const handleFileSelect = (viewerId: ViewerId) => async (fileName: string) => {
+  const handleFileSelect = (viewer: 'file1' | 'file2') => async (fileName: string) => {
     const fileData = await loadFileFromPublic(fileName);
     if (!fileData) {
       setError(`Failed to load ${fileName} from public directory`);
       return;
     }
 
-    if (viewerId === 'left') {
+    if (viewer === 'file1') {
       setFile1(fileData);
       if (file2 && !file2.isTextMode) {
         // Re-run comparison with new file1
@@ -1185,12 +1184,12 @@ function App() {
                         <FileHeader 
                           fileName={file1?.fileName}
                           onFileNameChange={handleFileName1Change}
-                          viewerId="left"
+                          side="left"
                         />
                         <FileSelector
                           availableFiles={getPublicJsonFiles()}
-                          onFileSelect={handleFileSelect('left')}
-                          viewerId="left"
+                          onFileSelect={handleFileSelect('file1')}
+                          side="left"
                           currentFileName={file1?.fileName}
                         />
                       </div>
@@ -1204,6 +1203,7 @@ function App() {
                           <JsonTreeView
                             data={(sortedFile1Data || file1.content) as JsonValue}
                             viewerId="left"
+                            jsonSide='left'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
@@ -1229,12 +1229,12 @@ function App() {
                         <FileHeader 
                           fileName={file2?.fileName}
                           onFileNameChange={handleFileName2Change}
-                          viewerId="right"
+                          side="right"
                         />
                         <FileSelector
                           availableFiles={getPublicJsonFiles()}
-                          onFileSelect={handleFileSelect('right')}
-                          viewerId="right"
+                          onFileSelect={handleFileSelect('file2')}
+                          side="right"
                           currentFileName={file2?.fileName}
                         />
                       </div>
@@ -1248,6 +1248,7 @@ function App() {
                           <JsonTreeView
                             data={(sortedFile2Data || file2.content) as JsonValue}
                             viewerId="right"
+                            jsonSide='right'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
@@ -1329,12 +1330,12 @@ function App() {
                       <FileHeader 
                         fileName={file1?.fileName}
                         onFileNameChange={handleFileName1Change}
-                        viewerId="left"
+                        side="left"
                       />
                       <FileSelector
                         availableFiles={getPublicJsonFiles()}
-                        onFileSelect={handleFileSelect('left')}
-                        viewerId="left"
+                        onFileSelect={handleFileSelect('file1')}
+                        side="left"
                         currentFileName={file1?.fileName}
                       />
                     </div>
@@ -1368,12 +1369,12 @@ function App() {
                       <FileHeader 
                         fileName={file2?.fileName}
                         onFileNameChange={handleFileName2Change}
-                        viewerId="right"
+                        side="right"
                       />
                       <FileSelector
                         availableFiles={getPublicJsonFiles()}
-                        onFileSelect={handleFileSelect('right')}
-                        viewerId="right"
+                        onFileSelect={handleFileSelect('file2')}
+                        side="right"
                         currentFileName={file2?.fileName}
                       />
                     </div>
