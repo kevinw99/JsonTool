@@ -7,70 +7,23 @@ import {
 } from './PathConverter';
 import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
 import { createNumericPath, createIdBasedPath, unsafeIdBasedPath, unsafeNumericPath } from './PathTypes';
+import fs from 'fs';
+import path from 'path';
 
-// Sample data matching the screenshots
-const sampleData = {
-  boomerForecastV3Requests: [{
-    parameters: {
-      accountParams: [
-        {
-          id: "45626988::1",
-          managementFee: 0.007212962962963
-        },
-        {
-          id: "45626988::2",
-          managementFee: 0.007212962962963,
-          contributions: [
-            {
-              id: "45626988::2_prtcpnt-catchup-50-separate_0",
-              contributionType: "CATCH_UP_50_SEPARATE_PRE_TAX", // Left panel
-              contributions: [1000, 1000, 1000, 1000, 1000]
-            },
-            {
-              id: "45626988::2_prtcpnt-pre_0",
-              contributionType: "PARTICIPANT_PRE_TAX",
-              contributions: [7000, 7000, 7000, 7000, 7000] // Left panel values
-            }
-          ]
-        }
-      ]
-    }
-  }]
-};
+/**
+ * Load test data from external JSON files
+ */
+function loadTestData(): { sampleData: any, sampleDataRight: any } {
+  const leftPath = path.resolve(__dirname, '../../public/highlighting-test-left-panel.json');
+  const rightPath = path.resolve(__dirname, '../../public/highlighting-test-right-panel.json');
+  
+  const sampleData = JSON.parse(fs.readFileSync(leftPath, 'utf8'));
+  const sampleDataRight = JSON.parse(fs.readFileSync(rightPath, 'utf8'));
+  
+  return { sampleData, sampleDataRight };
+}
 
-const sampleDataRight = {
-  boomerForecastV3Requests: [{
-    parameters: {
-      accountParams: [
-        {
-          id: "45626988::1",
-          managementFee: 0.007212962962963
-        },
-        {
-          id: "45626988::2",
-          managementFee: 0.007212962962963,
-          contributions: [
-            {
-              id: "45626988::2_prtcpnt-after_0",
-              contributionType: "PARTICIPANT_AFTER_TAX", // Right panel - ADDED
-              contributions: [3500, 3500, 3500, 3500, 3500]
-            },
-            {
-              id: "45626988::2_prtcpnt-catchup-50-separate_0",
-              contributionType: "CATCH_UP_50_SEPARATE_AFTER_TAX", // Right panel - CHANGED
-              contributions: [1000, 1000, 1000, 1000, 1000]
-            },
-            {
-              id: "45626988::2_prtcpnt-pre_0",
-              contributionType: "PARTICIPANT_PRE_TAX",
-              contributions: [3500, 3500, 3500, 3500, 3500] // Right panel - CHANGED values
-            }
-          ]
-        }
-      ]
-    }
-  }]
-};
+const { sampleData, sampleDataRight } = loadTestData();
 
 const idKeysUsed = [
   {

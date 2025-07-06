@@ -7,6 +7,8 @@ import type { DiffResult, JsonCompareResult, IdKeyInfo } from './jsonCompare';
 import { NewHighlightingProcessor as HighlightingProcessor } from './NewHighlightingProcessor';
 import type { IdBasedPath, AnyPath } from './PathTypes';
 import { createIdBasedPath } from './PathTypes';
+import fs from 'fs';
+import path from 'path';
 
 // Import the CSS class constants we'll be testing against
 const CSS_CLASSES = {
@@ -19,71 +21,20 @@ const CSS_CLASSES = {
   PERSISTENT_HIGHLIGHT: 'persistent-highlight'  // Persistent border highlight until next navigation
 } as const;
 
-// Sample data representing LEFT panel - exactly matching your scenario
-const sampleDataLeft = {
-  boomerForecastV3Requests: [{
-    parameters: {
-      accountParams: [
-        {
-          id: "45626988::1",
-          managementFee: 0.007212962962963
-        },
-        {
-          id: "45626988::2",
-          managementFee: 0.007212962962963,
-          contributions: [
-            {
-              id: "45626988::2_prtcpnt-catchup-50-separate_0", 
-              contributionType: "CATCH_UP_50_SEPARATE_PRE_TAX", // WILL CHANGE to AFTER_TAX
-              contributions: [1000, 1000, 1000, 1000, 1000]
-            },
-            {
-              id: "45626988::2_prtcpnt-pre_0",
-              contributionType: "PARTICIPANT_PRE_TAX",
-              contributions: [7000, 7000, 7000, 7000, 7000] // WILL CHANGE to 3500s
-            }
-            // Note: "after" contribution does NOT exist in left panel
-          ]
-        }
-      ]
-    }
-  }]
-};
+/**
+ * Load test data from external JSON files
+ */
+function loadTestData(): { sampleDataLeft: any, sampleDataRight: any } {
+  const leftPath = path.resolve(__dirname, '../../public/highlighting-test-left-panel.json');
+  const rightPath = path.resolve(__dirname, '../../public/highlighting-test-right-panel.json');
+  
+  const sampleDataLeft = JSON.parse(fs.readFileSync(leftPath, 'utf8'));
+  const sampleDataRight = JSON.parse(fs.readFileSync(rightPath, 'utf8'));
+  
+  return { sampleDataLeft, sampleDataRight };
+}
 
-// Sample data representing RIGHT panel - with all changes from your diff list
-const sampleDataRight = {
-  boomerForecastV3Requests: [{
-    parameters: {
-      accountParams: [
-        {
-          id: "45626988::1", 
-          managementFee: 0.007212962962963
-        },
-        {
-          id: "45626988::2",
-          managementFee: 0.007212962962963,
-          contributions: [
-            {
-              id: "45626988::2_prtcpnt-after_0", // ADDED - new contribution (diff #7)
-              contributionType: "PARTICIPANT_AFTER_TAX",
-              contributions: [3500, 3500, 3500, 3500, 3500]
-            },
-            {
-              id: "45626988::2_prtcpnt-catchup-50-separate_0",
-              contributionType: "CATCH_UP_50_SEPARATE_AFTER_TAX", // CHANGED (diff #1)
-              contributions: [1000, 1000, 1000, 1000, 1000] // Same values
-            },
-            {
-              id: "45626988::2_prtcpnt-pre_0",
-              contributionType: "PARTICIPANT_PRE_TAX",
-              contributions: [3500, 3500, 3500, 3500, 3500] // CHANGED (diffs #2-6)
-            }
-          ]
-        }
-      ]
-    }
-  }]
-};
+const { sampleDataLeft, sampleDataRight } = loadTestData();
 
 /**
  * Generate actual ID keys using the real detection algorithm
