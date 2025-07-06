@@ -1358,6 +1358,44 @@ Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel
 **Status**: 🚧 In Progress  
 
 
+### Request #91 - 🐛 Bug Fix
+**Date**: 2025-07-06  
+**Request**: "prevent misleading highlights for asymmetric diffs
+
+## Problem
+When navigating to asymmetric diffs (e.g., nodes that exist in only one panel),
+the system would highlight both panels even when the target node didn't exist
+in one of them. This was misleading for users.
+
+## Solution
+Added optional highlighting parameters to goToDiffWithPaths():
+- highlightLeft?: boolean (default: true)
+- highlightRight?: boolean (default: true)
+
+## Implementation
+- Updated goToDiffWithPaths() to conditionally highlight based on flags
+- Modified goToDiff() to pass appropriate highlighting flags:
+  * Both paths exist: highlight both panels
+  * Left-only path: highlight only left panel
+  * Right-only path: highlight only right panel
+- Preserved all existing navigation, expansion, and scrolling behavior
+
+## Benefits
+- No misleading highlights for non-existent nodes
+- Clear visual feedback for asymmetric diffs
+- Backward compatible with existing calls
+- Uses existing code without duplication
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`1f45e09`](https://github.com/user/repo/commit/1f45e09)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

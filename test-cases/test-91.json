@@ -1,16 +1,16 @@
 {
   "id": 91,
-  "request": "update path prefix regex patterns for left/right viewer naming\n\n## Problem\nManual node expansion was failing due to incorrect path prefix handling.\nThe regex patterns were still using the old viewer1/viewer2 naming convention\ninstead of the new left/right naming, causing malformed ViewerPath generation.\n\n## Root Cause\n- JsonViewerSyncContext: `/^root_viewer\\d+_/` regex didn't match `root_left_` paths\n- PathConverter: `/^root_(viewer\\d+)_/` regex didn't match new viewer naming\n- This caused double prefixing: `left_root_left_root.path` instead of `left_root.path`\n\n## Solution\n- Updated JsonViewerSyncContext regex: `/^root_(left < /dev/null | right)_/`\n- Updated PathConverter regex: `/^root_(left|right)_/`\n- Updated interface comments to reflect \"left\"/\"right\" examples\n\n## Expected Behavior (Fixed)\nInput: \"root_left_root.boomerForecastV3Requests\"\n→ Generic: \"root.boomerForecastV3Requests\"\n→ ViewerPath: \"left_root.boomerForecastV3Requests\" ✅\n→ Other viewer: \"right_root.boomerForecastV3Requests\" ✅\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "request": "prevent misleading highlights for asymmetric diffs\n\n## Problem\nWhen navigating to asymmetric diffs (e.g., nodes that exist in only one panel),\nthe system would highlight both panels even when the target node didn't exist\nin one of them. This was misleading for users.\n\n## Solution\nAdded optional highlighting parameters to goToDiffWithPaths():\n- highlightLeft?: boolean (default: true)\n- highlightRight?: boolean (default: true)\n\n## Implementation\n- Updated goToDiffWithPaths() to conditionally highlight based on flags\n- Modified goToDiff() to pass appropriate highlighting flags:\n  * Both paths exist: highlight both panels\n  * Left-only path: highlight only left panel\n  * Right-only path: highlight only right panel\n- Preserved all existing navigation, expansion, and scrolling behavior\n\n## Benefits\n- No misleading highlights for non-existent nodes\n- Clear visual feedback for asymmetric diffs\n- Backward compatible with existing calls\n- Uses existing code without duplication\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
   "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-06T01:11:41.291Z",
+  "created": "2025-07-06T20:29:52.393Z",
   "testSteps": [
-    "1. Reproduce the bug using the provided steps",
-    "2. Verify the issue exists before the fix",
-    "3. Apply the fix",
-    "4. Test the specific scenario that was broken",
-    "5. Test related functionality to ensure no regressions",
-    "6. Verify edge cases work correctly"
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
   ],
   "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {

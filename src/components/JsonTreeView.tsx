@@ -630,7 +630,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 );
               });
             })()}
-            <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
+            <div className="json-node json-closing-bracket-node" style={{'--level': level} as React.CSSProperties}>
               <span className="json-bracket json-closing-bracket">]</span>
             </div>
           </div>
@@ -692,7 +692,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 />
               );
             })}
-            <div className="json-node json-closing-brace-node" style={{paddingLeft: `${level * 20}px`}}>
+            <div className="json-node json-closing-brace-node" style={{'--level': level} as React.CSSProperties}>
               <span className="json-brace json-closing-brace">{'}'}</span>
             </div>
           </div>

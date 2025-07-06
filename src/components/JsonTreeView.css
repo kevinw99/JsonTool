@@ -6,8 +6,10 @@
 
 :root {
   /* Layout */
-  --indent-size: 20px;
+  --indent-size: 20px; /* Original indent for opening brackets */
   --expander-width: 18px;
+  --closing-bracket-indent: 2px; /* Separate indent just for closing brackets */
+  --bracket-alignment: calc(var(--indent-size) + var(--expander-width)); /* 38px total for bracket alignment */
   
   /* Typography */
   --font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace;
@@ -134,6 +136,34 @@
   padding-left: var(--indent-size);
   display: flex;
   align-items: center;
+}
+
+/* ========================================
+   Bracket and Brace Alignment System
+   ======================================== */
+
+/* Opening brackets - no additional margin needed since expander pulls itself back */
+.json-bracket,
+.json-brace {
+  /* Brackets naturally align after the expander's negative margin positioning */
+}
+
+/* Closing bracket and brace alignment */
+.json-closing-bracket-node,
+.json-closing-brace-node {
+  display: flex;
+  align-items: center;
+  /* Padding calculated to align with opening brackets */
+}
+
+.json-closing-bracket-node {
+  /* Use dedicated closing bracket indent for fine-tuned alignment */
+  padding-left: calc((var(--level, 0) + 1) * var(--closing-bracket-indent));
+}
+
+.json-closing-brace-node {
+  /* Use dedicated closing bracket indent for fine-tuned alignment */
+  padding-left: calc((var(--level, 0) + 1) * var(--closing-bracket-indent));
 }
 
 /* ========================================

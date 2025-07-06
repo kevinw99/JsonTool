@@ -1,4 +1,4 @@
-1 general edit/find/select/copy/past 
+1 general edit/find/copy/past
 Text mode:
   line #
   show json-path from root
@@ -32,9 +32,13 @@ let's fix some UI issues: 1. can you move the ending braket ] and } to align ver
 one?  it is still not fixed!
 
 let's work on the text mode. When I clcik 'View as Text', it shows the text correctly. however, when I click back
-to "View as Tree", it does not go back to tree mode. the viewers show corrupted text.  can you fix that?.
+to "View as Tree", it does not go back to tree mode.  can you fix that?.
 
 That is good handling. however it is misleading to highlight the non-exist node in the other panel. can you do everything
 except highlight it? so it is a special case. try to use existing code as much as possible and add an option not to
  hightlight non-exist node.
+
+
+I see some inconsistency in whether { start a new line or not. e.g., in "parameters: {", { does not start a new line, while in
+most other places, { starts a new line.
 

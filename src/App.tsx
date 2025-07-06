@@ -630,7 +630,7 @@ function App() {
       setFile1({ 
         ...file1, 
         isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file1.content, null, 2) : file1.content
+        content: newIsTextMode ? JSON.stringify(file1.content, null, 2) : JSON.parse(file1.content as string)
       });
     }
     if (file2) {
@@ -638,7 +638,7 @@ function App() {
       setFile2({ 
         ...file2, 
         isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file2.content, null, 2) : file2.content
+        content: newIsTextMode ? JSON.stringify(file2.content, null, 2) : JSON.parse(file2.content as string)
       });
     }
   };
