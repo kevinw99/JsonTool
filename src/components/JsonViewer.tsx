@@ -50,7 +50,7 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ json, height = 400 }) =>
           />
         ) : (
           <div className="json-tree-view-container">
-            <JsonTreeView data={json} viewerId="left" jsonSide="left" idKeySetting={null} />
+            <JsonTreeView data={json} viewerId="left" idKeySetting={null} />
           </div>
         )}
       </div>

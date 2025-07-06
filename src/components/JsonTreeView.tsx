@@ -7,7 +7,7 @@ import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
-import { createIdBasedPath, createViewerPath } from '../utils/PathTypes';
+import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -52,10 +52,9 @@ interface JsonNodeProps {
   data: JsonValue;
   path: IdBasedPath; // Paths in JsonTreeView are always ID-based (may include [id=value] segments)
   level: number;
-  viewerId: string;
+  viewerId: ViewerId;
   nodeKey?: string; 
   isLastChild?: boolean; 
-  jsonSide?: 'left' | 'right'; 
   idKeySetting: string | null; 
   actualNumericIndex?: number; // Added to store the true numeric index for array items
   showDiffsOnly?: boolean; // Added prop
@@ -70,7 +69,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   viewerId, 
   nodeKey,
   isLastChild = false, 
-  jsonSide,
   idKeySetting,
   actualNumericIndex, // Destructure here
   showDiffsOnly, // Destructure added prop
@@ -190,13 +188,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   const isPersistentlyHighlighted = (() => {
     // Check viewer-specific highlighting using ViewerPath
-    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, genericNumericPathForNode);
+    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.isPersistentlyHighlighted'));
     return persistentHighlightPaths && persistentHighlightPaths.has(viewerSpecificPath);
   })();
 
   const isExpanded = (() => {
     // Check viewer-specific path expansion state
-    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, genericNumericPathForNode);
+    const viewerSpecificPath = createViewerPath(viewerId as ViewerId, validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.isExpanded'));
     const expanded = expandedPaths.has(viewerSpecificPath);
     
     // Explicit logging for contributions nodes
@@ -232,7 +230,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     
     if (shouldAutoExpand && !isArrayElement) { 
       // For auto-expansion, use numeric path (no cross-viewer sync needed)
-      toggleExpand(genericNumericPathForNode); // Auto-expansion - use numeric path
+      toggleExpand(validateAndCreateIdBasedPath(genericNumericPathForNode, 'JsonTreeView.autoExpand')); // Auto-expansion - use numeric path
     }
   }, [isHighlighted, path, hasChildren, isExpanded, viewerId, isObject, isArray, toggleExpand, genericNumericPathForNode]); // Added genericNumericPathForNode to dependencies
   
@@ -284,11 +282,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   
   const getNodeDiffStatus = (): string[] => {
     // Early return if no highlighting processor available
-    if (!highlightingProcessor || !jsonSide) return [];
+    if (!highlightingProcessor || !viewerId) return [];
 
     // Build PathConversionContext for path normalization
     const pathContext: PathConversionContext = {
-      jsonData: jsonSide === 'left' ? jsonData?.left : jsonData?.right,
+      jsonData: viewerId === 'left' ? jsonData?.left : jsonData?.right,
       idKeysUsed: idKeysUsed || []
     };
 
@@ -304,7 +302,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // Use the new highlighting processor with the original ID-based path
     const classes = highlightingProcessor.getHighlightingClasses(
       createIdBasedPath(pathForHighlighting),
-      jsonSide,
+      viewerId,
       pathContext
     );
 
@@ -338,7 +336,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     if (path.endsWith('_root')) {
       // A root is visible in diffs only mode if there are any relevant (non-ignored) diffs.
       const anyRelevantDiffs = diffResultsData.some((diff: DiffResult) => 
-        diff.numericPath && !ignoredDiffs.has(diff.numericPath) // Changed .includes to .has
+        diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) // Changed .includes to .has
       );
       // console.log(`[isVisibleInDiffsOnlyMode VId:${viewerId}] Root node \\"${path}\\". Any relevant diffs: ${anyRelevantDiffs}`);
       return anyRelevantDiffs;
@@ -348,7 +346,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // 1. Check if the node itself is a diff (added, removed, changed).
     // 2. Check if the node is an ancestor of any diff.
     const isNodeADiff = diffResultsData.some((diff: DiffResult) => 
-      diff.numericPath && diff.numericPath === normalizedPathForDiff && !ignoredDiffs.has(diff.numericPath) // Changed .includes to .has
+      diff.idBasedPath && diff.idBasedPath === normalizedPathForDiff && !ignoredDiffs.has(diff.idBasedPath) // Changed .includes to .has
     );
 
     if (isNodeADiff) {
@@ -357,11 +355,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     }
 
     const isAncestorOfDiff = diffResultsData.some((diff: DiffResult) => {
-      if (!diff.numericPath || ignoredDiffs.has(diff.numericPath)) return false; // Changed .includes to .has
+      if (!diff.idBasedPath || ignoredDiffs.has(diff.idBasedPath)) return false; // Changed .includes to .has
       // Ensure normalizedPathForDiff is not empty before creating pathToCheck/arrayPathToCheck
       if (normalizedPathForDiff && 
-          (diff.numericPath.startsWith(normalizedPathForDiff + '.') || 
-           diff.numericPath.startsWith(normalizedPathForDiff + '['))) {
+          (diff.idBasedPath.startsWith(normalizedPathForDiff + '.') || 
+           diff.idBasedPath.startsWith(normalizedPathForDiff + '['))) {
         return true;
       }
       return false;
@@ -401,7 +399,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const actions: ContextMenuAction[] = [];
     
     // Ignore action - add this node's path to ignored patterns
-    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(normalizedPathForDiff);
+    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.contextMenu.isIgnored'));
     actions.push({
       label: isCurrentlyIgnored ? 'Unignore this diff' : 'Ignore this diff',
       icon: isCurrentlyIgnored ? '✅' : '🚫',
@@ -409,10 +407,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         if (normalizedPathForDiff) {
           if (isCurrentlyIgnored) {
             // Remove the pattern for this path
-            removeIgnoredPatternByPath(normalizedPathForDiff);
+            removeIgnoredPatternByPath(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.contextMenu.remove'));
           } else {
             // Add as a pattern to get full filtering behavior
-            addIgnoredPatternFromRightClick(normalizedPathForDiff);
+            addIgnoredPatternFromRightClick(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.contextMenu.add'));
           }
         }
       }
@@ -420,12 +418,12 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
     // Sort action - only available for arrays
     if (isArray && hasChildren) {
-      const isCurrentlySorted = forceSortedArrays.has(genericNumericPathForNode);
+      const isCurrentlySorted = forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.isCurrentlySorted'));
       actions.push({
         label: isCurrentlySorted ? 'Disable Sorting' : 'Sort Array',
         icon: isCurrentlySorted ? '🔄' : '🔽',
         action: () => {
-          toggleArraySorting(genericNumericPathForNode);
+          toggleArraySorting(validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.toggleArraySorting'));
         }
       });
     }
@@ -448,7 +446,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       action: () => {
         const diffStatusClasses = getNodeDiffStatus();
         const relevantDiffs = diffResultsData ? diffResultsData.filter((diff: any) => 
-          diff.numericPath === normalizedPathForDiff
+          diff.idBasedPath === normalizedPathForDiff
         ) : [];
         
         debugNodeInfo({
@@ -546,7 +544,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           <div className="json-node-children">
             {(() => {
               // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
-              const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
+              const shouldSort = idKeySetting || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.shouldSort'));
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
@@ -620,7 +618,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                     level={level + 1}
                     viewerId={viewerId}
                     isLastChild={sortedIndex === sortedData.length - 1}
-                    jsonSide={jsonSide}
                     idKeySetting={idKeySetting}
                     actualNumericIndex={originalIndex}
                     showDiffsOnly={showDiffsOnly}
@@ -684,7 +681,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                   viewerId={viewerId}
                   nodeKey={key}
                   isLastChild={index === entries.length - 1}
-                  jsonSide={jsonSide}
                   idKeySetting={idKeySetting}
                   showDiffsOnly={showDiffsOnly}
                   onNodeToggle={onNodeToggle}
@@ -738,15 +734,14 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
 interface JsonTreeViewProps {
   data: JsonValue;
-  viewerId: string;
-  jsonSide: 'left' | 'right';
+  viewerId: ViewerId;
   idKeySetting: string | null;
   idKeysUsed?: IdKeyInfo[]; // Added to match App.tsx usage
   showDiffsOnly?: boolean;
   isCompareMode?: boolean; // New prop to indicate if we're comparing two files
 }
 
-export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
+export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
   return (
     <div className="json-tree-view responsive-no-wrap">
       <JsonNode
@@ -754,7 +749,6 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
         path={createIdBasedPath(`root_${viewerId}_root`)}
         level={0}
         viewerId={viewerId}
-        jsonSide={jsonSide}
         idKeySetting={idKeySetting}
         showDiffsOnly={showDiffsOnly}
         isCompareMode={isCompareMode}

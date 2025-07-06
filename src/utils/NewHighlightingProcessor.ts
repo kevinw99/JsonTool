@@ -4,7 +4,7 @@ import {
   type PathConversionContext 
 } from './PathConverter';
 import type { DiffResult } from './jsonCompare';
-import type { AnyPath } from './PathTypes';
+import type { AnyPath, ViewerId } from './PathTypes';
 import { unsafeIdBasedPath } from './PathTypes';
 
 /**
@@ -36,13 +36,13 @@ export class NewHighlightingProcessor {
   /**
    * Determines the highlighting class(es) for a given node path
    * @param nodePath The path to the node being rendered (can be numeric or ID-based)
-   * @param jsonSide Which panel this node is in ('left' | 'right')
+   * @param viewerId Which panel this node is in ('left' | 'right')
    * @param context PathConversionContext for path normalization
    * @returns Array of CSS classes to apply
    */
   getHighlightingClasses(
     nodePath: AnyPath,
-    jsonSide: 'left' | 'right',
+    viewerId: ViewerId,
     context: PathConversionContext
   ): string[] {
     const classes: string[] = [];
@@ -84,7 +84,7 @@ export class NewHighlightingProcessor {
       });
       
       if (exactMatch) {
-        const diffClass = this.getDiffClass(exactMatch.type, jsonSide);
+        const diffClass = this.getDiffClass(exactMatch.type, viewerId);
         if (diffClass) {
           classes.push(diffClass);
           return classes; // Return immediately for exact matches
@@ -131,7 +131,7 @@ export class NewHighlightingProcessor {
       });
       
       if (parentDiff) {
-        const diffClass = this.getDiffClass(parentDiff.type, jsonSide);
+        const diffClass = this.getDiffClass(parentDiff.type, viewerId);
         if (diffClass) {
           classes.push(diffClass);
           return classes; // Return immediately for inherited highlighting
@@ -187,12 +187,12 @@ export class NewHighlightingProcessor {
   /**
    * Maps diff types to CSS classes based on which panel the node is in
    */
-  private getDiffClass(diffType: string, jsonSide: 'left' | 'right'): string | null {
+  private getDiffClass(diffType: string, viewerId: ViewerId): string | null {
     switch (diffType) {
       case 'added':
-        return jsonSide === 'right' ? HIGHLIGHT_CSS_CLASSES.ADDED : null;
+        return viewerId === 'right' ? HIGHLIGHT_CSS_CLASSES.ADDED : null;
       case 'removed':
-        return jsonSide === 'left' ? HIGHLIGHT_CSS_CLASSES.DELETED : null;
+        return viewerId === 'left' ? HIGHLIGHT_CSS_CLASSES.DELETED : null;
       case 'changed':
         return HIGHLIGHT_CSS_CLASSES.CHANGED;
       default:
@@ -224,25 +224,8 @@ export class NewHighlightingProcessor {
     // 1. The child path is actually nested under the parent
     // 2. We're not dealing with siblings that share the same immediate parent
     
-    // Extract the immediate next segment after the parent
-    let nextSegmentEnd = remainder.length;
-    let i = 1; // Skip the initial separator
-    
-    // Find where the first segment ends
-    while (i < remainder.length) {
-      if (remainder[i] === '.' || remainder[i] === '[') {
-        nextSegmentEnd = i;
-        break;
-      }
-      if (remainder[i - 1] === '[' && remainder[i] === ']') {
-        nextSegmentEnd = i + 1;
-        break;
-      }
-      i++;
-    }
-    
-    const firstSegment = remainder.substring(0, nextSegmentEnd);
-    const afterFirstSegment = remainder.substring(nextSegmentEnd);
+    // Segment analysis removed as it was not used in the final logic
+    // The function relies on simple substring pattern matching instead
     
     // If there's nothing after the first segment, this is a direct child
     // We want to return true for direct children (like parent.child)
@@ -304,8 +287,8 @@ export class NewHighlightingProcessor {
   /**
    * Check if a path has any highlighting
    */
-  hasHighlighting(nodePath: AnyPath, jsonSide: 'left' | 'right', context: PathConversionContext): boolean {
-    const classes = this.getHighlightingClasses(nodePath, jsonSide, context);
+  hasHighlighting(nodePath: AnyPath, viewerId: ViewerId, context: PathConversionContext): boolean {
+    const classes = this.getHighlightingClasses(nodePath, viewerId, context);
     return classes.length > 0;
   }
 }
@@ -324,10 +307,10 @@ export function createNewHighlightingProcessor(diffResults: DiffResult[]): NewHi
 export function getHighlightingClassForDiff(
   diff: DiffResult,
   nodePath: AnyPath,
-  jsonSide: 'left' | 'right',
+  viewerId: ViewerId,
   context: PathConversionContext
 ): string | null {
   const processor = new NewHighlightingProcessor([diff]);
-  const classes = processor.getHighlightingClasses(nodePath, jsonSide, context);
+  const classes = processor.getHighlightingClasses(nodePath, viewerId, context);
   return classes.length > 0 ? classes[0] : null;
 }

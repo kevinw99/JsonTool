@@ -1,5 +1,6 @@
 import React from 'react';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
+import { validateAndCreateIdBasedPath } from '../utils/PathTypes';
 import './ViewControls.css';
 
 interface ViewControlsProps {
@@ -72,7 +73,7 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
                   .filter(id => id.startsWith('rightclick_'))
                   .forEach(id => {
                     const path = id.replace('rightclick_', '');
-                    removeIgnoredPatternByPath(path);
+                    removeIgnoredPatternByPath(validateAndCreateIdBasedPath(path, 'ViewControls.clearRightClick'));
                   });
               }}
               title="Clear all ignored diffs"
@@ -94,7 +95,7 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
                         </span>
                         <button 
                           className="unignore-button"
-                          onClick={() => removeIgnoredPatternByPath(path)}
+                          onClick={() => removeIgnoredPatternByPath(validateAndCreateIdBasedPath(path, 'ViewControls.unignoreButton'))}
                           title={`Unignore: ${pattern}`}
                         >
                           ✕

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
+import { validateAndCreateIdBasedPath } from '../../utils/PathTypes';
 import './IgnoredPanel.css';
 
 interface IgnoredPanelProps {
@@ -52,7 +53,7 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
 
   const handleAddNew = () => {
     if (newPattern.trim()) {
-      addIgnoredPattern(newPattern.trim());
+      addIgnoredPattern(validateAndCreateIdBasedPath(newPattern.trim(), 'IgnoredPanel.handleAddNew'));
       setNewPattern('');
     }
   };
@@ -85,7 +86,7 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
                   </span>
                   <button 
                     className="unignore-button"
-                    onClick={() => removeIgnoredPatternByPath(path)}
+                    onClick={() => removeIgnoredPatternByPath(validateAndCreateIdBasedPath(path, 'IgnoredPanel.removeIgnored'))}
                     title={`Unignore: ${pattern}`}
                   >
                     ✕

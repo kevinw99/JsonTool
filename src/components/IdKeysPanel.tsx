@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
-import { validateAndCreateNumericPath } from '../utils/PathTypes';
+import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
+import type { ViewerPath } from '../utils/PathTypes';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
@@ -91,7 +92,7 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
 };
 
 export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }) => {
-  const { goToDiff, setPersistentHighlightPath } = useJsonViewerSync();
+  const { goToDiff, setPersistentHighlightPaths } = useJsonViewerSync();
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   
   const consolidatedIdKeys = consolidateIdKeys(idKeysUsed || []);
@@ -163,10 +164,14 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     const numericPath = buildNumericPath(pathToExpand);
     
     // Set persistent highlight for border highlighting that persists until next navigation
-    setPersistentHighlightPath(numericPath);
+    const highlights = new Set<ViewerPath>([
+      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick')),
+      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick'))
+    ]);
+    setPersistentHighlightPaths(highlights);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateNumericPath(numericPath, 'IdKeysPanel.arrayPath'));
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
   };
 
   const handleOccurrenceClick = (originalPath: string) => {
@@ -182,10 +187,14 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     
     
     // Set persistent highlight for border highlighting that persists until next navigation
-    setPersistentHighlightPath(numericPath);
+    const highlights = new Set<ViewerPath>([
+      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick')),
+      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick'))
+    ]);
+    setPersistentHighlightPaths(highlights);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateNumericPath(numericPath, 'IdKeysPanel.arrayPath'));
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {

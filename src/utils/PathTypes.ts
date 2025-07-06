@@ -224,7 +224,7 @@ export function validateViewerPath(path: string, source: string = 'unknown'): Vi
     throw new Error(`Invalid viewer path from ${source}: no generic path after viewer prefix, got "${path}"`);
   }
   
-  return createViewerPath(viewerId, genericPath);
+  return createViewerPath(viewerId, validateAndCreateNumericPath(genericPath, source));
 }
 
 /**

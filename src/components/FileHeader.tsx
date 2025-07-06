@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import type { ViewerId } from '../utils/PathTypes';
 import './FileHeader.css';
 
 interface FileHeaderProps {
   fileName?: string;
   onFileNameChange?: (newName: string) => void;
-  side: 'left' | 'right';
+  viewerId: ViewerId;
 }
 
 export const FileHeader: React.FC<FileHeaderProps> = ({
   fileName,
   onFileNameChange,
-  side
+  viewerId
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(fileName || '');
@@ -61,10 +62,10 @@ export const FileHeader: React.FC<FileHeaderProps> = ({
     handleSave();
   };
 
-  const displayName = fileName || `JSON ${side === 'left' ? '1' : '2'}`;
+  const displayName = fileName || `JSON ${viewerId === 'left' ? '1' : '2'}`;
 
   return (
-    <div className={`file-header ${side}`}>
+    <div className={`file-header ${viewerId}`}>
       <div className="file-header-content">
         {isEditing ? (
           <input

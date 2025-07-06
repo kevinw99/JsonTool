@@ -4,6 +4,7 @@ import { IdKeysPanel } from './IdKeysPanel';
 import { IgnoredPanel } from './IgnoredPanel/IgnoredPanel';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
+import { validateAndCreateIdBasedPath } from '../utils/PathTypes';
 import './TabbedBottomPanel.css';
 
 interface TabbedBottomPanelProps {
@@ -27,7 +28,7 @@ export const TabbedBottomPanel: React.FC<TabbedBottomPanelProps> = ({
   
   // Calculate non-ignored diffs count
   const nonIgnoredDiffsCount = diffs?.filter(diff => 
-    diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) && !isPathIgnoredByPattern(diff.idBasedPath)
+    diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) && !isPathIgnoredByPattern(validateAndCreateIdBasedPath(diff.idBasedPath, 'TabbedBottomPanel.filter'))
   ).length || 0;
   
   // Calculate total ignored count (manual patterns + right-click patterns)

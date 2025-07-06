@@ -3,6 +3,8 @@ import { useJsonViewerSync } from '../JsonViewerSyncContext';
 // Ensure DiffResult is imported from the correct location
 import type { DiffResult } from '../../utils/jsonCompare';
 import { resolveIdBasedPathToNumeric } from '../../utils/pathResolution';
+import type { IdBasedPath, ViewerPath } from '../../utils/PathTypes';
+import { createViewerPath, validateAndCreateIdBasedPath, validateAndCreateNumericPath } from '../../utils/PathTypes';
 import './DiffList.css';
 
 interface DiffListProps {
@@ -23,16 +25,16 @@ export const DiffList: React.FC<DiffListProps> = ({
     isPathIgnoredByPattern,
     goToDiff,
     goToDiffWithPaths,
-    setPersistentHighlightPath,
+    setPersistentHighlightPaths,
     idKeysUsed
   } = useJsonViewerSync();
 
   // Filter out ignored diffs (both manually ignored and pattern-matched)
   const visibleDiffs = diffs.filter(diff => 
-    diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) && !isPathIgnoredByPattern(diff.idBasedPath)
+    diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) && !isPathIgnoredByPattern(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.visibleDiffs'))
   );
 
-  const handleIgnore = (idBasedDiffPath: string) => {
+  const handleIgnore = (idBasedDiffPath: IdBasedPath) => {
     // Check if the path is already ignored by any pattern
     if (isPathIgnoredByPattern(idBasedDiffPath)) {
       console.log('[DiffList] Path is already ignored by a pattern:', idBasedDiffPath);
@@ -43,7 +45,11 @@ export const DiffList: React.FC<DiffListProps> = ({
     const pathWithRoot = idBasedDiffPath.startsWith('root.') ? idBasedDiffPath : `root.${idBasedDiffPath}`;
     
     // Set persistent highlight for the ignored node (border only)
-    setPersistentHighlightPath(pathWithRoot);
+    const highlights = new Set<ViewerPath>([
+      createViewerPath('left', validateAndCreateNumericPath(pathWithRoot, 'DiffList.handleIgnore')),
+      createViewerPath('right', validateAndCreateNumericPath(pathWithRoot, 'DiffList.handleIgnore'))
+    ]);
+    setPersistentHighlightPaths(highlights);
     
     // Add the exact path as an ignored pattern (without root prefix for pattern matching)
     addIgnoredPattern(idBasedDiffPath);
@@ -76,24 +82,24 @@ export const DiffList: React.FC<DiffListProps> = ({
           console.log('[DiffList] 🎯 RIGHT path (right):', rightPath);
           
           // Use the new dual-path navigation function
-          goToDiffWithPaths(leftPath, rightPath);
+          goToDiffWithPaths(validateAndCreateNumericPath(leftPath, 'DiffList.handleGoToDiff.left'), validateAndCreateNumericPath(rightPath, 'DiffList.handleGoToDiff.right'));
           
         } else {
           console.log('[DiffList] ❌ PathConverter could not resolve paths - falling back to ID-based path');
           const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
-          goToDiff(pathWithRoot);
+          goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback1'));
         }
       } catch (error) {
         console.error('[DiffList] 🚨 Error during PathConverter-based correlation:', error);
         console.log('[DiffList] 🔄 Falling back to ID-based path due to error');
         const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
-        goToDiff(pathWithRoot);
+        goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback2'));
       }
     } else {
       console.log('[DiffList] 📍 Using simple ID-based path approach');
       // Use ID-based path (viewer-agnostic)
       const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
-      goToDiff(pathWithRoot);
+      goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.simple'));
     }
   };
 
@@ -172,17 +178,17 @@ export const DiffList: React.FC<DiffListProps> = ({
                     </button>
                     <button 
                       className={`ignore-button ${ignoredDiffs.has(diff.idBasedPath) ? 'restore-button' : ''}`}
-                      onClick={() => handleIgnore(diff.idBasedPath)}
-                      disabled={isPathIgnoredByPattern(diff.idBasedPath)}
+                      onClick={() => handleIgnore(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.button.onClick'))}
+                      disabled={isPathIgnoredByPattern(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.button.disabled'))}
                       title={
-                        isPathIgnoredByPattern(diff.idBasedPath) 
+                        isPathIgnoredByPattern(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.button.title')) 
                           ? "This path is already ignored by a pattern"
                           : ignoredDiffs.has(diff.idBasedPath) 
                             ? "Restore this difference" 
                             : "Ignore this difference"
                       }
                     >
-                      {isPathIgnoredByPattern(diff.idBasedPath) 
+                      {isPathIgnoredByPattern(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.button.text')) 
                         ? "Already Ignored" 
                         : ignoredDiffs.has(diff.idBasedPath) 
                           ? "Restore" 
