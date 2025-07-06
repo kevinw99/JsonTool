@@ -5,6 +5,7 @@ import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompa
 import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
+import JsonTextEditor from './components/JsonTextEditor'
 import { ViewControls } from './components/ViewControls'
 // import { SyncScroll } from './components/SyncScroll' // Not needed anymore
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
@@ -83,22 +84,6 @@ function traverseAndSortJson(data: JsonValue, currentPath: string = "", idKeysCo
         return aHasId ? -1 : 1;
       });
       
-      // SPECIAL DEBUG: Print contributions arrays after sorting - only for specific path
-      if (currentPath.includes('boomerForecastV3Requests') && currentPath.includes('accountParams') && currentPath.includes('contributions')) {
-        console.log(`🔥 CONTRIBUTIONS_SORTED_DEBUG 🔥 Path: ${currentPath}`);
-        console.log('Original array length:', data.length);
-        console.log('Sorted array items:');
-        arrayToProcess.forEach((item, index) => {
-          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-            const itemObj = item as JsonObject;
-            const idValue = detectedIdKey ? itemObj[detectedIdKey] : 'NO_ID';
-            console.log(`  ${index}: ${detectedIdKey}=${idValue}`);
-          } else {
-            console.log(`  ${index}: ${typeof item} - ${JSON.stringify(item).substring(0, 100)}`);
-          }
-        });
-        console.log(`🔥 END CONTRIBUTIONS_SORTED_DEBUG 🔥`);
-      }
     }
     
     // Recursively process array items (now sorted)
@@ -380,8 +365,6 @@ function App() {
         return null;
       }
       
-      console.log(`- File 1: /${fileState.file1Name}`);
-      console.log(`- File 2: /${fileState.file2Name}`);
       
       // Try to load both files from public directory
       const [file1Response, file2Response] = await Promise.all([
@@ -395,8 +378,6 @@ function App() {
       
       // If either file fails to load, remove from storage and return null
       if (!file1Response?.ok || !file2Response?.ok) {
-        console.log(`- File 1 response: ${file1Response?.status} ${file1Response?.statusText}`);
-        console.log(`- File 2 response: ${file2Response?.status} ${file2Response?.statusText}`);
         localStorage.removeItem('jsontool-saved-filenames');
         return null;
       }
@@ -453,7 +434,6 @@ function App() {
       
       // Auto-save the sample filenames so they persist on reload
       saveFilenamesFromData(file1Data, file2Data);
-      console.log('Sample files loaded and filenames saved');
     } catch (e) {
       setError('Failed to load sample JSON files.')
       console.error("Error loading or comparing JSON:", e);
@@ -484,7 +464,6 @@ function App() {
             setIdKeysUsed(comparisonResult.idKeysUsed);
             
             // Don't re-save the same filenames we just loaded
-            console.log('ℹ️ Skipping filename save during initial restore');
           } catch (e) {
             console.error('❌ Error comparing restored files:', e);
             setError('Error comparing restored files');
@@ -627,18 +606,44 @@ function App() {
   const handleViewModeToggle = () => {
     if (file1) {
       const newIsTextMode = !file1.isTextMode;
+      
+      let newContent;
+      try {
+        if (newIsTextMode) {
+          // When switching to text mode, ensure proper formatting
+          newContent = JSON.stringify(file1.content, null, 2);
+        } else {
+          // When switching back to tree mode, parse the JSON
+          newContent = JSON.parse(file1.content as string);
+        }
+      } catch (error) {
+        console.error('[App] Error parsing JSON during mode toggle:', error);
+        newContent = file1.content; // Keep current content if parsing fails
+      }
+      
       setFile1({ 
         ...file1, 
         isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file1.content, null, 2) : JSON.parse(file1.content as string)
+        content: newContent
       });
     }
     if (file2) {
       const newIsTextMode = !file2.isTextMode;
+      
+      let newContent;
+      try {
+        newContent = newIsTextMode 
+          ? JSON.stringify(file2.content, null, 2) 
+          : JSON.parse(file2.content as string);
+      } catch (error) {
+        console.error('[App] Error parsing JSON during mode toggle for file2:', error);
+        newContent = file2.content; // Keep current content if parsing fails
+      }
+      
       setFile2({ 
         ...file2, 
         isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file2.content, null, 2) : JSON.parse(file2.content as string)
+        content: newContent
       });
     }
   };
@@ -906,26 +911,21 @@ function App() {
 
   // Debug: log mount/unmount
   useEffect(() => {
-    console.log('[App] Component mounted, initial syncScroll:', syncScroll);
     return () => {
-      console.log('[App] Component unmounting');
+      // Component unmounting
     };
   }, []);
 
   // Custom sync handler
   useEffect(() => {
-    console.log('[App Sync Effect] Running with syncScroll =', syncScroll);
-    
     if (!syncScroll) {
-      console.log('[App Sync Effect] Sync is OFF, skipping listener setup');
       return;
     }
     
     let isScrolling = false;
     
     const handleScroll = (event: Event) => {
-//       //console.log('[Scroll Event] Received from:', event.target);
-      
+//       
       const source = event.target as HTMLElement;
       
       // Find the actual scroll container (might be nested)
@@ -938,15 +938,11 @@ function App() {
         if (parent) {
           scrollContainer = parent as HTMLElement;
         } else {
-          //console.log('[Scroll Event] Could not find scroll container, ignoring');
           return;
         }
       }
       
-      //console.log('[Scroll Event] Valid container, scrollTop:', scrollContainer.scrollTop);
-      
       if (isScrolling) {
-        //console.log('[Scroll Event] Already scrolling, ignoring');
         return;
       }
       
@@ -978,22 +974,9 @@ function App() {
     // Add listeners to both viewers
     const setupListeners = () => {
       const viewers = document.querySelectorAll('.json-viewer-scroll-container');
-      console.log('[Setup] Found', viewers.length, 'viewer containers');
       
       viewers.forEach((viewer, index) => {
         const htmlViewer = viewer as HTMLElement;
-        // Log what we're working with
-        console.log(`[Setup] Viewer ${index + 1}:`, {
-          element: htmlViewer,
-          className: htmlViewer.className,
-          scrollHeight: htmlViewer.scrollHeight,
-          clientHeight: htmlViewer.clientHeight,
-          isScrollable: htmlViewer.scrollHeight > htmlViewer.clientHeight,
-          computedStyle: {
-            overflow: window.getComputedStyle(htmlViewer).overflow,
-            overflowY: window.getComputedStyle(htmlViewer).overflowY
-          }
-        });
         
         // Add scroll listener with capture to catch events from children
         viewer.addEventListener('scroll', handleScroll, { capture: true, passive: false });
@@ -1005,12 +988,10 @@ function App() {
           const style = window.getComputedStyle(childElement);
           if (style.overflow === 'auto' || style.overflow === 'scroll' || 
               style.overflowY === 'auto' || style.overflowY === 'scroll') {
-            console.log(`[Setup] Found scrollable child in viewer ${index + 1}:`, childElement);
             childElement.addEventListener('scroll', handleScroll);
           }
         });
         
-        console.log(`[Setup] Added scroll listeners to viewer ${index + 1}`);
       });
     };
     
@@ -1020,7 +1001,6 @@ function App() {
       if (viewers.length >= 2 || attempts >= 10) {
         setupListeners();
       } else {
-        console.log(`[Setup] Only found ${viewers.length} viewers, retrying... (attempt ${attempts + 1})`);
         setTimeout(() => attemptSetup(attempts + 1), 200);
       }
     };
@@ -1038,7 +1018,6 @@ function App() {
           child.removeEventListener('scroll', handleScroll);
         });
       });
-      console.log('[Cleanup] Removed scroll listeners');
     };
   }, [syncScroll]); // Re-run when syncScroll changes
   
@@ -1195,9 +1174,15 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file1.isTextMode ? (
-                          <TextViewer 
-                            text={file1.content as string} 
-                            fileName={file1.fileName}
+                          <JsonTextEditor 
+                            key="file1-text-editor"
+                            value={typeof file1.content === 'string' ? file1.content : JSON.stringify(file1.content, null, 2)} 
+                            onChange={(newContent) => {
+                              setFile1({ ...file1, content: newContent });
+                            }}
+                            readOnly={false}
+                            height="100%"
+                            theme="light"
                           />
                         ) : (
                           <JsonTreeView
@@ -1240,9 +1225,15 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file2.isTextMode ? (
-                          <TextViewer 
-                            text={file2.content as string} 
-                            fileName={file2.fileName}
+                          <JsonTextEditor 
+                            key="file2-text-editor"
+                            value={typeof file2.content === 'string' ? file2.content : JSON.stringify(file2.content, null, 2)} 
+                            onChange={(newContent) => {
+                              setFile2({ ...file2, content: newContent });
+                            }}
+                            readOnly={false}
+                            height="100%"
+                            theme="light"
                           />
                         ) : (
                           <JsonTreeView
