@@ -10,12 +10,23 @@
 export type NumericPath = string & { __brand: 'NumericPath' };
 export type IdBasedPath = string & { __brand: 'IdBasedPath' };
 
+/**
+ * ArrayPatternPath - Represents the structural pattern of nested arrays
+ * Format: "boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions[]"
+ * - Uses [] to denote array positions (no specific indices or IDs)
+ * - Describes the "shape" of nested arrays in JSON data  
+ * - The final [] indicates the target array where ID-based comparison occurs
+ * - Used as a key for DiffResult grouping and ID key association
+ */
+export type ArrayPatternPath = string & { __brand: 'ArrayPatternPath' };
+
 // Union type for functions that can accept either
 export type AnyPath = NumericPath | IdBasedPath;
 
 // Helper functions to create branded types
 export const createNumericPath = (path: string): NumericPath => path as NumericPath;
 export const createIdBasedPath = (path: string): IdBasedPath => path as IdBasedPath;
+export const createArrayPatternPath = (path: string): ArrayPatternPath => path as ArrayPatternPath;
 
 // Type guards and utility functions
 export function hasIdBasedSegments(path: IdBasedPath): boolean {
@@ -39,6 +50,25 @@ export function isIdBasedPath(_path: string): _path is IdBasedPath {
   return true;
 }
 
+// ArrayPatternPath type guards and utility functions
+export function isArrayPatternPath(path: string): path is ArrayPatternPath {
+  // Must contain at least one [] and should not contain specific indices or IDs
+  return /\[\]/.test(path) && 
+         !/\[\d+\]/.test(path) && 
+         !/\[[^=\]]+=[^\]]+\]/.test(path);
+}
+
+export function isValidArrayPattern(path: string): boolean {
+  // Check if path represents a valid array pattern
+  // - Must contain at least one []
+  // - Should end with [] (target array)
+  // - No numeric indices [0] or ID selectors [id=value]
+  return /\[\]/.test(path) && 
+         path.endsWith('[]') &&
+         !/\[\d+\]/.test(path) && 
+         !/\[[^=\]]+=[^\]]+\]/.test(path);
+}
+
 // Convert between types (these functions validate the conversion)
 export function toNumericPath(path: string): NumericPath {
   if (!isNumericPath(path)) {
@@ -49,6 +79,13 @@ export function toNumericPath(path: string): NumericPath {
 
 export function toIdBasedPath(path: string): IdBasedPath {
   return path as IdBasedPath;
+}
+
+export function toArrayPatternPath(path: string): ArrayPatternPath {
+  if (!isArrayPatternPath(path)) {
+    throw new Error(`Path "${path}" is not a valid ArrayPatternPath (must contain [] and not have specific indices)`);
+  }
+  return path as ArrayPatternPath;
 }
 
 // Safe conversions between the branded types
@@ -88,6 +125,62 @@ export function unsafeAnyToIdBased(path: AnyPath): IdBasedPath {
 }
 
 // ============================================================================
+// ARRAY PATTERN PATH CONVERSIONS
+// ============================================================================
+
+/**
+ * Convert a NumericPath to ArrayPatternPath by replacing indices with []
+ * Example: "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]"
+ *       -> "boomerForecastV3Requests[].parameters.accountParams[].contributions[]"
+ */
+export function numericToArrayPattern(path: NumericPath): ArrayPatternPath {
+  let patternPath = path as string;
+  
+  // Remove "root." prefix if present
+  if (patternPath.startsWith('root.')) {
+    patternPath = patternPath.substring(5);
+  }
+  
+  // Replace all numeric indices [0], [1], [123] with []
+  patternPath = patternPath.replace(/\[\d+\]/g, '[]');
+  
+  return createArrayPatternPath(patternPath);
+}
+
+/**
+ * Convert an IdBasedPath to ArrayPatternPath by replacing indices and IDs with []
+ * Example: "root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]"
+ *       -> "boomerForecastV3Requests[].parameters.accountParams[].contributions[]"
+ */
+export function idBasedToArrayPattern(path: IdBasedPath): ArrayPatternPath {
+  let patternPath = path as string;
+  
+  // Remove "root." prefix if present
+  if (patternPath.startsWith('root.')) {
+    patternPath = patternPath.substring(5);
+  }
+  
+  // Replace all indices (both numeric [0] and ID-based [id=value]) with []
+  patternPath = patternPath.replace(/\[[^\]]+\]/g, '[]');
+  
+  return createArrayPatternPath(patternPath);
+}
+
+/**
+ * Convert any path type to ArrayPatternPath
+ */
+export function anyPathToArrayPattern(path: AnyPath): ArrayPatternPath {
+  // Convert to string and check the format
+  const pathStr = path as string;
+  
+  if (hasIdBasedSegments(createIdBasedPath(pathStr))) {
+    return idBasedToArrayPattern(createIdBasedPath(pathStr));
+  } else {
+    return numericToArrayPattern(createNumericPath(pathStr));
+  }
+}
+
+// ============================================================================
 // RUNTIME VALIDATION FUNCTIONS
 // ============================================================================
 
@@ -118,6 +211,70 @@ export function validateAndCreateIdBasedPath(path: string, source: string = 'unk
   }
   
   return createIdBasedPath(path);
+}
+
+/**
+ * Runtime validation for ArrayPatternPath
+ * Use this when creating array patterns from DiffResult keys or structural analysis
+ */
+export function validateAndCreateArrayPatternPath(path: string, source: string = 'unknown'): ArrayPatternPath {
+  if (!path || typeof path !== 'string') {
+    throw new Error(`Invalid array pattern path from ${source}: expected non-empty string, got ${typeof path}`);
+  }
+  
+  if (!isValidArrayPattern(path)) {
+    throw new Error(`Invalid array pattern path from ${source}: must contain [] and end with [], got "${path}"`);
+  }
+  
+  return createArrayPatternPath(path);
+}
+
+// ============================================================================
+// ARRAY PATTERN PATH UTILITIES
+// ============================================================================
+
+/**
+ * Count the number of array levels in a pattern
+ * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" -> 3
+ */
+export function getArrayDepth(pattern: ArrayPatternPath): number {
+  const matches = (pattern as string).match(/\[\]/g);
+  return matches ? matches.length : 0;
+}
+
+/**
+ * Get the target array property name (the final property before the last [])
+ * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" -> "contributions"
+ */
+export function getTargetArrayProperty(pattern: ArrayPatternPath): string | null {
+  const match = (pattern as string).match(/\.([^.\[\]]+)\[\]$/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Get the full path to the parent container of the target array
+ * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" 
+ *       -> "boomerForecastV3Requests[].parameters.accountParams[]"
+ */
+export function getParentArrayPattern(pattern: ArrayPatternPath): ArrayPatternPath | null {
+  const patternStr = pattern as string;
+  const lastArrayIndex = patternStr.lastIndexOf('[]');
+  if (lastArrayIndex === -1) return null;
+  
+  const beforeLastArray = patternStr.substring(0, lastArrayIndex);
+  const lastDotIndex = beforeLastArray.lastIndexOf('.');
+  if (lastDotIndex === -1) return null;
+  
+  const parentPattern = beforeLastArray.substring(0, lastDotIndex) + '[]';
+  return isValidArrayPattern(parentPattern) ? createArrayPatternPath(parentPattern) : null;
+}
+
+/**
+ * Check if two array patterns represent the same structural hierarchy
+ * This is useful for grouping DiffResults that share the same comparison logic
+ */
+export function arePatternsSimilar(pattern1: ArrayPatternPath, pattern2: ArrayPatternPath): boolean {
+  return pattern1 === pattern2;
 }
 
 /**
