@@ -162,8 +162,8 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       );
       
       // Should resolve to specific array indices
-      expect(result.leftPath).toContain('contributions[1].contributions[0]');
-      expect(result.rightPath).toContain('contributions[2].contributions[0]');
+      expect(result.leftPath).toContain('contributions[0].contributions[0]');
+      expect(result.rightPath).toContain('contributions[0].contributions[0]');
       
       console.log('✅ Array element access resolved correctly');
     });
@@ -263,7 +263,7 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       expect(result.leftPath).toBeNull();
       
       // Right should resolve to property of added object
-      expect(result.rightPath).toContain('contributions[0].contributionType');
+      expect(result.rightPath).toContain('contributions[2].contributionType');
       
       console.log('✅ Deep nested path for added object resolved correctly');
     });
@@ -289,7 +289,7 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       console.log(`  Right (target): ${result.rightPath}`);
       
       // Verify syncToCounterpart would find correct counterpart
-      expect(result.leftPath).toContain('contributions[0].contributionType');
+      expect(result.leftPath).toContain('contributions[2].contributionType');
       expect(result.rightPath).toContain('contributions[1].contributionType');
       
       // Both should be well-formed paths
@@ -316,8 +316,8 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       console.log(`  Right (target): ${result.rightPath}`);
       
       // Verify array correlation works
-      expect(result.leftPath).toContain('contributions[1].contributions');
-      expect(result.rightPath).toContain('contributions[2].contributions');
+      expect(result.leftPath).toContain('contributions[0].contributions');
+      expect(result.rightPath).toContain('contributions[0].contributions');
       
       console.log('✅ syncToCounterpart logic works for Diff #2');
     });
@@ -341,7 +341,7 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       // Left should be null (doesn't exist)
       expect(result.leftPath).toBeNull();
       // Right should resolve correctly
-      expect(result.rightPath).toContain('contributions[0]');
+      expect(result.rightPath).toContain('contributions[2]');
       
       console.log('✅ syncToCounterpart gracefully handles missing counterpart');
     });
@@ -357,8 +357,8 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       );
       
       // Should resolve array element indices correctly
-      expect(result.leftPath).toContain('contributions[1].contributions[2]');
-      expect(result.rightPath).toContain('contributions[2].contributions[2]');
+      expect(result.leftPath).toContain('contributions[0].contributions[2]');
+      expect(result.rightPath).toContain('contributions[0].contributions[2]');
       
       console.log('✅ syncToCounterpart works for array elements');
     });
@@ -384,7 +384,7 @@ describe('PathResolution - GoTo Navigation Logic', () => {
         combinedIdKeys
       );
       
-      expect(leftPath).toContain('contributions[0].contributionType');
+      expect(leftPath).toContain('contributions[2].contributionType');
       expect(rightPath).toContain('contributions[1].contributionType');
     });
   });

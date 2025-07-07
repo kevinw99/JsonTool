@@ -290,8 +290,8 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       expect(classes).toEqual([CSS_CLASSES.PARENT_CHANGED]);
     });
 
-    test('LEFT PANEL: contributions[1] (pre) should be parent-changed', () => {
-      const path: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+    test('LEFT PANEL: contributions[0] (pre) should be parent-changed', () => {
+      const path: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
       const classes = processor.getHighlightingClasses(
         path,
         'left',
@@ -300,8 +300,8 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       expect(classes).toEqual([CSS_CLASSES.PARENT_CHANGED]);
     });
 
-    test('RIGHT PANEL: contributions[0] (after - ADDED) should be added', () => {
-      const path: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
+    test('RIGHT PANEL: contributions[2] (after - ADDED) should be added', () => {
+      const path: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
       const classes = processor.getHighlightingClasses(
         path,
         'right',
@@ -360,7 +360,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
   describe('Array Element Changes', () => {
     test('LEFT PANEL: All prtcpnt-pre_0 contributions[i] should be changed', () => {
       for (let i = 0; i < 5; i++) {
-        const path: AnyPath = createIdBasedPath(`root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[${i}]`);
+        const path: AnyPath = createIdBasedPath(`root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
         const classes = processor.getHighlightingClasses(
           path,
           'left',
@@ -371,9 +371,9 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
     });
 
     test('RIGHT PANEL: All prtcpnt-pre_0 contributions[i] should be changed', () => {
-      // Based on generated diffs, the pre contribution is at index 2 in right panel
+      // Based on generated diffs, the pre contribution is at index 0 in right panel
       for (let i = 0; i < 5; i++) {
-        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
+        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
         const classes = processor.getHighlightingClasses(
           path,
           'right',
@@ -388,7 +388,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       // Individual array elements within an added object inherit the parent's highlighting status
       // But since there's no explicit diff for each array element, they get highlighted as children of an added parent
       for (let i = 0; i < 5; i++) {
-        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
+        const path: AnyPath = createIdBasedPath(`root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
         const classes = processor.getHighlightingClasses(
           path,
           'right',
@@ -402,9 +402,9 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
 
     test('Both panels: catchup contributionType should be changed', () => {
       // Based on generated diffs, the catchup contributionType change is at:
-      // Left panel: contributions[0] (id=45626988::2_prtcpnt-catchup-50-separate_0)
+      // Left panel: contributions[2] (id=45626988::2_prtcpnt-catchup-50-separate_0)
       // Right panel: contributions[1] (id=45626988::2_prtcpnt-catchup-50-separate_0)
-      const leftPath: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      const leftPath: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
       const rightPath: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributionType');
       
       const leftClasses = processor.getHighlightingClasses(
