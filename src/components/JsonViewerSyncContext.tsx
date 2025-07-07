@@ -163,14 +163,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         const processor = new NewHighlightingProcessor(diffResults);
         setHighlightingProcessor(processor);
         
-        // Enhanced debug logging
-        console.log('🎨 Created new highlighting processor:', {
-          totalDiffs: diffResults.length,
-          diffTypes: diffResults.reduce((acc, diff) => {
-            acc[diff.type] = (acc[diff.type] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)
-        });
       } else {
         setHighlightingProcessor(null);
       }

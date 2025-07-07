@@ -28,9 +28,9 @@
   /* Diff Colors - Single Source of Truth */
   --diff-parent-bg: lightblue; /* #e3f2fd */
   --diff-parent-border: blue; /* #1976d2 */
-  --diff-added-bg: limegreen; /* #52c41a */
+  --diff-added-bg: limegreen; /* mistyrose  #52c41a */
   --diff-added-border: darkgreen; /* #2e7d32 */
-  --diff-deleted-bg: mistyrose; /* #ffeaea */
+  --diff-deleted-bg: orange; /* mistyrose #ffeaea */
   --diff-deleted-border: crimson; /* #d32f2f */
   --diff-changed-bg: #FFCC99; /* #fff8e1 */
   --diff-changed-border: orange; /* #f57c00 */
@@ -173,9 +173,8 @@
 /* Type A: Parent of a Diff (containers with child changes) */
 /*.json-node.has-children.json-parent-changed > .json-node-content { */
 .json-node.json-parent-changed > .json-node-content {
-  background-color: var(--diff-parent-bg);
-  /*border-left: 3px solid var(--diff-parent-border); */
-
+/*  background-color: var(--diff-parent-bg);*/
+  border-left: 3px solid var(--diff-parent-border);
 
 }
 
@@ -192,7 +191,7 @@
 
 .json-node.json-deleted > .json-node-content {
   background-color: var(--diff-deleted-bg);
-  border-left: 3px solid var(--diff-deleted-border);
+/*  border-left: 3px solid var(--diff-deleted-border);*/
 }
 
 /* Type C: Value Changed */
