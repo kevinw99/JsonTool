@@ -27,12 +27,12 @@
   
   /* Diff Colors - Single Source of Truth */
   --diff-parent-bg: lightblue; /* #e3f2fd */
-  --diff-parent-border: blue; /* #1976d2 */
+  --diff-parent-border: lightblue; /* #1976d2 */
   --diff-added-bg: limegreen; /* mistyrose  #52c41a */
   --diff-added-border: darkgreen; /* #2e7d32 */
   --diff-deleted-bg: orange; /* mistyrose #ffeaea */
   --diff-deleted-border: crimson; /* #d32f2f */
-  --diff-changed-bg: #FFCC99; /* #fff8e1 */
+  --diff-changed-bg: lightyellow; /* #FFCC99 */
   --diff-changed-border: orange; /* #f57c00 */
   
   /* Highlight Colors */
