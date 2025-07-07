@@ -1,0 +1,28 @@
+{
+  "id": 98,
+  "request": "add line numbers to tree mode\n\nAdded a line number gutter to the left side of the JSON tree view:\n\n**Implementation**:\n- Created line-numbers-gutter component with proper styling\n- Line numbers update dynamically based on visible nodes using MutationObserver\n- Numbers reflect actual rendered lines, not JSON structure\n- Consistent styling with text mode (gray background, right-aligned)\n\n**Layout**:\n- Flex layout with fixed-width gutter (50px) and flexible tree content\n- Line numbers are non-selectable and properly aligned\n- Matches text editor line numbering behavior\n\n**Technical Details**:\n- Uses querySelectorAll('.json-node') to count visible lines\n- MutationObserver tracks DOM changes for real-time updates\n- Clean separation between line numbers and tree content\n- Fixed TypeScript errors related to idBasedPath vs numericPath\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-07T00:44:41.259Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

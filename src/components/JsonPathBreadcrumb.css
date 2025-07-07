@@ -1,0 +1,136 @@
+/* JSON Path Breadcrumb Component */
+
+.json-path-breadcrumb {
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #666;
+  user-select: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.breadcrumb-label {
+  color: #888;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.line-info {
+  color: #999;
+  font-weight: 500;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.breadcrumb-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.breadcrumb-segment-line {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  padding-left: calc(var(--indent-level) * 20px + 8px);
+  position: relative;
+}
+
+.breadcrumb-segment-line:hover {
+  background-color: #e6f3ff;
+}
+
+.breadcrumb-segment-line:before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 2px;
+  background-color: #ccc;
+  border-radius: 50%;
+}
+
+.breadcrumb-segment-line:first-child:before {
+  display: none;
+}
+
+.object-segment-text {
+  color: #0066cc;
+  font-weight: 500;
+}
+
+.array-segment-text {
+  color: #8b4a9c;
+  font-weight: 500;
+}
+
+.object-segment {
+  color: #0066cc;
+}
+
+.array-segment {
+  color: #8b4a9c;
+}
+
+.index-segment {
+  color: #d63384;
+  font-weight: 500;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .json-path-breadcrumb {
+    background-color: #2d2d2d;
+    border-bottom-color: #404040;
+    color: #ccc;
+  }
+
+  .line-info {
+    color: #888;
+  }
+
+  .breadcrumb-root {
+    color: #4fc3f7;
+  }
+
+  .breadcrumb-root:hover {
+    background-color: #1e3a8a;
+  }
+
+  .breadcrumb-separator {
+    color: #888;
+  }
+
+  .breadcrumb-segment:hover {
+    background-color: #1e3a8a;
+  }
+
+  .object-segment {
+    color: #4fc3f7;
+  }
+
+  .array-segment {
+    color: #ce93d8;
+  }
+
+  .index-segment {
+    color: #f48fb1;
+  }
+}

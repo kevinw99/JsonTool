@@ -8,6 +8,7 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
 import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
+import { JsonPathBreadcrumb } from './JsonPathBreadcrumb';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -401,7 +402,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const actions: ContextMenuAction[] = [];
     
     // Ignore action - add this node's path to ignored patterns
-    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.isPathIgnored'));
+    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(normalizedPathForDiff);
     actions.push({
       label: isCurrentlyIgnored ? 'Unignore this diff' : 'Ignore this diff',
       icon: isCurrentlyIgnored ? '✅' : '🚫',
@@ -409,10 +410,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         if (normalizedPathForDiff) {
           if (isCurrentlyIgnored) {
             // Remove the pattern for this path
-            removeIgnoredPatternByPath(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.removeIgnoredPattern'));
+            removeIgnoredPatternByPath(normalizedPathForDiff);
           } else {
             // Add as a pattern to get full filtering behavior
-            addIgnoredPatternFromRightClick(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.addIgnoredPattern'));
+            addIgnoredPatternFromRightClick(normalizedPathForDiff);
           }
         }
       }
@@ -436,7 +437,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         label: 'Sync to Counterpart',
         icon: '↔️',
         action: () => {
-          syncToCounterpart(validateAndCreateIdBasedPath(path, 'JsonTreeView.syncToCounterpart'), viewerId);
+          syncToCounterpart(path, viewerId);
         }
       });
     }
@@ -546,7 +547,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           <div className="json-node-children">
             {(() => {
               // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
-              const shouldSort = idKeySetting || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.shouldSort'));
+              const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
@@ -630,7 +631,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 );
               });
             })()}
-            <div className="json-node json-closing-bracket-node" style={{'--level': level} as React.CSSProperties}>
+            <div className="json-node json-closing-bracket-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-bracket json-closing-bracket">]</span>
             </div>
           </div>
@@ -692,7 +693,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 />
               );
             })}
-            <div className="json-node json-closing-brace-node" style={{'--level': level} as React.CSSProperties}>
+            <div className="json-node json-closing-brace-node" style={{paddingLeft: `${level * 20}px`}}>
               <span className="json-brace json-closing-brace">{'}'}</span>
             </div>
           </div>
@@ -747,56 +748,106 @@ interface JsonTreeViewProps {
 }
 
 export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
+  const [selectedPath, setSelectedPath] = useState<string>('');
+  const [selectedLine, setSelectedLine] = useState<number>(0);
   const treeContentRef = useRef<HTMLDivElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
-  // Update line numbers whenever the tree content changes
+  const context = useContext(JsonViewerSyncContext);
+  const { goToDiff } = context || {};
+
+  // Static test path - the specific example you mentioned
+  const testPath = "root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributions";
+
+  // Update line numbers when tree content changes
   useEffect(() => {
-    const updateNumbers = () => {
-      if (treeContentRef.current && lineNumbersRef.current) {
-        const lines = treeContentRef.current.querySelectorAll('.json-node');
-        const lineCount = lines.length;
-        
-        // Generate line numbers
-        const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1)
+    if (!treeContentRef.current) return;
+
+    const updateLineNumbers = () => {
+      const nodes = treeContentRef.current?.querySelectorAll('.json-node');
+      if (nodes && lineNumbersRef.current) {
+        const lineNumbers = Array.from(nodes).map((_, index) => index + 1);
+        lineNumbersRef.current.innerHTML = lineNumbers
           .map(num => `<div class="line-number">${num}</div>`)
           .join('');
-        
-        lineNumbersRef.current.innerHTML = lineNumbers;
       }
     };
 
     // Initial update
-    updateNumbers();
+    updateLineNumbers();
 
-    // Create observer to watch for changes in tree structure
-    if (treeContentRef.current) {
-      const observer = new MutationObserver(updateNumbers);
-      observer.observe(treeContentRef.current, {
-        childList: true,
-        subtree: true,
-        attributes: false
-      });
+    // Set up MutationObserver for dynamic updates
+    const observer = new MutationObserver(updateLineNumbers);
+    observer.observe(treeContentRef.current, { 
+      childList: true, 
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
 
-      return () => observer.disconnect();
+    return () => observer.disconnect();
+  }, [data, showDiffsOnly]);
+
+  // Sync scroll between line numbers and tree content
+  useEffect(() => {
+    if (!treeContentRef.current || !lineNumbersRef.current) return;
+
+    const treeContent = treeContentRef.current;
+    const lineNumbers = lineNumbersRef.current;
+
+    const syncScroll = (source: Element, target: Element) => {
+      target.scrollTop = source.scrollTop;
+    };
+
+    const handleTreeScroll = () => syncScroll(treeContent, lineNumbers);
+    const handleLineNumberScroll = () => syncScroll(lineNumbers, treeContent);
+
+    treeContent.addEventListener('scroll', handleTreeScroll);
+    lineNumbers.addEventListener('scroll', handleLineNumberScroll);
+
+    return () => {
+      treeContent.removeEventListener('scroll', handleTreeScroll);
+      lineNumbers.removeEventListener('scroll', handleLineNumberScroll);
+    };
+  }, []);
+
+  const handleBreadcrumbClick = (path: string) => {
+    if (goToDiff) {
+      // Ensure path has proper root prefix
+      const fullPath = path.startsWith('root.') ? path : `root.${path}`;
+      goToDiff(createIdBasedPath(fullPath));
     }
-  });
+  };
 
   return (
-    <div className="json-tree-view-container responsive-no-wrap">
-      <div className="line-numbers-gutter" ref={lineNumbersRef}></div>
-      <div className="json-tree-view" ref={treeContentRef}>
-        <JsonNode
-          data={data}
-          path={createIdBasedPath(`root_${viewerId}_root`)}
-          level={0}
-          viewerId={viewerId as ViewerId}
-          jsonSide={jsonSide}
-          idKeySetting={idKeySetting}
-          showDiffsOnly={showDiffsOnly}
-          onNodeToggle={undefined}
-          isCompareMode={isCompareMode}
-        />
+    <div className="json-tree-view-container">
+      {/* Breadcrumb Section - Static Test */}
+      <JsonPathBreadcrumb
+        currentPath={testPath}
+        currentLine={30}
+        onSegmentClick={handleBreadcrumbClick}
+      />
+
+      {/* Main Content with Line Numbers and Tree */}
+      <div className="json-tree-main-content">
+        {/* Line Numbers Gutter */}
+        <div className="line-numbers-gutter" ref={lineNumbersRef}>
+          {/* Line numbers are populated by useEffect */}
+        </div>
+
+        {/* Tree Content */}
+        <div className="json-tree-content json-tree-view" ref={treeContentRef}>
+          <JsonNode
+            data={data}
+            path={createIdBasedPath(`root_${viewerId}_root`)}
+            level={0}
+            viewerId={viewerId as ViewerId}
+            jsonSide={jsonSide}
+            idKeySetting={idKeySetting}
+            showDiffsOnly={showDiffsOnly}
+            isCompareMode={isCompareMode}
+          />
+        </div>
       </div>
     </div>
   );

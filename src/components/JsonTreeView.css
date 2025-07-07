@@ -41,14 +41,27 @@
 }
 
 /* ========================================
-   Tree Structure
+   Container Layout (Enhanced with Breadcrumb)
    ======================================== */
 
 .json-tree-view-container {
   display: flex;
+  flex-direction: column;
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
+  height: 100%;
+}
+
+.json-tree-main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.json-tree-content {
+  flex: 1;
+  overflow: auto;
 }
 
 .line-numbers-gutter {
@@ -56,49 +69,61 @@
   width: 50px;
   background-color: #f8f8f8;
   border-right: 1px solid #e0e0e0;
-  padding: 0;
-  text-align: right;
-  user-select: none;
-  color: #999;
+  padding: 8px 0;
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
+  color: #999;
+  text-align: right;
+  user-select: none;
+  overflow-y: auto;
+  position: relative;
 }
 
 .line-number {
-  padding: 0 8px 0 0;
+  padding: 0 4px;
+  white-space: nowrap;
+  line-height: var(--line-height);
   height: calc(var(--line-height) * 1em);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-height: calc(var(--line-height) * 1em);
 }
 
+/* ========================================
+   Tree Structure
+   ======================================== */
+
 .json-tree-view {
-  flex: 1;
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
-  white-space: nowrap;
+  padding: 8px;
+  /* Remove overflow settings to let parent SyncScroll handle scrolling */
+  white-space: nowrap; /* Prevent wrapping at the tree level */
 }
 
 .json-node {
+  /* Indentation is handled by padding */
   padding-left: var(--indent-size);
   position: relative;
 }
 
+/* This is the container for a single line in the tree */
 .json-node-content {
   display: flex;
   align-items: center;
   cursor: pointer;
-  white-space: nowrap;
-  min-width: 0;
+  white-space: nowrap; /* Prevent wrapping to maintain alignment */
+  /* Remove overflow: hidden to not interfere with scroll container */
+  min-width: 0; /* Allow shrinking */
   width: fit-content;
   
   /* Hardware acceleration for smooth rendering */
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  will-change: background-color;
 }
 
 /* ========================================
@@ -113,6 +138,7 @@
   margin-left: calc(-1 * var(--expander-width));
 }
 
+/* When a node has no children, the expander is hidden but still takes up space */
 .expander.no-children {
   visibility: hidden;
 }
@@ -128,6 +154,7 @@
   white-space: nowrap;
 }
 
+/* The container for the value part of the line */
 .value-container {
   display: flex;
   align-items: center;
@@ -162,6 +189,7 @@
   font-style: italic;
 }
 
+/* The closing bracket for expanded objects/arrays */
 .json-closing-node {
   padding-left: var(--indent-size);
   display: flex;
@@ -201,11 +229,9 @@
    ======================================== */
 
 /* Type A: Parent of a Diff (containers with child changes) */
-/*.json-node.has-children.json-parent-changed > .json-node-content { */
 .json-node.json-parent-changed > .json-node-content {
-/*  background-color: var(--diff-parent-bg);*/
   border-left: 3px solid var(--diff-parent-border);
-
+/*  background-color: var(--diff-parent-bg);*/
 }
 
 /* Leaf nodes with parent changed styling (no border) */
@@ -216,18 +242,15 @@
 /* Type B: Added/Deleted Nodes */
 .json-node.json-added > .json-node-content {
   background-color: var(--diff-added-bg);
-/*  border-left: 3px solid var(--diff-added-border);*/
 }
 
 .json-node.json-deleted > .json-node-content {
   background-color: var(--diff-deleted-bg);
-/*  border-left: 3px solid var(--diff-deleted-border);*/
 }
 
 /* Type C: Value Changed */
 .json-node.json-changed > .json-node-content {
   background-color: var(--diff-changed-bg);
-/*  border-left: 3px solid var(--diff-changed-border); */
 }
 
 /* ========================================
@@ -280,42 +303,6 @@
     background-color: transparent;
     box-shadow: none;
     transform: scale(1);
-  }
-}
-
-/* Sync feedback animation */
-.json-sync-feedback {
-  position: relative;
-}
-
-.json-sync-feedback::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(59, 130, 246, 0.3) 50%, 
-    transparent 100%);
-  animation: syncPulse 1.5s ease-in-out;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes syncPulse {
-  0% {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(0%);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(100%);
   }
 }
 
@@ -411,5 +398,31 @@
   .json-node.json-deleted > .json-node-content,
   .json-node.json-changed > .json-node-content {
     isolation: isolate;
+  }
+}
+
+/* Sync feedback animation */
+.json-sync-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.json-sync-feedback::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 123, 255, 0.4), transparent);
+  animation: syncSlide 0.8s ease-out;
+}
+
+@keyframes syncSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }

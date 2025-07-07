@@ -1558,6 +1558,39 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #98 - 🚨 Critical Bug
+**Date**: 2025-07-07  
+**Request**: "add line numbers to tree mode
+
+Added a line number gutter to the left side of the JSON tree view:
+
+**Implementation**:
+- Created line-numbers-gutter component with proper styling
+- Line numbers update dynamically based on visible nodes using MutationObserver
+- Numbers reflect actual rendered lines, not JSON structure
+- Consistent styling with text mode (gray background, right-aligned)
+
+**Layout**:
+- Flex layout with fixed-width gutter (50px) and flexible tree content
+- Line numbers are non-selectable and properly aligned
+- Matches text editor line numbering behavior
+
+**Technical Details**:
+- Uses querySelectorAll('.json-node') to count visible lines
+- MutationObserver tracks DOM changes for real-time updates
+- Clean separation between line numbers and tree content
+- Fixed TypeScript errors related to idBasedPath vs numericPath
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
+**Commit**: [`4aa8fec`](https://github.com/user/repo/commit/4aa8fec)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

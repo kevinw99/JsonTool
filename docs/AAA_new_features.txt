@@ -58,10 +58,10 @@ can you review the new files added for text mode, and see if any codes can be cl
 
 
 
-why we have both files :jsonCompare_clean.ts
-                        jsonCompare.ts, which one is used? can we remove one?
 let's add a new feature:
-  2 show json-path from root to current node
+  - show json-path from root to current node
   this should apply to both text mode and tree mode. a exmaple is shown in the attached screenshot. see the path
   level area still maintain the correct line #. and each path segment is clickable, clicking on it will move to the
    real node in the tree/text view.
+
+actually this requirement might not be correct "see the path level area still maintain the correct line #"
