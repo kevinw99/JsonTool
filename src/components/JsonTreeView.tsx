@@ -7,7 +7,7 @@ import type { ContextMenuAction } from './ContextMenu/ContextMenu';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
-import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
+import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath, queryElementByViewerPath } from '../utils/PathTypes';
 import { JsonPathBreadcrumb, createBreadcrumbFromViewport, type BreadcrumbSegment } from './JsonPathBreadcrumb';
 
 // Utility hook to get the previous value of a variable
@@ -399,7 +399,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const actions: ContextMenuAction[] = [];
     
     // Ignore action - add this node's path to ignored patterns
-    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(normalizedPathForDiff);
+    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(createIdBasedPath(normalizedPathForDiff));
     actions.push({
       label: isCurrentlyIgnored ? 'Unignore this diff' : 'Ignore this diff',
       icon: isCurrentlyIgnored ? '✅' : '🚫',
@@ -407,10 +407,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         if (normalizedPathForDiff) {
           if (isCurrentlyIgnored) {
             // Remove the pattern for this path
-            removeIgnoredPatternByPath(normalizedPathForDiff);
+            removeIgnoredPatternByPath(createIdBasedPath(normalizedPathForDiff));
           } else {
             // Add as a pattern to get full filtering behavior
-            addIgnoredPatternFromRightClick(normalizedPathForDiff);
+            addIgnoredPatternFromRightClick(createIdBasedPath(normalizedPathForDiff));
           }
         }
       }
@@ -522,8 +522,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         className={nodeClasses} 
         ref={nodeRef} 
         style={{ '--level': level } as React.CSSProperties}
-        data-path={genericNumericPathForNode}
-        data-original-path={path}
+        data-path={createViewerPath(viewerId, validateAndCreateNumericPath(genericNumericPathForNode))}
         onContextMenu={handleContextMenu}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
@@ -544,7 +543,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           <div className="json-node-children">
             {(() => {
               // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
-              const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
+              const shouldSort = idKeySetting || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode));
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
@@ -651,8 +650,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         className={nodeClasses} 
         ref={nodeRef} 
         style={{ '--level': level } as React.CSSProperties}
-        data-path={genericNumericPathForNode}
-        data-original-path={path}
+        data-path={createViewerPath(viewerId, validateAndCreateNumericPath(genericNumericPathForNode))}
         onContextMenu={handleContextMenu}
       >
         <div className={contentClasses} onClick={hasChildren ? toggleExpansion : undefined}>
@@ -712,8 +710,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         className={nodeClasses} 
         ref={nodeRef} 
         style={{ '--level': level } as React.CSSProperties}
-        data-path={genericNumericPathForNode}
-        data-original-path={path}
+        data-path={createViewerPath(viewerId, validateAndCreateNumericPath(genericNumericPathForNode))}
         onContextMenu={handleContextMenu}
       >
         <div className={contentClasses}>
@@ -1076,8 +1073,8 @@ const debugNodeInfo = (nodeData: {
   }
   
   // Get DOM element and styling information
-  const selector = `[data-path="${nodeData.path}"]`;
-  const element = document.querySelector(selector) as HTMLElement;
+  const viewerPath = createViewerPath(nodeData.viewerId as ViewerId, validateAndCreateNumericPath(nodeData.genericNumericPathForNode));
+  const element = queryElementByViewerPath(viewerPath) as HTMLElement;
   
   if (element) {
     const computedStyle = window.getComputedStyle(element);
@@ -1101,7 +1098,7 @@ const debugNodeInfo = (nodeData: {
       } : null
     });
   } else {
-    console.log('❌ DOM element not found for selector:', selector);
+    console.log('❌ DOM element not found for ViewerPath:', viewerPath);
   }
   
   console.groupEnd();

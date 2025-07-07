@@ -379,7 +379,9 @@ describe('ID Key Click Navigation Tests', () => {
         
         // Verify navigation to users array
         setTimeout(() => {
-          const targetElement = container.querySelector('[data-path*="users"]')
+          const targetElement = container.querySelector('[data-path*="users"]') || 
+                                  container.querySelector('[data-path^="left_"][data-path*="users"]') ||
+                                  container.querySelector('[data-path^="right_"][data-path*="users"]')
           expect(targetElement).toBeTruthy()
         }, 100)
       }

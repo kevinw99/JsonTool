@@ -390,3 +390,39 @@ export function validateViewerPath(path: string, source: string = 'unknown'): Vi
 export function unsafeViewerPath(path: string): ViewerPath {
   return path as ViewerPath;
 }
+
+// ============================================================================
+// DOM QUERY HELPERS FOR VIEWERPATH
+// ============================================================================
+
+/**
+ * Extract ViewerPath from DOM element's data-path attribute
+ */
+export function getViewerPathFromElement(element: Element): ViewerPath | null {
+  const dataPath = element.getAttribute('data-path');
+  if (!dataPath || !isViewerPath(dataPath)) return null;
+  return dataPath as ViewerPath;
+}
+
+/**
+ * Query DOM element by ViewerPath
+ */
+export function queryElementByViewerPath(viewerPath: ViewerPath): Element | null {
+  return document.querySelector(`[data-path="${viewerPath}"]`);
+}
+
+/**
+ * Get numeric path from ViewerPath for cross-viewer operations
+ */
+export function getNumericPathFromViewerPath(viewerPath: ViewerPath): NumericPath {
+  const withoutPrefix = viewerPath.replace(/^(left|right)_/, '');
+  return validateAndCreateNumericPath(withoutPrefix);
+}
+
+/**
+ * Get all elements for a specific viewer
+ */
+export function getAllElementsForViewer(viewerId: ViewerId): NodeListOf<Element> {
+  const prefix = `${viewerId}_`;
+  return document.querySelectorAll(`[data-path^="${prefix}"]`);
+}

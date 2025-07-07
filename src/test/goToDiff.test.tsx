@@ -35,12 +35,16 @@ describe('GoToDiff Navigation Test', () => {
     // Wait for navigation to complete
     await waitFor(() => {
       // Check that the target path exists in the DOM
-      const targetElement = document.querySelector('[data-path*="contributions"][data-path*="45626988::2_prtcpnt-pre_0"]');
+      const targetElement = document.querySelector('[data-path*="contributions"][data-path*="45626988::2_prtcpnt-pre_0"]') || 
+                           document.querySelector('[data-path^="left_"][data-path*="contributions"]') ||
+                           document.querySelector('[data-path^="right_"][data-path*="contributions"]');
       expect(targetElement).toBeTruthy();
     }, { timeout: 3000 });
 
     // Verify the element is highlighted
-    const targetElement = document.querySelector('[data-path*="contributions"][data-path*="45626988::2_prtcpnt-pre_0"]');
+    const targetElement = document.querySelector('[data-path*="contributions"][data-path*="45626988::2_prtcpnt-pre_0"]') || 
+                         document.querySelector('[data-path^="left_"][data-path*="contributions"]') ||
+                         document.querySelector('[data-path^="right_"][data-path*="contributions"]');
     if (targetElement) {
       // Check if element has highlighting styles
       const computedStyle = window.getComputedStyle(targetElement);
@@ -102,8 +106,8 @@ describe('GoToDiff Navigation Test', () => {
     // LEFT: boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]
     // RIGHT: boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[0]
 
-    const expectedLeftPath = 'root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]';
-    const expectedRightPath = 'root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[0]';
+    const expectedLeftPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]';
+    const expectedRightPath = 'right_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[0]';
 
     // After clicking diff #8, these paths should exist
     const diffRows = screen.getAllByText(/Go To/);

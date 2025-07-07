@@ -42,7 +42,11 @@ describe('Debug GoToDiff Navigation', () => {
 
     // Look for any elements containing "boomerForecastV3Requests"
     const boomerElements = document.querySelectorAll('[data-path*="boomerForecastV3Requests"]');
+    const leftBoomerElements = document.querySelectorAll('[data-path^="left_"][data-path*="boomerForecastV3Requests"]');
+    const rightBoomerElements = document.querySelectorAll('[data-path^="right_"][data-path*="boomerForecastV3Requests"]');
     console.log('Number of boomerForecastV3Requests elements:', boomerElements.length);
+    console.log('Left boomerForecastV3Requests elements:', leftBoomerElements.length);
+    console.log('Right boomerForecastV3Requests elements:', rightBoomerElements.length);
 
     expect(true).toBe(true); // Always pass, this is just for debugging
   });

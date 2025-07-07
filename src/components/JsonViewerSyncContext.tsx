@@ -4,7 +4,7 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerPath, ViewerId, NumericPath } from '../utils/PathTypes';
-import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath } from '../utils/PathTypes';
+import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath, queryElementByViewerPath, getAllElementsForViewer } from '../utils/PathTypes';
 import { resolveIdBasedPathToNumeric } from '../utils/pathResolution'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
@@ -366,9 +366,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         devicePixelRatio: window.devicePixelRatio
       });
       
-      // Find all elements with data-path
-      const allElements = document.querySelectorAll('[data-path]');
-      console.log(`🧪 Found ${allElements.length} elements with data-path`);
+      // Find all elements with data-path from both viewers
+      const leftElements = getAllElementsForViewer('left');
+      const rightElements = getAllElementsForViewer('right');
+      const allElements = [...leftElements, ...rightElements];
+      console.log(`🧪 Found ${allElements.length} elements with data-path (${leftElements.length} left, ${rightElements.length} right)`);
       
       // Test viewport detection for first 10 elements
       Array.from(allElements).slice(0, 10).forEach((element, index) => {
@@ -504,8 +506,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           console.log('[goToDiff] 🔍 leftPathWithRoot:', leftPathWithRoot);
           console.log('[goToDiff] 🔍 rightPathWithRoot:', rightPathWithRoot);
           
-          const leftElement = document.querySelector(`[data-path="${leftPathWithRoot}"]`);
-          const rightElement = document.querySelector(`[data-path="${rightPathWithRoot}"]`);
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot));
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot));
+          const leftElement = queryElementByViewerPath(leftViewerPath);
+          const rightElement = queryElementByViewerPath(rightViewerPath);
           
           console.log('[goToDiff] 🔍 Found elements:');
           console.log('[goToDiff] 🔍 leftElement:', leftElement ? 'FOUND' : 'NOT FOUND');
@@ -592,12 +596,13 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     // Context menu action methods
     const toggleArraySorting = useCallback((arrayPath: string) => {
+      const numericPath = validateAndCreateNumericPath(arrayPath);
       setForceSortedArraysState(prev => {
         const newSet = new Set(prev);
-        if (newSet.has(arrayPath)) {
-          newSet.delete(arrayPath);
+        if (newSet.has(numericPath)) {
+          newSet.delete(numericPath);
             } else {
-          newSet.add(arrayPath);
+          newSet.add(numericPath);
         }
         return newSet;
       });
