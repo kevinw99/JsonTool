@@ -1,20 +1,28 @@
 {
   "id": 95,
-  "request": "update PathConverter tests to use left/right viewer naming\n\n## Problem Fixed\n- 4 failing tests in PathConverter.test.ts due to outdated viewer naming convention\n- Tests were using 'viewer1'/'viewer2' but system now uses 'left'/'right'\n- PathConverter's extractPrefix() only matches 'left < /dev/null | right' patterns\n\n## Root Cause\n- Earlier refactoring updated PathConverter to use left/right naming (line 40)\n- Tests were not updated to match the new ViewerId convention\n- Test expectations used old viewer1/viewer2 prefixes\n\n## Solution\n- Updated test inputs from 'root_viewer1_' to 'root_left_'\n- Updated test inputs from 'root_viewer2_' to 'root_right_'\n- Updated targetViewer option from 'viewer2' to 'right'\n- All test expectations now match the current left/right naming convention\n\n## Tests Fixed\n✅ preserves viewer prefix during conversion\n✅ preserves complex prefix during conversion\n✅ changes viewer prefix when targetViewer specified\n✅ removes all prefixes when specified\n\nAll PathConverter tests now pass (36/36) and ID-based path conversion works correctly.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "request": "refine diff highlighting colors and visual indicators\n\n- Update deleted nodes to use orange background instead of mistyrose\n- Ensure added nodes use limegreen background for better visibility\n- Switch parent-changed nodes from background to left border highlighting\n- Remove background color from parent-changed nodes for cleaner appearance\n- Add blue left border to parent-changed nodes for clear visual hierarchy\n- Remove border from deleted nodes to reduce visual noise\n- Clean up debug logging in JsonViewerSyncContext\n\nVisual improvements:\n- Better color contrast and accessibility\n- Cleaner distinction between diff types\n- Reduced visual clutter with selective border usage\n- More intuitive color scheme for diff visualization\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)",
   "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-06T03:26:16.737Z",
+  "created": "2025-07-07T00:03:07.721Z",
   "testSteps": [
-    "1. Reproduce the bug using the provided steps",
-    "2. Verify the issue exists before the fix",
-    "3. Apply the fix",
-    "4. Test the specific scenario that was broken",
-    "5. Test related functionality to ensure no regressions",
-    "6. Verify edge cases work correctly"
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
   ],
   "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
-    "description": "Use existing application state and sample data for testing"
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
   },
   "verificationCommand": "npm run test && npm run test:e2e"
 }

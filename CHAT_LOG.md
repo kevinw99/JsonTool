@@ -1396,6 +1396,168 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #92 - 🐛 Bug Fix
+**Date**: 2025-07-06  
+**Request**: "resolve text-to-tree mode switching and improve bracket alignment
+
+## Text Mode Switching Fix
+- Fixed handleViewModeToggle() to properly parse JSON string back to object when switching from text to tree mode
+- Issue: switching back to tree mode showed corrupted text instead of tree structure
+- Solution: use JSON.parse() when switching from text mode (newIsTextMode = false)
+
+## Bracket Alignment Improvements
+- Created separate CSS variable --closing-bracket-indent for fine-tuned bracket alignment
+- Moved bracket positioning logic from JavaScript to CSS using custom properties
+- Opening brackets remain unchanged, only closing bracket positioning is adjustable
+- Single source of truth for all spacing values in CSS variables
+
+## CSS Organization
+- Added bracket alignment system with dedicated CSS section
+- Used CSS calc() for dynamic padding based on nesting level
+- Cleaner separation between opening and closing bracket positioning logic
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling, main app)"  
+**Commit**: [`443451a`](https://github.com/user/repo/commit/443451a)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #93 - 🐛 Bug Fix
+**Date**: 2025-07-06  
+**Request**: "implement comprehensive JSON text mode with CodeMirror 6
+
+- Add JsonTextEditor component with professional text editing capabilities
+- Implement JSON syntax highlighting, line numbers, and search functionality
+- Add proper text alignment fixes for indentation display
+- Integrate CodeMirror 6 with existing JSON viewer architecture
+- Create JSON path calculation utilities for future enhancements
+- Add responsive design and theme consistency
+- Include fold gutter, bracket matching, and customizable font sizing
+
+Technical improvements:
+- Fixed text-to-tree mode switching with proper JSON parsing
+- Resolved indentation display issues with text-align corrections
+- Added comprehensive CSS styling for professional appearance
+- Implemented extensible architecture for future JSON path features
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (styling, main app)"  
+**Commit**: [`6c15ebb`](https://github.com/user/repo/commit/6c15ebb)  
+**Files**: package-lock.json, package.json, src/App.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #94 - ✨ Feature
+**Date**: 2025-07-06  
+**Request**: "move test data to external files and enhance test scenarios
+
+- Add new test entry `45626988::2_prtcpnt-extra_0` to left panel for node removal testing
+- Randomize contributions array order in both test files to test ID key sorting behavior
+- Refactor all utils tests to load data from external JSON files instead of hardcoded data
+- Update NewHighlightingProcessor.test.ts to use external highlighting-test files
+- Update pathResolution.test.ts to use external highlighting-test files
+- Update PathConverter.test.ts to use external highlighting-test files
+
+Technical improvements:
+- Tests now validate real sorting behavior with out-of-order array elements
+- Enhanced test coverage for node addition/removal scenarios
+- Eliminated hardcoded JSON data duplication across test files
+- Single source of truth for test data in external files
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`0da4498`](https://github.com/user/repo/commit/0da4498)  
+**Files**: public/highlighting-test-left-panel.json, public/highlighting-test-right-panel.json, src/utils/NewHighlightingProcessor.test.ts...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #95 - 🐛 Bug Fix
+**Date**: 2025-07-07  
+**Request**: "refine diff highlighting colors and visual indicators
+
+- Update deleted nodes to use orange background instead of mistyrose
+- Ensure added nodes use limegreen background for better visibility
+- Switch parent-changed nodes from background to left border highlighting
+- Remove background color from parent-changed nodes for cleaner appearance
+- Add blue left border to parent-changed nodes for clear visual hierarchy
+- Remove border from deleted nodes to reduce visual noise
+- Clean up debug logging in JsonViewerSyncContext
+
+Visual improvements:
+- Better color contrast and accessibility
+- Cleaner distinction between diff types
+- Reduced visual clutter with selective border usage
+- More intuitive color scheme for diff visualization
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
+**Commit**: [`fce2832`](https://github.com/user/repo/commit/fce2832)  
+**Files**: src/components/JsonTreeView.css, src/components/JsonViewerSyncContext.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #96 - 🐛 Bug Fix
+**Date**: 2025-07-07  
+**Request**: "test: update all test cases for new 8-diff structure with extra contribution
+
+- Diffs #1-5: Pre contribution array changes (7000 → 3500) - CHANGED
+- Diff #6: Extra contribution removed - REMOVED
+- Diff #7: Catchup contributionType change - CHANGED
+- Diff #8: After contribution added - ADDED
+
+Updated PathConverter, pathResolution, and NewHighlightingProcessor tests
+Fixed diff numbering and array index expectations for new data structure
+Added comprehensive test coverage for node addition/removal scenarios
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`5144b6c`](https://github.com/user/repo/commit/5144b6c)  
+**Files**: src/utils/NewHighlightingProcessor.test.ts, src/utils/PathConverter.test.ts, src/utils/pathResolution.test.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #97 - 🐛 Bug Fix
+**Date**: 2025-07-07  
+**Request**: "correct test array indices for randomized data structure
+
+Fixed all failing tests by updating array index expectations to match the actual randomized test data:
+
+**Data Structure**:
+- Left Panel: pre[0], extra[1], catchup[2]
+- Right Panel: pre[0], catchup[1], after[2]
+
+**Tests Fixed**:
+- NewHighlightingProcessor.test.ts: Updated contribution array indices and diff expectations
+- pathResolution.test.ts: Fixed syncToCounterpart functionality tests with correct array indices
+
+**Results**: All 99 tests now passing (3 test files passed)
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`43a877b`](https://github.com/user/repo/commit/43a877b)  
+**Files**: src/utils/NewHighlightingProcessor.test.ts, src/utils/pathResolution.test.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

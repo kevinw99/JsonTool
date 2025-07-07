@@ -169,7 +169,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   // Path normalization for diff checks (highlightPath is already normalized)
   const normalizedPathForDiff = useMemo(() => {
-    // The genericNumericPathForNode includes "root." prefix, but diff numericPath doesn't
+    // The genericNumericPathForNode includes "root." prefix, but diff idBasedPath doesn't
     // So we need to remove "root." for comparison with diff results
     let normalized = genericNumericPathForNode;
     if (normalized.startsWith('root.')) {
@@ -338,7 +338,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     if (path.endsWith('_root')) {
       // A root is visible in diffs only mode if there are any relevant (non-ignored) diffs.
       const anyRelevantDiffs = diffResultsData.some((diff: DiffResult) => 
-        diff.numericPath && !ignoredDiffs.has(diff.numericPath) // Changed .includes to .has
+        diff.idBasedPath && !ignoredDiffs.has(diff.idBasedPath) // Changed .includes to .has
       );
       // console.log(`[isVisibleInDiffsOnlyMode VId:${viewerId}] Root node \\"${path}\\". Any relevant diffs: ${anyRelevantDiffs}`);
       return anyRelevantDiffs;
@@ -348,7 +348,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // 1. Check if the node itself is a diff (added, removed, changed).
     // 2. Check if the node is an ancestor of any diff.
     const isNodeADiff = diffResultsData.some((diff: DiffResult) => 
-      diff.numericPath && diff.numericPath === normalizedPathForDiff && !ignoredDiffs.has(diff.numericPath) // Changed .includes to .has
+      diff.idBasedPath && diff.idBasedPath === normalizedPathForDiff && !ignoredDiffs.has(diff.idBasedPath) // Changed .includes to .has
     );
 
     if (isNodeADiff) {
@@ -357,11 +357,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     }
 
     const isAncestorOfDiff = diffResultsData.some((diff: DiffResult) => {
-      if (!diff.numericPath || ignoredDiffs.has(diff.numericPath)) return false; // Changed .includes to .has
+      if (!diff.idBasedPath || ignoredDiffs.has(diff.idBasedPath)) return false; // Changed .includes to .has
       // Ensure normalizedPathForDiff is not empty before creating pathToCheck/arrayPathToCheck
       if (normalizedPathForDiff && 
-          (diff.numericPath.startsWith(normalizedPathForDiff + '.') || 
-           diff.numericPath.startsWith(normalizedPathForDiff + '['))) {
+          (diff.idBasedPath.startsWith(normalizedPathForDiff + '.') || 
+           diff.idBasedPath.startsWith(normalizedPathForDiff + '['))) {
         return true;
       }
       return false;
@@ -401,7 +401,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     const actions: ContextMenuAction[] = [];
     
     // Ignore action - add this node's path to ignored patterns
-    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(normalizedPathForDiff);
+    const isCurrentlyIgnored = normalizedPathForDiff && isPathIgnoredByPattern(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.isPathIgnored'));
     actions.push({
       label: isCurrentlyIgnored ? 'Unignore this diff' : 'Ignore this diff',
       icon: isCurrentlyIgnored ? '✅' : '🚫',
@@ -409,10 +409,10 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         if (normalizedPathForDiff) {
           if (isCurrentlyIgnored) {
             // Remove the pattern for this path
-            removeIgnoredPatternByPath(normalizedPathForDiff);
+            removeIgnoredPatternByPath(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.removeIgnoredPattern'));
           } else {
             // Add as a pattern to get full filtering behavior
-            addIgnoredPatternFromRightClick(normalizedPathForDiff);
+            addIgnoredPatternFromRightClick(validateAndCreateIdBasedPath(normalizedPathForDiff, 'JsonTreeView.addIgnoredPattern'));
           }
         }
       }
@@ -436,7 +436,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         label: 'Sync to Counterpart',
         icon: '↔️',
         action: () => {
-          syncToCounterpart(path, viewerId);
+          syncToCounterpart(validateAndCreateIdBasedPath(path, 'JsonTreeView.syncToCounterpart'), viewerId);
         }
       });
     }
@@ -448,7 +448,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       action: () => {
         const diffStatusClasses = getNodeDiffStatus();
         const relevantDiffs = diffResultsData ? diffResultsData.filter((diff: any) => 
-          diff.numericPath === normalizedPathForDiff
+          diff.idBasedPath === normalizedPathForDiff
         ) : [];
         
         debugNodeInfo({
@@ -546,7 +546,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           <div className="json-node-children">
             {(() => {
               // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
-              const shouldSort = idKeySetting || forceSortedArrays.has(genericNumericPathForNode);
+              const shouldSort = idKeySetting || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.shouldSort'));
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
@@ -747,18 +747,57 @@ interface JsonTreeViewProps {
 }
 
 export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
+  const treeContentRef = useRef<HTMLDivElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+
+  // Update line numbers whenever the tree content changes
+  useEffect(() => {
+    const updateNumbers = () => {
+      if (treeContentRef.current && lineNumbersRef.current) {
+        const lines = treeContentRef.current.querySelectorAll('.json-node');
+        const lineCount = lines.length;
+        
+        // Generate line numbers
+        const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1)
+          .map(num => `<div class="line-number">${num}</div>`)
+          .join('');
+        
+        lineNumbersRef.current.innerHTML = lineNumbers;
+      }
+    };
+
+    // Initial update
+    updateNumbers();
+
+    // Create observer to watch for changes in tree structure
+    if (treeContentRef.current) {
+      const observer = new MutationObserver(updateNumbers);
+      observer.observe(treeContentRef.current, {
+        childList: true,
+        subtree: true,
+        attributes: false
+      });
+
+      return () => observer.disconnect();
+    }
+  });
+
   return (
-    <div className="json-tree-view responsive-no-wrap">
-      <JsonNode
-        data={data}
-        path={createIdBasedPath(`root_${viewerId}_root`)}
-        level={0}
-        viewerId={viewerId}
-        jsonSide={jsonSide}
-        idKeySetting={idKeySetting}
-        showDiffsOnly={showDiffsOnly}
-        isCompareMode={isCompareMode}
-      />
+    <div className="json-tree-view-container responsive-no-wrap">
+      <div className="line-numbers-gutter" ref={lineNumbersRef}></div>
+      <div className="json-tree-view" ref={treeContentRef}>
+        <JsonNode
+          data={data}
+          path={createIdBasedPath(`root_${viewerId}_root`)}
+          level={0}
+          viewerId={viewerId as ViewerId}
+          jsonSide={jsonSide}
+          idKeySetting={idKeySetting}
+          showDiffsOnly={showDiffsOnly}
+          onNodeToggle={undefined}
+          isCompareMode={isCompareMode}
+        />
+      </div>
     </div>
   );
 };

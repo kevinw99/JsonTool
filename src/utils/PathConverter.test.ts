@@ -63,25 +63,25 @@ describe('PathConverter', () => {
     test('converts nested contribution ID path to index path (left panel)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
     });
 
     test('converts nested contribution ID path to index path (right panel)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
     });
 
     test('converts contributionType property path', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
     });
 
     test('converts array element within contributions', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[0]');
     });
 
     test('preserves root prefix during conversion', () => {
@@ -143,17 +143,17 @@ describe('PathConverter', () => {
     test('converts nested contribution index path to ID path', () => {
       const indexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
       const idPath = convertIndexPathToIdPath(indexPath, contextLeft);
-      expect(idPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+      expect(idPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
     });
 
     test('preserves property names after arrays', () => {
-      const indexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      const indexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
       const idPath = convertIndexPathToIdPath(indexPath, contextLeft);
       expect(idPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
     });
 
     test('handles arrays without ID keys', () => {
-      const indexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+      const indexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[0]');
       const idPath = convertIndexPathToIdPath(indexPath, contextLeft);
       // The inner contributions array doesn't have ID keys, so it stays as index
       expect(idPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]');
@@ -215,7 +215,7 @@ describe('PathConverter', () => {
 
     test('handles complex nested paths', () => {
       const path1: AnyPath = createIdBasedPath('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
-      const path2: AnyPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      const path2: AnyPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
       expect(arePathsEquivalent(path1, path2, contextLeft)).toBe(true);
     });
   });

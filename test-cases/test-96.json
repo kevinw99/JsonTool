@@ -1,28 +1,20 @@
 {
   "id": 96,
-  "request": "resolve ID Keys panel expansion and path resolution issues\n\n## Problems Fixed\n- ID key #1 click not expanding tree nodes properly\n- Path conversion from ArrayPatternPath to NumericPath missing array indices\n- ViewerPath creation errors with ID-based paths containing [id=...] segments\n- Tree expansion logic not handling array indices correctly\n\n## Root Cause Analysis\n1. ArrayPatternPath → NumericPath conversion was removing array indices\n2. ID-based paths with [id=...] segments were being validated as numeric paths\n3. Tree expansion path parsing didn't handle array indices properly\n4. Direct ViewerPath creation from ID-based paths caused type errors\n\n## Solution\n### IdKeysPanel.tsx\n- Updated convertArrayPatternToIdBasedPath() to preserve ID-based segments\n- Modified handlePathClick() to use ID-based path resolution via goToDiff()\n- Fixed handleOccurrenceClick() to handle ID-based paths properly\n- Removed premature ViewerPath creation - let goToDiff resolve paths correctly\n\n### JsonViewerSyncContext.tsx\n- Enhanced addExpansionPaths() helper in goToDiffWithPaths()\n- Fixed path splitting to properly handle array indices like field[0]\n- Added separate handling for array containers vs indexed elements\n- Improved path reconstruction to ensure all parent nodes are expanded\n\n### Path Resolution Flow\n1. ArrayPatternPath → IdBasedPath (preserves ID segments)\n2. IdBasedPath → goToDiff() → resolveIdBasedPathToNumeric()\n3. Numeric paths → proper ViewerPath creation for both viewers\n4. All parent nodes expanded in correct order\n\n## Testing\n- ID key #1 now properly expands all parent nodes in tree\n- Path resolution correctly handles both simple and ID-based paths\n- Tree expansion works for nested arrays with ID-based segments\n- No more type errors when creating ViewerPaths\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (ID keys)",
-  "category": "Critical Bug",
-  "priority": "critical",
-  "created": "2025-07-06T04:21:42.653Z",
+  "request": "test: update all test cases for new 8-diff structure with extra contribution\n\n- Diffs #1-5: Pre contribution array changes (7000 → 3500) - CHANGED\n- Diff #6: Extra contribution removed - REMOVED\n- Diff #7: Catchup contributionType change - CHANGED\n- Diff #8: After contribution added - ADDED\n\nUpdated PathConverter, pathResolution, and NewHighlightingProcessor tests\nFixed diff numbering and array index expectations for new data structure\nAdded comprehensive test coverage for node addition/removal scenarios\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-07T00:19:36.008Z",
   "testSteps": [
-    "1. Load sample JSON files (sample1.json, sample2.json)",
-    "2. Wait for differences to be calculated",
-    "3. Open differences panel",
-    "4. Click on a difference item",
-    "5. Verify navigation to correct JSON node",
-    "6. Verify node is expanded and highlighted"
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
   ],
-  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
-    "primaryFiles": [
-      "sample1.json",
-      "sample2.json"
-    ],
-    "alternativeFiles": [
-      "Test1RG_request_BM.json",
-      "Test1RG_request_SUT.json"
-    ],
-    "description": "Use sample files to test JSON comparison and navigation features"
+    "description": "Use existing application state and sample data for testing"
   },
   "verificationCommand": "npm run test && npm run test:e2e"
 }

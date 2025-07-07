@@ -44,11 +44,41 @@
    Tree Structure
    ======================================== */
 
-.json-tree-view {
+.json-tree-view-container {
+  display: flex;
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
-  padding: 8px;
+}
+
+.line-numbers-gutter {
+  flex-shrink: 0;
+  width: 50px;
+  background-color: #f8f8f8;
+  border-right: 1px solid #e0e0e0;
+  padding: 0;
+  text-align: right;
+  user-select: none;
+  color: #999;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+}
+
+.line-number {
+  padding: 0 8px 0 0;
+  height: calc(var(--line-height) * 1em);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: calc(var(--line-height) * 1em);
+}
+
+.json-tree-view {
+  flex: 1;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
   white-space: nowrap;
 }
 

@@ -1,9 +1,9 @@
 {
   "id": 92,
-  "request": "test: add comprehensive GoToDiff and syncToCounterpart test cases\n\n## Test Coverage Added\n- **GoToDiff Tests**: Diff #2 (array value changes) and Diff #7 (added objects)\n- **syncToCounterpart Tests**: Diff #1, #2, and #7 from left panel navigation\n- **Path Resolution Logic**: ID-based to numeric path conversion verification\n- **Array Correlation**: Correct index mapping between left/right panels\n\n## Key Test Scenarios\n- Array element changes with ID-based correlation\n- Added contribution objects with null counterparts\n- Deep nested path resolution for complex objects\n- Array element access for GoToDiff navigation\n- Missing counterpart handling for syncToCounterpart\n\n## Integration with Real Data\n- All tests use actual diff results from jsonCompare\n- Real PathConverter logic with sample JSON structures\n- Comprehensive edge case coverage (14 tests passing)\n- Error handling for missing data and invalid paths\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
-  "category": "Critical Bug",
-  "priority": "critical",
-  "created": "2025-07-06T02:31:29.659Z",
+  "request": "resolve text-to-tree mode switching and improve bracket alignment\n\n## Text Mode Switching Fix\n- Fixed handleViewModeToggle() to properly parse JSON string back to object when switching from text to tree mode\n- Issue: switching back to tree mode showed corrupted text instead of tree structure\n- Solution: use JSON.parse() when switching from text mode (newIsTextMode = false)\n\n## Bracket Alignment Improvements\n- Created separate CSS variable --closing-bracket-indent for fine-tuned bracket alignment\n- Moved bracket positioning logic from JavaScript to CSS using custom properties\n- Opening brackets remain unchanged, only closing bracket positioning is adjustable\n- Single source of truth for all spacing values in CSS variables\n\n## CSS Organization\n- Added bracket alignment system with dedicated CSS section\n- Used CSS calc() for dynamic padding based on nesting level\n- Cleaner separation between opening and closing bracket positioning logic\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-06T21:27:24.402Z",
   "testSteps": [
     "1. Load sample JSON files (sample1.json, sample2.json)",
     "2. Wait for differences to be calculated",
@@ -12,7 +12,7 @@
     "5. Verify navigation to correct JSON node",
     "6. Verify node is expanded and highlighted"
   ],
-  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
     "primaryFiles": [
       "sample1.json",

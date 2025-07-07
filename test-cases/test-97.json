@@ -1,28 +1,20 @@
 {
   "id": 97,
-  "request": "improve JSON tree UI styling and bracket alignment\n\n## UI Improvements\n- Remove vertical border lines from leaf nodes (only show on parent nodes)\n- Ensure added/new nodes display green background instead of yellow\n- Fix bracket alignment by removing double indentation from closing brackets\n\n## Changes Made\n### JsonTreeView.tsx\n- Added has-children/leaf-node classes to differentiate node types\n- Removed json-node class from closing bracket containers to prevent double padding\n- Fixed inline style calculations for proper bracket alignment\n\n### JsonTreeView.css\n- Updated CSS selectors to only show borders on parent nodes with has-children class\n- Added !important to green background for added nodes to override conflicts\n- Maintained subtle, modern color scheme with proper contrast\n\n## Visual Result\n- Closing brackets ] and } now align with opening bracket lines\n- Leaf nodes show background colors but no distracting border lines\n- Added content clearly displays in green, not yellow\n- Cleaner, more professional appearance\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)",
+  "request": "correct test array indices for randomized data structure\n\nFixed all failing tests by updating array index expectations to match the actual randomized test data:\n\n**Data Structure**:\n- Left Panel: pre[0], extra[1], catchup[2]\n- Right Panel: pre[0], catchup[1], after[2]\n\n**Tests Fixed**:\n- NewHighlightingProcessor.test.ts: Updated contribution array indices and diff expectations\n- pathResolution.test.ts: Fixed syncToCounterpart functionality tests with correct array indices\n\n**Results**: All 99 tests now passing (3 test files passed)\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
   "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-06T04:42:51.989Z",
+  "created": "2025-07-07T00:27:47.513Z",
   "testSteps": [
-    "1. Load sample JSON files (sample1.json, sample2.json)",
-    "2. Wait for differences to be calculated",
-    "3. Open differences panel",
-    "4. Click on a difference item",
-    "5. Verify navigation to correct JSON node",
-    "6. Verify node is expanded and highlighted"
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
   ],
   "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
-    "primaryFiles": [
-      "sample1.json",
-      "sample2.json"
-    ],
-    "alternativeFiles": [
-      "Test1RG_request_BM.json",
-      "Test1RG_request_SUT.json"
-    ],
-    "description": "Use sample files to test JSON comparison and navigation features"
+    "description": "Use existing application state and sample data for testing"
   },
   "verificationCommand": "npm run test && npm run test:e2e"
 }

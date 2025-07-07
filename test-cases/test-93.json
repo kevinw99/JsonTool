@@ -1,18 +1,18 @@
 {
   "id": 93,
-  "request": "resolve ID Keys panel click navigation type errors\n\n## Problem Fixed\n- Clicking on ID Keys panel entries wasn't triggering blue border highlighting\n- TypeScript errors: goToDiff expected IdBasedPath but received string\n- Navigation to JSON nodes from ID Keys panel was broken\n\n## Root Cause\n- goToDiff() function expects IdBasedPath branded type (line 32 in JsonViewerSyncContext interface)\n- handlePathClick() and handleOccurrenceClick() were passing raw string paths\n- Missing type conversion using validateAndCreateIdBasedPath()\n\n## Solution\n- Fixed both click handlers to properly convert numeric paths to IdBasedPath\n- handlePathClick(): Convert numericPath using validateAndCreateIdBasedPath()\n- handleOccurrenceClick(): Convert numericPath using validateAndCreateIdBasedPath()\n- Removed unused import warning for validateAndCreateIdBasedPath\n\n## Expected Behavior (Fixed)\n✅ Clicking ID Keys panel entry #1 → navigates to array location\n✅ Blue border highlighting appears on target nodes in both panels\n✅ Persistent highlighting maintained until next navigation\n✅ TypeScript compilation success with strict type safety\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (ID keys)",
-  "category": "Critical Bug",
-  "priority": "critical",
-  "created": "2025-07-06T02:39:35.590Z",
+  "request": "implement comprehensive JSON text mode with CodeMirror 6\n\n- Add JsonTextEditor component with professional text editing capabilities\n- Implement JSON syntax highlighting, line numbers, and search functionality\n- Add proper text alignment fixes for indentation display\n- Integrate CodeMirror 6 with existing JSON viewer architecture\n- Create JSON path calculation utilities for future enhancements\n- Add responsive design and theme consistency\n- Include fold gutter, bracket matching, and customizable font sizing\n\nTechnical improvements:\n- Fixed text-to-tree mode switching with proper JSON parsing\n- Resolved indentation display issues with text-align corrections\n- Added comprehensive CSS styling for professional appearance\n- Implemented extensible architecture for future JSON path features\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (styling, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-06T23:26:01.274Z",
   "testSteps": [
-    "1. Load sample JSON files (sample1.json, sample2.json)",
-    "2. Wait for differences to be calculated",
-    "3. Open differences panel",
-    "4. Click on a difference item",
-    "5. Verify navigation to correct JSON node",
-    "6. Verify node is expanded and highlighted"
+    "1. Load JSON comparison view",
+    "2. Resize browser window to various sizes (mobile: 375px, tablet: 768px, desktop: 1200px)",
+    "3. Verify layout remains functional at all sizes",
+    "4. Check text alignment and overflow handling",
+    "5. Verify no horizontal scrolling on mobile",
+    "6. Test with long JSON property names"
   ],
-  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
     "primaryFiles": [
       "sample1.json",
@@ -24,5 +24,5 @@
     ],
     "description": "Use sample files to test JSON comparison and navigation features"
   },
-  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+  "verificationCommand": "npm run test && npm run test:e2e"
 }
