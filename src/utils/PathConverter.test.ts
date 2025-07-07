@@ -220,11 +220,57 @@ describe('PathConverter', () => {
     });
   });
 
-  describe('Real highlighting scenarios from screenshots', () => {
+  describe('Real highlighting scenarios from updated test data', () => {
+    test('Diffs #1-5: pre contribution array element changes (left panel)', () => {
+      for (let i = 0; i < 5; i++) {
+        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
+        const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
+      }
+    });
+
+    test('Diffs #1-5: pre contribution array element changes (right panel)', () => {
+      for (let i = 0; i < 5; i++) {
+        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
+        const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
+      }
+    });
+
+    test('NEW: removed extra contribution (left panel only)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      
+      // This path should be highlighted as "removed" in left panel
+      expect(indexPath).toBeDefined();
+    });
+
+    test('NEW: removed extra contribution (right panel - should not exist)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+      expect(indexPath).toBeNull(); // Should not exist in right panel
+    });
+
+    test('Diff #6: removed extra contribution (left panel only)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      
+      // This path should be highlighted as "removed" in left panel
+      expect(indexPath).toBeDefined();
+    });
+
+    test('Diff #6: removed extra contribution (right panel - should not exist)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+      expect(indexPath).toBeNull(); // Should not exist in right panel
+    });
+
     test('Diff #7: contributionType change (left panel)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
       
       // This path should be highlighted as "changed"
       expect(indexPath).toBeDefined();
@@ -239,28 +285,62 @@ describe('PathConverter', () => {
       expect(indexPath).toBeDefined();
     });
 
-    test('Diffs #8-12: array element changes (left panel)', () => {
+    test('Diff #8: added object (right panel only)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
+      
+      // This path should be highlighted as "added" in right panel
+    });
+
+    test('Diff #8: added object (left panel - should not exist)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+      expect(indexPath).toBeNull(); // Should not exist in left panel
+    });
+
+    test('NEW: Extra contribution (left panel only - removed in right)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      
+      // This path should be highlighted as "removed" in left panel
+      expect(indexPath).toBeDefined();
+    });
+
+    test('NEW: Extra contribution (right panel - should not exist)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+      expect(indexPath).toBeNull(); // Should not exist in right panel
+    });
+
+    test('NEW: Extra contribution object properties (left panel)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType');
+      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
+      
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributionType');
+    });
+
+    test('NEW: Extra contribution object properties (right panel - should not exist)', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType');
+      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
+      expect(indexPath).toBeNull(); // Should not exist in right panel
+    });
+
+    test('NEW: Extra contribution array elements (left panel)', () => {
       for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
+        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributions[${i}]`);
         const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
         expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[${i}]`);
       }
     });
 
-    test('Diffs #8-12: array element changes (right panel)', () => {
+    test('NEW: Extra contribution array elements (right panel - should not exist)', () => {
       for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
+        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributions[${i}]`);
         const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
+        expect(indexPath).toBeNull(); // Should not exist in right panel
       }
-    });
-
-    test('Diff #13: added object (right panel only)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
-      
-      // This path should be highlighted as "added" in right panel
     });
 
     test('Added object contributionType (right panel)', () => {
@@ -270,23 +350,23 @@ describe('PathConverter', () => {
       console.log('🔍 ID-to-Index Conversion Test:');
       console.log('  Input (ID path)  :', idPath);
       console.log('  Output (Index)   :', indexPath);
-      console.log('  Expected (Index) :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      console.log('  Expected (Index) :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
       
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
     });
 
     test('Added object array elements (right panel)', () => {
       for (let i = 0; i < 5; i++) {
         const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributions[${i}]`);
         const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
+        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
       }
     });
 
     test('Bidirectional conversion test (right panel)', () => {
       // Test both directions to show deterministic behavior
       const originalIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributionType');
-      const expectedIndexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
+      const expectedIndexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
       
       // ID -> Index conversion
       const convertedIndexPath = convertIdPathToIndexPath(originalIdPath, contextRight);
@@ -305,23 +385,23 @@ describe('PathConverter', () => {
       expect(convertedBackToId).toBe(originalIdPath);
     });
 
-    test('DEBUG: Issue with catchup-50-separate ID mapping to wrong index', () => {
-      // This is the specific issue reported: catchup-50-separate_0 should map to index [1] in right panel
-      const problematicIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions[0]');
-      const convertedIndexPath = convertIdPathToIndexPath(problematicIdPath, contextRight);
+    test('DEBUG: Updated data structure with new ordering', () => {
+      // Test the new data structure after adding extra entry and randomizing order
+      const catchupIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions[0]');
+      const convertedIndexPath = convertIdPathToIndexPath(catchupIdPath, contextRight);
       
       console.log('');
-      console.log('🐛 DEBUG: Testing the reported bug');
+      console.log('🔄 Updated data structure test');
       console.log('  Right panel data structure:');
-      console.log('    [0]: id "45626988::2_prtcpnt-after_0" (added item)');
+      console.log('    [0]: id "45626988::2_prtcpnt-pre_0" (existing item, array values changed)');
       console.log('    [1]: id "45626988::2_prtcpnt-catchup-50-separate_0" (existing item, contributionType changed)');
-      console.log('    [2]: id "45626988::2_prtcpnt-pre_0" (existing item, array values changed)');
+      console.log('    [2]: id "45626988::2_prtcpnt-after_0" (added item)');
       console.log('');
-      console.log('  Converting:', problematicIdPath);
+      console.log('  Converting:', catchupIdPath);
       console.log('  Result    :', convertedIndexPath);
       console.log('  Expected  :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
       
-      // This should resolve to index [1] not [0]
+      // This should resolve to index [1] based on the new data structure
       expect(convertedIndexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
     });
   });

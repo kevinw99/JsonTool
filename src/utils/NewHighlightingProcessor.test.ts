@@ -333,6 +333,28 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       );
       expect(classes).toEqual([CSS_CLASSES.PARENT_CHANGED]);
     });
+
+    test('NEW: LEFT PANEL: contributions[1] (extra) should be deleted', () => {
+      const path: AnyPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      const classes = processor.getHighlightingClasses(
+        path,
+        'left',
+        contextLeft
+      );
+      expect(classes).toEqual([CSS_CLASSES.DELETED]);
+    });
+
+    test('NEW: RIGHT PANEL: extra contribution should not exist', () => {
+      // The extra contribution ID should not exist in the right panel
+      const path: AnyPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+      const classes = processor.getHighlightingClasses(
+        path,
+        'right',
+        contextRight
+      );
+      // This should not match the extra contribution since it doesn't exist in right panel
+      expect(classes).not.toEqual([CSS_CLASSES.DELETED]);
+    });
   });
 
   describe('Array Element Changes', () => {
@@ -446,6 +468,37 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       }
     });
 
+    test('NEW: Extra contribution with ID-based path should be deleted (left panel only)', () => {
+      const leftPath: IdBasedPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const leftClasses = processor.getHighlightingClasses(leftPath, 'left', contextLeft);
+      
+      expect(leftClasses).toEqual([CSS_CLASSES.DELETED]);
+    });
+
+    test('NEW: Extra contribution with ID-based path should not exist (right panel)', () => {
+      const rightPath: IdBasedPath = createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+      const rightClasses = processor.getHighlightingClasses(rightPath, 'right', contextRight);
+      
+      expect(rightClasses).toEqual([]); // Should not exist in right panel
+    });
+
+    test('NEW: Extra contribution properties with ID-based path should be deleted (left panel)', () => {
+      const leftPath: IdBasedPath = createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType');
+      const leftClasses = processor.getHighlightingClasses(leftPath, 'left', contextLeft);
+      
+      expect(leftClasses).toEqual([CSS_CLASSES.DELETED]);
+    });
+
+    test('NEW: Extra contribution array elements with ID-based paths should be deleted (left panel)', () => {
+      // Test all 5 array elements of the extra contribution
+      for (let i = 0; i < 5; i++) {
+        const leftPath: IdBasedPath = createIdBasedPath(`root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributions[${i}]`);
+        const leftClasses = processor.getHighlightingClasses(leftPath, 'left', contextLeft);
+        
+        expect(leftClasses).toEqual([CSS_CLASSES.DELETED]);
+      }
+    });
+
     test('All nodes visible in screenshot should have correct highlighting', () => {
       // Test comprehensive list of nodes from the screenshot
       const testCases = [
@@ -485,6 +538,17 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
           path: createIdBasedPath('root_viewer2_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType'),
           side: 'right' as const,
           expected: [CSS_CLASSES.CHANGED]
+        },
+        // NEW: Extra contribution tests
+        {
+          path: createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]'),
+          side: 'left' as const,
+          expected: [CSS_CLASSES.DELETED]
+        },
+        {
+          path: createIdBasedPath('root_viewer1_root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType'),
+          side: 'left' as const,
+          expected: [CSS_CLASSES.DELETED]
         }
       ];
 

@@ -28,21 +28,21 @@ describe('PathResolution - GoTo Navigation Logic', () => {
   const combinedIdKeys: IdKeyInfo[] = [...leftIdKeys, ...rightIdKeys];
   const compareResult = jsonCompare(leftData, rightData, combinedIdKeys);
 
-  describe('Diff #1 - ContributionType Change Resolution', () => {
+  describe('Diffs #1-5 - Pre Contribution Array Changes Resolution', () => {
     
-    it('should resolve Diff #1 contributionType change to correct array indices', () => {
-      console.log('🧪 Testing Diff #1 path resolution with real PathConverter logic');
+    it('should resolve Diffs #1-5 pre contribution array changes to correct array indices', () => {
+      console.log('🧪 Testing Diffs #1-5 path resolution with real PathConverter logic');
       
-      // Find the real Diff #1 - contributionType change
+      // Find the real Diffs #1-5 - pre contribution array changes
       const diff1 = compareResult.diffs.find(diff => 
-        diff.idBasedPath.includes('contributionType') &&
-        diff.idBasedPath.includes('45626988::2_prtcpnt-catchup-50-separate_0') &&
+        diff.idBasedPath.includes('contributions[0]') &&
+        diff.idBasedPath.includes('45626988::2_prtcpnt-pre_0') &&
         diff.type === 'changed'
       );
       
       expect(diff1).toBeTruthy();
-      expect(diff1!.value1).toBe('CATCH_UP_50_SEPARATE_PRE_TAX');
-      expect(diff1!.value2).toBe('CATCH_UP_50_SEPARATE_AFTER_TAX');
+      expect(diff1!.value1).toBe(7000);
+      expect(diff1!.value2).toBe(3500);
       
       console.log('✅ Found real Diff #1:', diff1!.idBasedPath);
 
@@ -59,17 +59,15 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       
       // CRITICAL ASSERTIONS: Verify correct array indices
       
-      // Left panel: catchup contribution is at index 0
-      expect(result.leftPath).toContain('contributions[0].contributionType');
-      
-      // Right panel: catchup contribution is at index 1 (due to added item at index 0)
-      expect(result.rightPath).toContain('contributions[1].contributionType');
+      // Both panels: pre contribution is at index 0 in the new data structure
+      expect(result.leftPath).toContain('contributions[0].contributions[0]');
+      expect(result.rightPath).toContain('contributions[0].contributions[0]');
       
       // Verify the paths are well-formed
-      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[0\]\.contributionType$/);
-      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[1\]\.contributionType$/);
+      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[0\]\.contributions\[0\]$/);
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[0\]\.contributions\[0\]$/);
       
-      console.log('✅ PathResolution correctly resolved array indices for Diff #1');
+      console.log('✅ PathResolution correctly resolved array indices for Diffs #1-5');
     });
     
     it('should handle error cases gracefully', () => {
@@ -114,47 +112,43 @@ describe('PathResolution - GoTo Navigation Logic', () => {
     });
   });
 
-  describe('Diff #2 - Contribution Values Array Changes', () => {
+  describe('Diff #6 - Extra Contribution Removal', () => {
     
-    it('should resolve Diff #2 contributions array values to correct indices', () => {
-      console.log('🧪 Testing Diff #2 path resolution for array value changes');
+    it('should resolve Diff #6 extra contribution removal to correct location', () => {
+      console.log('🧪 Testing Diff #6 path resolution for removed extra contribution');
       
-      // Find a real Diff #2 - contributions array element change
-      const diff2 = compareResult.diffs.find(diff => 
-        diff.idBasedPath.includes('contributions') &&
-        diff.idBasedPath.includes('45626988::2_prtcpnt-pre_0') &&
-        diff.idBasedPath.includes('contributions[0]') &&
-        diff.type === 'changed'
+      // Find the real Diff #6 - extra contribution removal
+      const diff6 = compareResult.diffs.find(diff => 
+        diff.idBasedPath.includes('45626988::2_prtcpnt-extra_0') &&
+        diff.type === 'removed'
       );
       
-      expect(diff2).toBeTruthy();
+      expect(diff6).toBeTruthy();
+      expect(diff6!.type).toBe('removed');
       
-      console.log('✅ Found real Diff #2:', diff2!.idBasedPath);
+      console.log('✅ Found real Diff #6:', diff6!.idBasedPath);
 
       // Test the core path resolution logic
       const result = resolveIdBasedPathToNumeric(
-        diff2!.idBasedPath,
+        diff6!.idBasedPath,
         { left: leftData, right: rightData },
         combinedIdKeys
       );
       
-      console.log('📍 Diff #2 PathResolution results:');
+      console.log('📍 Diff #6 PathResolution results:');
       console.log(`  Left path: ${result.leftPath}`);
       console.log(`  Right path: ${result.rightPath}`);
       
-      // CRITICAL ASSERTIONS: Verify correct array indices for contribution values
+      // CRITICAL ASSERTIONS: For removed items
       
-      // Left panel: pre-tax contribution is at index 1, and we're looking at contributions[0]
-      expect(result.leftPath).toContain('contributions[1].contributions[0]');
+      // Left panel: Should resolve to the correct index where the extra contribution exists
+      expect(result.leftPath).toContain('contributions[1]');
+      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[1\]$/);
       
-      // Right panel: pre-tax contribution is at index 2 (due to added item at index 0)
-      expect(result.rightPath).toContain('contributions[2].contributions[0]');
+      // Right panel: Should be null or not found (item doesn't exist)
+      expect(result.rightPath).toBeNull();
       
-      // Verify the paths are well-formed for array access
-      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[1\]\.contributions\[0\]$/);
-      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[2\]\.contributions\[0\]$/);
-      
-      console.log('✅ PathResolution correctly resolved array indices for Diff #2');
+      console.log('✅ PathResolution correctly handled removed object for Diff #6');
     });
 
     it('should handle array element access for GoToDiff navigation', () => {
@@ -175,19 +169,22 @@ describe('PathResolution - GoTo Navigation Logic', () => {
     });
   });
 
-  describe('Diff #7 - Added Contribution Object', () => {
+  describe('Diff #7 - Catchup ContributionType Change', () => {
     
-    it('should resolve Diff #7 added contribution object to correct location', () => {
-      console.log('🧪 Testing Diff #7 path resolution for added contribution object');
+    it('should resolve Diff #7 catchup contributionType change to correct location', () => {
+      console.log('🧪 Testing Diff #7 path resolution for catchup contributionType change');
       
-      // Find the real Diff #7 - added contribution object
+      // Find the real Diff #7 - catchup contributionType change
       const diff7 = compareResult.diffs.find(diff => 
-        diff.idBasedPath.includes('45626988::2_prtcpnt-after_0') &&
-        diff.type === 'added'
+        diff.idBasedPath.includes('45626988::2_prtcpnt-catchup-50-separate_0') &&
+        diff.idBasedPath.includes('contributionType') &&
+        diff.type === 'changed'
       );
       
       expect(diff7).toBeTruthy();
-      expect(diff7!.type).toBe('added');
+      expect(diff7!.type).toBe('changed');
+      expect(diff7!.value1).toBe('CATCH_UP_50_SEPARATE_PRE_TAX');
+      expect(diff7!.value2).toBe('CATCH_UP_50_SEPARATE_AFTER_TAX');
       
       console.log('✅ Found real Diff #7:', diff7!.idBasedPath);
 
@@ -202,16 +199,54 @@ describe('PathResolution - GoTo Navigation Logic', () => {
       console.log(`  Left path: ${result.leftPath}`);
       console.log(`  Right path: ${result.rightPath}`);
       
+      // CRITICAL ASSERTIONS: For contributionType change
+      
+      // Left panel: catchup contribution is at index 2 in new data structure
+      expect(result.leftPath).toContain('contributions[2].contributionType');
+      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[2\]\.contributionType$/);
+      
+      // Right panel: catchup contribution is at index 1 in new data structure
+      expect(result.rightPath).toContain('contributions[1].contributionType');
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[1\]\.contributionType$/);
+      
+      console.log('✅ PathResolution correctly handled contributionType change for Diff #7');
+    });
+    
+    it('should resolve Diff #8 added contribution object to correct location', () => {
+      console.log('🧪 Testing Diff #8 path resolution for added contribution object');
+      
+      // Find the real Diff #8 - added contribution object
+      const diff8 = compareResult.diffs.find(diff => 
+        diff.idBasedPath.includes('45626988::2_prtcpnt-after_0') &&
+        diff.type === 'added'
+      );
+      
+      expect(diff8).toBeTruthy();
+      expect(diff8!.type).toBe('added');
+      
+      console.log('✅ Found real Diff #8:', diff8!.idBasedPath);
+
+      // Test the core path resolution logic
+      const result = resolveIdBasedPathToNumeric(
+        diff8!.idBasedPath,
+        { left: leftData, right: rightData },
+        combinedIdKeys
+      );
+      
+      console.log('📍 Diff #8 PathResolution results:');
+      console.log(`  Left path: ${result.leftPath}`);
+      console.log(`  Right path: ${result.rightPath}`);
+      
       // CRITICAL ASSERTIONS: For added items
       
       // Left panel: Should be null or not found (item doesn't exist)
       expect(result.leftPath).toBeNull();
       
-      // Right panel: Added contribution should be at index 0
-      expect(result.rightPath).toContain('contributions[0]');
-      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[0\]$/);
+      // Right panel: Added contribution should be at index 2 in new data structure  
+      expect(result.rightPath).toContain('contributions[2]');
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[1\]\.contributions\[2\]$/);
       
-      console.log('✅ PathResolution correctly handled added object for Diff #7');
+      console.log('✅ PathResolution correctly handled added object for Diff #8');
     });
 
     it('should handle deep nested path resolution for added objects', () => {
