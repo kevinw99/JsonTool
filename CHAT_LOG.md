@@ -1324,269 +1324,149 @@ Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation)"
 **Status**: 🚧 In Progress  
 
 
-### Request #90 - ✨ Feature
-**Date**: 2025-07-06  
-**Request**: "clean up CSS organization and implement human-readable color names
+### Request #90 - 🐛 Bug Fix
+**Date**: 2025-07-07  
+**Request**: "implement viewport-aware breadcrumb system and enhance tree view
 
-## CSS Improvements
-- Reorganized JsonTreeView.css into logical sections with clear headers
-- Replaced hex colors with human-readable CSS color names in variables
-- Consolidated all diff highlighting into single source of truth
-- Removed redundant rules and \!important declarations
-- Added proper CSS variable organization for maintainability
-
-## Color System Changes
-- lightblue/blue for parent diff highlighting
-- limegreen/darkgreen for added nodes
-- mistyrose/crimson for deleted nodes
-- lightyellow/orange for changed values
-- Preserved original hex values as comments for reference
-
-## Structure Improvements
-- Clear section organization with comment headers
-- Single location for all diff type definitions (A, B, C)
-- Improved CSS specificity without overuse of \!important
-- Better browser compatibility and responsive design sections
+- Add JsonPathBreadcrumb component with multi-line tree-like display
+- Implement line numbers gutter with scroll synchronization
+- Add simplified breadcrumb showing object properties without indices
+- Restore sophisticated CSS structure with organized sections
+- Comment out parent diff background colors for cleaner display
+- Fix import references to use correct jsonCompare.ts interface
+- Update container layout to support breadcrumb integration
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
-Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, ID keys, styling, main app)"  
-**Commit**: [`7fa8b35`](https://github.com/user/repo/commit/7fa8b35)  
-**Files**: .auto-chat-state.json, AUTO_CAPTURE_README.md, CHAT_LOG.md...  
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
+**Commit**: [`b4ad493`](https://github.com/user/repo/commit/b4ad493)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
 **Priority**: high  
 **Auto-detected**: ✅  
 **Status**: 🚧 In Progress  
 
 
 ### Request #91 - 🐛 Bug Fix
-**Date**: 2025-07-06  
-**Request**: "prevent misleading highlights for asymmetric diffs
+**Date**: 2025-07-07  
+**Request**: "enhance breadcrumb with dynamic interface and exact tree styling
+
+- Create dynamic breadcrumb interface with BreadcrumbSegment type
+- Add support for viewport-aware breadcrumb updates
+- Fix breadcrumb styling to exactly match tree viewer appearance
+  - Remove expand/collapse triangles
+  - Left-align line numbers to match tree gutter
+  - Remove quotes from keys
+  - Use correct brackets ([ for arrays, { for objects)
+  - Match exact indentation and colors from tree nodes
+- Add development controls for testing dynamic/static modes
+- Fix root path generation issue (remove duplicate 'root_viewerId_root')
+- Add utility function createBreadcrumbFromViewport for viewport integration
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
+**Commit**: [`31731f8`](https://github.com/user/repo/commit/31731f8)  
+**Files**: src/components/JsonPathBreadcrumb.css, src/components/JsonPathBreadcrumb.tsx, src/components/JsonTreeView.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #92 - 🚨 Critical Bug
+**Date**: 2025-07-07  
+**Request**: "clean up path conversion with fail-fast approach
+
+- Remove all fallback logic from IdKeysPanel and JsonTreeView
+- Move convertArrayPatternToNumericPath to PathConverter.ts
+- Fix ArrayPatternPath consolidation to preserve all [] markers
+- Add proper error handling that fails fast instead of silent fallbacks
+- Use strict typing with ArrayPatternPath for IdKeys panel
+- Clean up redundant path conversion attempts
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, ID keys)"  
+**Commit**: [`7d858c5`](https://github.com/user/repo/commit/7d858c5)  
+**Files**: src/components/IdKeysPanel.tsx, src/components/JsonTreeView.tsx, src/utils/PathConverter.ts  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #93 - 🎨 UI/UX
+**Date**: 2025-07-07  
+**Request**: "manual CSS update (JSON tree navigation, styling)"  
+**Commit**: [`e15d3a6`](https://github.com/user/repo/commit/e15d3a6)  
+**Files**: src/components/JsonTreeView.css  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #94 - 🚨 Critical Bug
+**Date**: 2025-07-07  
+**Request**: "resolve synchronize scrolling issues with clean SyncScroll implementation
 
 ## Problem
-When navigating to asymmetric diffs (e.g., nodes that exist in only one panel),
-the system would highlight both panels even when the target node didn't exist
-in one of them. This was misleading for users.
+- Synchronize scrolling was not working between left and right JSON viewers
+- Complex custom sync implementation was causing conflicts and failures
+- goToDiff navigation could expand nodes but wouldn't scroll to target elements
 
 ## Solution
-Added optional highlighting parameters to goToDiffWithPaths():
-- highlightLeft?: boolean (default: true)
-- highlightRight?: boolean (default: true)
+- Replaced complex custom sync handler with clean SyncScroll component
+- Fixed goToDiff to target correct scrollable containers (.json-tree-content)
+- Added proper CSS class names for scroll container identification
+- Implemented temporary sync disabling during programmatic scrolling
+- Refactored duplicate scroll logic into reusable helper function
 
-## Implementation
-- Updated goToDiffWithPaths() to conditionally highlight based on flags
-- Modified goToDiff() to pass appropriate highlighting flags:
-  * Both paths exist: highlight both panels
-  * Left-only path: highlight only left panel
-  * Right-only path: highlight only right panel
-- Preserved all existing navigation, expansion, and scrolling behavior
+## Key Changes
+- App.tsx: Replaced custom sync implementation with SyncScroll components
+- SyncScroll.tsx: Cleaned up debug logging, simplified scroll handling
+- JsonViewerSyncContext.tsx: Fixed container targeting and refactored scroll logic
+- Added comprehensive test cases for goToDiff functionality
 
-## Benefits
-- No misleading highlights for non-existent nodes
-- Clear visual feedback for asymmetric diffs
-- Backward compatible with existing calls
-- Uses existing code without duplication
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"  
-**Commit**: [`1f45e09`](https://github.com/user/repo/commit/1f45e09)  
-**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #92 - 🐛 Bug Fix
-**Date**: 2025-07-06  
-**Request**: "resolve text-to-tree mode switching and improve bracket alignment
-
-## Text Mode Switching Fix
-- Fixed handleViewModeToggle() to properly parse JSON string back to object when switching from text to tree mode
-- Issue: switching back to tree mode showed corrupted text instead of tree structure
-- Solution: use JSON.parse() when switching from text mode (newIsTextMode = false)
-
-## Bracket Alignment Improvements
-- Created separate CSS variable --closing-bracket-indent for fine-tuned bracket alignment
-- Moved bracket positioning logic from JavaScript to CSS using custom properties
-- Opening brackets remain unchanged, only closing bracket positioning is adjustable
-- Single source of truth for all spacing values in CSS variables
-
-## CSS Organization
-- Added bracket alignment system with dedicated CSS section
-- Used CSS calc() for dynamic padding based on nesting level
-- Cleaner separation between opening and closing bracket positioning logic
+## Technical Details
+- Uses .json-tree-content as the actual scrollable container
+- Temporary sync disabling prevents interference during programmatic navigation
+- Proper dependency ordering fixes initialization issues
+- Clean separation of concerns between sync and navigation logic
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
-Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling, main app)"  
-**Commit**: [`443451a`](https://github.com/user/repo/commit/443451a)  
-**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #93 - 🐛 Bug Fix
-**Date**: 2025-07-06  
-**Request**: "implement comprehensive JSON text mode with CodeMirror 6
-
-- Add JsonTextEditor component with professional text editing capabilities
-- Implement JSON syntax highlighting, line numbers, and search functionality
-- Add proper text alignment fixes for indentation display
-- Integrate CodeMirror 6 with existing JSON viewer architecture
-- Create JSON path calculation utilities for future enhancements
-- Add responsive design and theme consistency
-- Include fold gutter, bracket matching, and customizable font sizing
-
-Technical improvements:
-- Fixed text-to-tree mode switching with proper JSON parsing
-- Resolved indentation display issues with text-align corrections
-- Added comprehensive CSS styling for professional appearance
-- Implemented extensible architecture for future JSON path features
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com> (styling, main app)"  
-**Commit**: [`6c15ebb`](https://github.com/user/repo/commit/6c15ebb)  
-**Files**: package-lock.json, package.json, src/App.tsx...  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #94 - ✨ Feature
-**Date**: 2025-07-06  
-**Request**: "move test data to external files and enhance test scenarios
-
-- Add new test entry `45626988::2_prtcpnt-extra_0` to left panel for node removal testing
-- Randomize contributions array order in both test files to test ID key sorting behavior
-- Refactor all utils tests to load data from external JSON files instead of hardcoded data
-- Update NewHighlightingProcessor.test.ts to use external highlighting-test files
-- Update pathResolution.test.ts to use external highlighting-test files
-- Update PathConverter.test.ts to use external highlighting-test files
-
-Technical improvements:
-- Tests now validate real sorting behavior with out-of-order array elements
-- Enhanced test coverage for node addition/removal scenarios
-- Eliminated hardcoded JSON data duplication across test files
-- Single source of truth for test data in external files
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"  
-**Commit**: [`0da4498`](https://github.com/user/repo/commit/0da4498)  
-**Files**: public/highlighting-test-left-panel.json, public/highlighting-test-right-panel.json, src/utils/NewHighlightingProcessor.test.ts...  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #95 - 🐛 Bug Fix
-**Date**: 2025-07-07  
-**Request**: "refine diff highlighting colors and visual indicators
-
-- Update deleted nodes to use orange background instead of mistyrose
-- Ensure added nodes use limegreen background for better visibility
-- Switch parent-changed nodes from background to left border highlighting
-- Remove background color from parent-changed nodes for cleaner appearance
-- Add blue left border to parent-changed nodes for clear visual hierarchy
-- Remove border from deleted nodes to reduce visual noise
-- Clean up debug logging in JsonViewerSyncContext
-
-Visual improvements:
-- Better color contrast and accessibility
-- Cleaner distinction between diff types
-- Reduced visual clutter with selective border usage
-- More intuitive color scheme for diff visualization
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
-**Commit**: [`fce2832`](https://github.com/user/repo/commit/fce2832)  
-**Files**: src/components/JsonTreeView.css, src/components/JsonViewerSyncContext.tsx  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #96 - 🐛 Bug Fix
-**Date**: 2025-07-07  
-**Request**: "test: update all test cases for new 8-diff structure with extra contribution
-
-- Diffs #1-5: Pre contribution array changes (7000 → 3500) - CHANGED
-- Diff #6: Extra contribution removed - REMOVED
-- Diff #7: Catchup contributionType change - CHANGED
-- Diff #8: After contribution added - ADDED
-
-Updated PathConverter, pathResolution, and NewHighlightingProcessor tests
-Fixed diff numbering and array index expectations for new data structure
-Added comprehensive test coverage for node addition/removal scenarios
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"  
-**Commit**: [`5144b6c`](https://github.com/user/repo/commit/5144b6c)  
-**Files**: src/utils/NewHighlightingProcessor.test.ts, src/utils/PathConverter.test.ts, src/utils/pathResolution.test.ts  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #97 - 🐛 Bug Fix
-**Date**: 2025-07-07  
-**Request**: "correct test array indices for randomized data structure
-
-Fixed all failing tests by updating array index expectations to match the actual randomized test data:
-
-**Data Structure**:
-- Left Panel: pre[0], extra[1], catchup[2]
-- Right Panel: pre[0], catchup[1], after[2]
-
-**Tests Fixed**:
-- NewHighlightingProcessor.test.ts: Updated contribution array indices and diff expectations
-- pathResolution.test.ts: Fixed syncToCounterpart functionality tests with correct array indices
-
-**Results**: All 99 tests now passing (3 test files passed)
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"  
-**Commit**: [`43a877b`](https://github.com/user/repo/commit/43a877b)  
-**Files**: src/utils/NewHighlightingProcessor.test.ts, src/utils/pathResolution.test.ts  
-**Priority**: high  
-**Auto-detected**: ✅  
-**Status**: 🚧 In Progress  
-
-
-### Request #98 - 🚨 Critical Bug
-**Date**: 2025-07-07  
-**Request**: "add line numbers to tree mode
-
-Added a line number gutter to the left side of the JSON tree view:
-
-**Implementation**:
-- Created line-numbers-gutter component with proper styling
-- Line numbers update dynamically based on visible nodes using MutationObserver
-- Numbers reflect actual rendered lines, not JSON structure
-- Consistent styling with text mode (gray background, right-aligned)
-
-**Layout**:
-- Flex layout with fixed-width gutter (50px) and flexible tree content
-- Line numbers are non-selectable and properly aligned
-- Matches text editor line numbering behavior
-
-**Technical Details**:
-- Uses querySelectorAll('.json-node') to count visible lines
-- MutationObserver tracks DOM changes for real-time updates
-- Clean separation between line numbers and tree content
-- Fixed TypeScript errors related to idBasedPath vs numericPath
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)"  
-**Commit**: [`4aa8fec`](https://github.com/user/repo/commit/4aa8fec)  
-**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+Co-Authored-By: Claude <noreply@anthropic.com> (main app)"  
+**Commit**: [`4759386`](https://github.com/user/repo/commit/4759386)  
+**Files**: src/App.tsx, src/components/JsonViewerSyncContext.tsx, src/components/SyncScroll.tsx...  
 **Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #95 - 🎨 UI/UX
+**Date**: 2025-07-07  
+**Request**: "remove unused CodeMirror dependencies
+
+Removed 8 CodeMirror packages that are no longer being used:
+- @codemirror/autocomplete
+- @codemirror/commands
+- @codemirror/lang-json
+- @codemirror/lint
+- @codemirror/search
+- @codemirror/state
+- @codemirror/theme-one-dark
+- @codemirror/view
+
+Benefits:
+- Reduces bundle size
+- Eliminates unused dependency security risks
+- Simplifies dependency management
+- Faster npm installs
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`e332e77`](https://github.com/user/repo/commit/e332e77)  
+**Files**: package.json  
+**Priority**: medium  
 **Auto-detected**: ✅  
 **Status**: 🚧 In Progress  
 

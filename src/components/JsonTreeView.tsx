@@ -199,18 +199,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     // Check viewer-specific path expansion state
     const viewerSpecificPath = createViewerPath(viewerId as ViewerId, validateAndCreateNumericPath(genericNumericPathForNode, 'JsonTreeView.isExpanded'));
     const expanded = expandedPaths.has(viewerSpecificPath);
-    
-    // Explicit logging for contributions nodes
-    if (path.includes('contributions') && path.includes('accountParams')) {
-      console.log(`[isExpanded] 🔍 Checking expansion for ${viewerId}:`);
-      console.log(`[isExpanded] 🔍 Original path: "${path}"`);
-      console.log(`[isExpanded] 🔍 genericNumericPathForNode: "${genericNumericPathForNode}"`);
-      console.log(`[isExpanded] 🔍 viewerSpecificPath: "${viewerSpecificPath}"`);
-      console.log(`[isExpanded] 🔍 expandedPaths.has(viewerSpecificPath): ${expanded}`);
-//       console.log(`[isExpanded] 🔍 All expandedPaths:`, Array.from(expandedPaths));
-//       console.log(`[isExpanded] 🔍 Filtered contributions paths:`, Array.from(expandedPaths).filter(p => p.includes('contributions')));
-    }
-    
+
     return expanded;
   })();
 

@@ -65,3 +65,58 @@ let's add a new feature:
    real node in the tree/text view.
 
 actually this requirement might not be correct "see the path level area still maintain the correct line #"
+let's work on the tree mode. Add context menu to
+fully expand/collapse a node
+
+expand/collapse all nodes(sibling) at the under different paraent, while keeping other levels unchanged
+
+
+currently you implement it as hover, but it is not correct. It should only show when a node is selected. and the
+breadcrumb should stay, does not change when mouse move away, and allow user to click on it to go to the node..
+
+also it should appear as multiple lines for each segment, just like the screenshot I provided.
+
+1. should be multi-line, each segment in one line
+2. show the segment as exactly as it would be shown in the tree mode, no need for index or id= or . Should also be
+indented properly.
+3 advance feature: only show the segment when it is out of view port,  no need to select a node to show.
+4. So you maintain the json path to the current scope of the view port, it contains multiple segments, you only
+show the segments that are out of view port. can you re-describe the requirement?
+
+
+
+
+  Yes, you can safely remove jsonCompare_clean.ts. Here's the analysis:
+
+  Currently Used: /src/utils/jsonCompare.ts
+  - Uses modern idBasedPath property in DiffResult interface
+  - All active imports point to this file
+
+  Unused: /src/utils/jsonCompare_clean.ts
+  - Contains outdated interface with displayPath and numericPath properties
+  - No imports found in the codebase
+  - Appears to be a legacy backup
+
+
+⏺ Bash(rm /Users/kweng/AI/JsonTool/src/utils/jsonCompare_clean.ts)
+  ⎿  Waiting…
+
+  ⎿  Loaded ~/.bash_profile
+
+
+1. no, it should be  "   - "boomerForecastV3Requests":                                             │
+│       - "parameters": {                                                                              │
+│       - "accountParams": {                                                                           │
+│       - "contributions": {" no need for index or id. 2. the regular json tree viewer is completely   │
+│   broken! [Image #1] 3. the crumb should be properly indent, just like how they would appear in      │
+│   json tree viewer. basically you find the line in the tree viewer when each seagement shows, then   │
+│   copy it to crumb area (since they are out of view!)
+
+
+currently the crumb area is static, can you build an interface to make it dynamic. Later on we will integrate with
+changing viewport in the tree viewer and pass the current visible path to the crumb area to update it.
+
+Synchronize scrolling is not working
+
+should I start a new session once in a while? I see the performance is getting slower if I keep using the same session.
+
