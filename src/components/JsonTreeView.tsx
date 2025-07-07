@@ -9,6 +9,7 @@ import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/P
 import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
 import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath, queryElementByViewerPath } from '../utils/PathTypes';
 import { JsonPathBreadcrumb, createBreadcrumbFromViewport, type BreadcrumbSegment } from './JsonPathBreadcrumb';
+import { SyncScroll } from './SyncScroll';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -739,9 +740,10 @@ interface JsonTreeViewProps {
   idKeysUsed?: IdKeyInfo[]; // Added to match App.tsx usage
   showDiffsOnly?: boolean;
   isCompareMode?: boolean; // New prop to indicate if we're comparing two files
+  syncScrollEnabled?: boolean; // Enable/disable sync scrolling
 }
 
-export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
+export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false, syncScrollEnabled = true }) => {
   const [selectedPath, setSelectedPath] = useState<string>('');
   const [selectedLine, setSelectedLine] = useState<number>(0);
   const [breadcrumbSegments, setBreadcrumbSegments] = useState<BreadcrumbSegment[]>([]);
@@ -877,18 +879,25 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
         </div>
 
         {/* Tree Content */}
-        <div className="json-tree-content json-tree-view" ref={treeContentRef}>
-          <JsonNode
-            data={data}
-            path={createIdBasedPath(`root`)}
-            level={0}
-            viewerId={viewerId as ViewerId}
-            jsonSide={jsonSide}
-            idKeySetting={idKeySetting}
-            showDiffsOnly={showDiffsOnly}
-            isCompareMode={isCompareMode}
-          />
-        </div>
+        <SyncScroll
+          enabled={syncScrollEnabled}
+          syncGroup="json-tree-content"
+          className="json-tree-content json-tree-view"
+          style={{ flex: 1, overflow: 'auto' }}
+        >
+          <div ref={treeContentRef}>
+            <JsonNode
+              data={data}
+              path={createIdBasedPath(`root`)}
+              level={0}
+              viewerId={viewerId as ViewerId}
+              jsonSide={jsonSide}
+              idKeySetting={idKeySetting}
+              showDiffsOnly={showDiffsOnly}
+              isCompareMode={isCompareMode}
+            />
+          </div>
+        </SyncScroll>
       </div>
     </div>
   );

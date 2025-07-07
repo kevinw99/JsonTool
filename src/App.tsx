@@ -6,7 +6,6 @@ import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
 import { ViewControls } from './components/ViewControls'
-import { SyncScroll } from './components/SyncScroll'
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
 import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone'
@@ -1039,11 +1038,9 @@ function App() {
                 overflow: 'hidden',
                 minHeight: 0
               }}>
-                <SyncScroll
-                  enabled={syncScroll}
-                  syncGroup="json-viewers"
+                <div 
                   className="json-viewer-scroll-container"
-                  style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                  style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
                     onFileDrop={handleFileDrop('file1')}
@@ -1078,18 +1075,17 @@ function App() {
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                             isCompareMode={true}
+                            syncScrollEnabled={syncScroll}
                           />
                         )}
                       </div>
                     </div>
                   </FileDropZone>
-                </SyncScroll>
+                </div>
                 
-                <SyncScroll
-                  enabled={syncScroll}
-                  syncGroup="json-viewers"
+                <div 
                   className="json-viewer-scroll-container"
-                  style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                  style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
                     onFileDrop={handleFileDrop('file2')}
@@ -1124,12 +1120,13 @@ function App() {
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                             isCompareMode={true}
+                            syncScrollEnabled={syncScroll}
                           />
                         )}
                       </div>
                     </div>
                   </FileDropZone>
-                </SyncScroll>
+                </div>
               </div>
             </div>
 
@@ -1189,11 +1186,9 @@ function App() {
               overflow: 'hidden',
               minHeight: 0
             }}>
-              <SyncScroll
-                enabled={syncScroll}
-                syncGroup="json-viewers"
+              <div 
                 className="json-viewer-scroll-container"
-                style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
               >
                 <FileDropZone 
                   onFileDrop={handleSmartFileDrop}
@@ -1229,13 +1224,11 @@ function App() {
                     </div>
                   </div>
                 </FileDropZone>
-              </SyncScroll>
+              </div>
               
-              <SyncScroll
-                enabled={syncScroll}
-                syncGroup="json-viewers"
+              <div 
                 className="json-viewer-scroll-container"
-                style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
+                style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
               >
                 <FileDropZone 
                   onFileDrop={handleSmartFileDrop}
@@ -1271,7 +1264,7 @@ function App() {
                     </div>
                   </div>
                 </FileDropZone>
-              </SyncScroll>
+              </div>
             </div>
             
             <div style={{

@@ -431,7 +431,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     // Helper function to disable sync scrolling
     const disableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+      const syncContainers = document.querySelectorAll('[data-sync-group="json-tree-content"]');
       syncContainers.forEach(container => {
         container.classList.add('temp-disable-sync');
       });
@@ -440,7 +440,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     // Helper function to re-enable sync scrolling
     const enableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+      const syncContainers = document.querySelectorAll('[data-sync-group="json-tree-content"]');
       syncContainers.forEach(container => {
         container.classList.remove('temp-disable-sync');
       });
