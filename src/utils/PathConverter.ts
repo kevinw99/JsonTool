@@ -1,6 +1,6 @@
 import type { IdKeyInfo } from './jsonCompare';
-import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
-import { unsafeAnyToIdBased, unsafeAnyToNumeric } from './PathTypes';
+import type { NumericPath, IdBasedPath, AnyPath, ArrayPatternPath } from './PathTypes';
+import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath } from './PathTypes';
 
 /**
  * Path Converter Utility
@@ -482,4 +482,69 @@ export function convertPathForDisplay(
   });
   
   return idPath || (path as unknown as IdBasedPath);
+}
+
+/**
+ * Converts ArrayPatternPath to NumericPath by replacing [] with [0] for navigation
+ * Example: "requests[].params[].items" -> "root.requests[0].params[0].items"
+ * Use case: Converting IdKeys panel array patterns to navigable paths
+ */
+export function convertArrayPatternToNumericPath(
+  arrayPattern: ArrayPatternPath,
+  context: PathConversionContext
+): NumericPath {
+  console.log(`[PathConverter] 🔍 Converting ArrayPattern: "${arrayPattern}"`);
+  
+  // Remove trailing [] to get path to array container
+  let targetPath = arrayPattern as string;
+  if (targetPath.endsWith('[]')) {
+    targetPath = targetPath.slice(0, -2);
+  }
+  
+  // Replace all intermediate [] with [0] to navigate through nested arrays
+  const navigablePath = targetPath.replace(/\[\]/g, '[0]');
+  
+  // Add root prefix if missing
+  const fullPath = navigablePath.startsWith('root.') ? navigablePath : `root.${navigablePath}`;
+  
+  console.log(`[PathConverter] 🔍 ArrayPattern -> navigable path: "${fullPath}"`);
+  
+  // Validate path exists in JSON data
+  if (!validatePathInJsonData(fullPath, context.jsonData)) {
+    throw new Error(`ArrayPattern path does not exist in JSON data: "${fullPath}"`);
+  }
+  
+  return validateAndCreateNumericPath(fullPath, 'PathConverter.convertArrayPatternToNumericPath');
+}
+
+/**
+ * Validates that a numeric path exists in the given JSON data
+ */
+function validatePathInJsonData(path: string, jsonData: any): boolean {
+  if (!jsonData) return false;
+  
+  try {
+    const pathWithoutRoot = path.startsWith('root.') ? path.substring(5) : path;
+    const segments = pathWithoutRoot.split(/([.\[])/);
+    let current = jsonData;
+    
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      if (segment === '.' || segment === '[') continue;
+      
+      if (segment.endsWith(']')) {
+        // Array access like "0]"
+        const index = parseInt(segment.slice(0, -1));
+        if (!Array.isArray(current) || index >= current.length) return false;
+        current = current[index];
+      } else if (segment) {
+        // Property access
+        if (!current || typeof current !== 'object' || !(segment in current)) return false;
+        current = current[segment];
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }

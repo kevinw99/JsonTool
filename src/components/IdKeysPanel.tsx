@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
-import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
-import type { ViewerPath } from '../utils/PathTypes';
+import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
+import type { ViewerPath, IdBasedPath, NumericPath, ArrayPatternPath } from '../utils/PathTypes';
+import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, type PathConversionContext } from '../utils/PathConverter';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
   idKeysUsed: IdKeyInfo[];
-  jsonData: any;
+  jsonData: { left: any; right: any };
 }
 
 interface ConsolidatedIdKey {
-  consolidatedPath: string;
+  consolidatedPath: ArrayPatternPath;
   idKey: string;
   isComposite: boolean;
   occurrences: {
-    originalPath: string;
+    originalPath: IdBasedPath;
     arraySize1: number;
     arraySize2: number;
   }[];
@@ -40,45 +41,24 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
     
     // Replace all specific array indices with [] to generalize the path
     // This handles cases like [0], [1], [636106], etc.
-    let consolidatedPath = originalPath.replace(/\[[^\]]*\]/g, '[]');
-    
-    // For ID key tracking, we want to show the path to the array being compared
-    // The array path should be clean: remove [] from parent navigation elements
-    // and only keep [] at the end to indicate it's an array
-    
-    // Split by dots to handle each segment
-    const segments = consolidatedPath.split('.');
-    const cleanSegments = segments.map(segment => {
-      // Remove [] from middle segments, but keep for the last segment if it's an array
-      return segment.replace(/\[\]/g, '');
-    });
-    
-    // If the original path contained arrays, add [] to the end to show it's an array
-    if (originalPath.includes('[')) {
-      const lastSegment = cleanSegments[cleanSegments.length - 1];
-      if (!lastSegment.includes('[]')) {
-        cleanSegments[cleanSegments.length - 1] = lastSegment + '[]';
-      }
-    }
-    
-    consolidatedPath = cleanSegments.join('.');
-    
-    const consolidatedKey = `${consolidatedPath}::${idKeyInfo.idKey}`;
+    // IMPORTANT: Keep ALL [] markers to show complete array structure
+    const consolidatedPathStr = originalPath.replace(/\[[^\]]*\]/g, '[]');
+    const consolidatedKey = `${consolidatedPathStr}::${idKeyInfo.idKey}`;
 
     if (consolidatedMap.has(consolidatedKey)) {
       const existing = consolidatedMap.get(consolidatedKey)!;
       existing.occurrences.push({
-        originalPath: originalPath, // Use the path without "root." prefix
+        originalPath: validateAndCreateIdBasedPath(originalPath, 'IdKeysPanel.consolidateIdKeys.occurrence'),
         arraySize1: idKeyInfo.arraySize1,
         arraySize2: idKeyInfo.arraySize2
       });
     } else {
       consolidatedMap.set(consolidatedKey, {
-        consolidatedPath,
+        consolidatedPath: createArrayPatternPath(consolidatedPathStr),
         idKey: idKeyInfo.idKey,
         isComposite: idKeyInfo.isComposite,
         occurrences: [{
-          originalPath: originalPath, // Use the path without "root." prefix
+          originalPath: validateAndCreateIdBasedPath(originalPath, 'IdKeysPanel.consolidateIdKeys.original'),
           arraySize1: idKeyInfo.arraySize1,
           arraySize2: idKeyInfo.arraySize2
         }]
@@ -109,92 +89,114 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     });
   };
 
-  const buildNumericPath = (idBasedPath: string): string => {
+
+  const handlePathClick = (pathToExpand: ArrayPatternPath) => {
+    console.log(`[EXPANSION_DEBUG] 🎯 IdKeysPanel handlePathClick triggered:`);
+    console.log(`[EXPANSION_DEBUG] 🎯 ArrayPatternPath: "${pathToExpand}"`);
     
-    // Remove the trailing [] to get the path to the array container
-    let targetPath = idBasedPath;
-    if (targetPath.endsWith('[]')) {
-      targetPath = targetPath.slice(0, -2);
-    }
+    // Try with left data first, then right as fallback
+    const contextLeft: PathConversionContext = {
+      jsonData: jsonData.left,
+      idKeysUsed: idKeysUsed || []
+    };
     
-    // Build the numeric path by inspecting the JSON structure
-    const segments = targetPath.split('.');
-    let currentData = jsonData;
-    let numericPath = 'root';
-    
-    
+    let numericPath: NumericPath;
     try {
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        
-        if (currentData && typeof currentData === 'object' && segment in currentData) {
-          numericPath += `.${segment}`;
-          currentData = currentData[segment];
-          
-          
-          // If the current data is an array, navigate to the first element and continue
-          // unless this is the last segment (target array)
-          if (Array.isArray(currentData) && currentData.length > 0) {
-            if (i < segments.length - 1) {
-              // This is an intermediate array, pick first element and continue
-              numericPath += '[0]';
-              currentData = currentData[0];
-            } else {
-              // This is the target array, DON'T add [0] - we want to target the array itself
-            }
-          }
-        } else {
-          // If we can't find the segment, break and use what we have
-          numericPath += `.${segment}`;
-          break;
-        }
-      }
+      numericPath = convertArrayPatternToNumericPath(pathToExpand, contextLeft);
+    } catch (leftError) {
+      console.log(`[EXPANSION_DEBUG] 🎯 Left data conversion failed, trying right data:`, leftError);
       
-    } catch (error) {
-      console.warn('[IdKeysPanel] Error building numeric path:', error);
-      // Fallback to simple path construction
-      numericPath = `root.${targetPath}[0]`;
+      const contextRight: PathConversionContext = {
+        jsonData: jsonData.right,
+        idKeysUsed: idKeysUsed || []
+      };
+      
+      try {
+        numericPath = convertArrayPatternToNumericPath(pathToExpand, contextRight);
+      } catch (rightError) {
+        console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert ArrayPatternPath with both left and right data:`, rightError);
+        throw new Error(`Cannot convert ArrayPatternPath "${pathToExpand}": ${rightError.message}`);
+      }
     }
     
-    return numericPath;
-  };
-
-  const handlePathClick = (pathToExpand: string) => {
-    
-    const numericPath = buildNumericPath(pathToExpand);
+    console.log(`[EXPANSION_DEBUG] 🎯 converted numericPath: "${numericPath}"`);
     
     // Set persistent highlight for border highlighting that persists until next navigation
     const highlights = new Set<ViewerPath>([
-      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick')),
-      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handlePathClick'))
+      createViewerPath('left', numericPath),
+      createViewerPath('right', numericPath)
     ]);
     setPersistentHighlightPaths(highlights);
+    console.log(`[EXPANSION_DEBUG] 🎯 set persistent highlights for both viewers`);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
+    console.log(`[EXPANSION_DEBUG] 🎯 calling goToDiff with: "${numericPath}"`);
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick.goToDiff'));
   };
 
-  const handleOccurrenceClick = (originalPath: string) => {
+  const handleOccurrenceClick = (originalPath: IdBasedPath) => {
+    console.log(`[EXPANSION_DEBUG] 🎯 IdKeysPanel handleOccurrenceClick triggered:`);
+    console.log(`[EXPANSION_DEBUG] 🎯 originalPath: "${originalPath}"`);
     
-    // For specific occurrences, we need to build the path differently
-    // The originalPath already contains the specific array index
-    let numericPath = originalPath;
-    
-    // Add root prefix if missing
-    if (!numericPath.startsWith('root.')) {
-      numericPath = `root.${numericPath}`;
+    let targetPath = originalPath as string;
+    if (!targetPath.startsWith('root.')) {
+      targetPath = `root.${targetPath}`;
     }
     
+    // Try to convert using left data first, then right
+    const contextLeft: PathConversionContext = {
+      jsonData: jsonData.left,
+      idKeysUsed: idKeysUsed || []
+    };
+    
+    let numericPath: NumericPath;
+    try {
+      const converted = convertIdPathToIndexPath(
+        validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick'),
+        contextLeft,
+        { preservePrefix: true }
+      );
+      if (!converted) {
+        throw new Error('PathConverter returned null');
+      }
+      numericPath = converted;
+      console.log(`[EXPANSION_DEBUG] 🎯 converted using left data: "${numericPath}"`);
+    } catch (leftError) {
+      console.log(`[EXPANSION_DEBUG] 🎯 Left data conversion failed, trying right data:`, leftError);
+      
+      const contextRight: PathConversionContext = {
+        jsonData: jsonData.right,
+        idKeysUsed: idKeysUsed || []
+      };
+      
+      try {
+        const converted = convertIdPathToIndexPath(
+          validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick.right'),
+          contextRight,
+          { preservePrefix: true }
+        );
+        if (!converted) {
+          throw new Error('PathConverter returned null');
+        }
+        numericPath = converted;
+        console.log(`[EXPANSION_DEBUG] 🎯 converted using right data: "${numericPath}"`);
+      } catch (rightError) {
+        console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert occurrence path with both left and right data:`, rightError);
+        throw new Error(`Cannot convert occurrence path "${originalPath}": ${rightError.message}`);
+      }
+    }
     
     // Set persistent highlight for border highlighting that persists until next navigation
     const highlights = new Set<ViewerPath>([
-      createViewerPath('left', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick')),
-      createViewerPath('right', validateAndCreateNumericPath(numericPath, 'IdKeysPanel.handleOccurrenceClick'))
+      createViewerPath('left', numericPath),
+      createViewerPath('right', numericPath)
     ]);
     setPersistentHighlightPaths(highlights);
+    console.log(`[EXPANSION_DEBUG] 🎯 set persistent highlights for both viewers`);
     
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.arrayPath'));
+    console.log(`[EXPANSION_DEBUG] 🎯 calling goToDiff with: "${numericPath}"`);
+    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handleOccurrenceClick.goToDiff'));
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {

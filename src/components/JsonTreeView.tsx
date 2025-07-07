@@ -126,7 +126,8 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     let basePath = path.replace(/^root_(left|right)_/, '');
 
     // 2. Convert ID-based array indices to numeric indices using PathConverter
-    if (basePath.includes('[id=')) {
+    // Check for ANY ID-based patterns, not just [id=]
+    if (basePath.includes('[') && basePath.includes('=')) {
       // Get JSON data and ID keys from context for PathConverter
       const jsonData = viewerId === 'left' ? 
         (context as any)?.jsonData?.left : 
@@ -134,6 +135,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       const idKeysUsed = (context as any)?.idKeysUsed;
       
       if (jsonData && idKeysUsed) {
+        console.log(`[JsonNode DEBUG] 🔧 Attempting conversion for: "${basePath}"`);
         try {
           const sourceContext = { jsonData, idKeysUsed };
           const convertedPath = convertIdPathToIndexPath(
@@ -141,23 +143,21 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
             sourceContext,
             { preservePrefix: true }
           );
-          if (convertedPath) {
-            basePath = convertedPath;
-            console.log(`[JsonNode DEBUG] 🔧 PathConverter: "${path}" -> "${basePath}"`);
+          if (!convertedPath) {
+            throw new Error(`PathConverter returned null for: "${basePath}"`);
           }
+          basePath = convertedPath;
+          console.log(`[JsonNode DEBUG] 🔧 PathConverter SUCCESS: "${path}" -> "${basePath}"`);
         } catch (error) {
-          console.log(`[JsonNode DEBUG] 🔧 PathConverter failed, using fallback:`, error);
-          // Fallback to simple replacement
-          const pathParts = basePath.split('.');
-          const convertedParts = pathParts.map(part => {
-            if (part.includes('[id=')) {
-              return part.replace(/\[id=[^\]]+\]/, '[0]');
-            }
-            return part;
-          });
-          basePath = convertedParts.join('.');
+          console.error(`[JsonNode DEBUG] 🔧 PathConverter failed for: "${basePath}"`, error);
+          throw new Error(`Cannot convert ID-based path "${basePath}": ${error.message}`);
         }
       }
+    }
+    
+    // Final validation: ensure the path is numeric
+    if (basePath.includes('[') && basePath.includes('=')) {
+      throw new Error(`Path conversion failed - still contains ID-based segments: "${basePath}"`);
     }
     
     return basePath;
@@ -388,7 +388,15 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   const toggleExpansion = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log(`[JsonNode VId:${viewerId}] Toggling expansion for path: "${path}"`);
+    console.log(`[EXPANSION_DEBUG] 🎯 JsonNode click detected:`);
+    console.log(`[EXPANSION_DEBUG] 🎯 viewerId: ${viewerId}`);
+    console.log(`[EXPANSION_DEBUG] 🎯 path: "${path}"`);
+    console.log(`[EXPANSION_DEBUG] 🎯 genericNumericPathForNode: "${genericNumericPathForNode}"`);
+    console.log(`[EXPANSION_DEBUG] 🎯 hasChildren: ${hasChildren}`);
+    console.log(`[EXPANSION_DEBUG] 🎯 isExpanded before toggle: ${isExpanded}`);
+    console.log(`[EXPANSION_DEBUG] 🎯 data type: ${isArray ? 'array' : isObject ? 'object' : typeof data}`);
+    console.log(`[EXPANSION_DEBUG] 🎯 data length/keys: ${isArray ? (data as JsonArray).length : isObject ? Object.keys(data as JsonObject).length : 'N/A'}`);
+    
     toggleExpand(path, viewerId as ViewerId);
     if (onNodeToggle) {
         onNodeToggle(path);
