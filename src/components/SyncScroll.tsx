@@ -19,28 +19,16 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
   const isScrollingRef = useRef<boolean>(false);
   
   useEffect(() => {
-    console.log(`[SyncScroll useEffect] 🔄 Running with enabled=${enabled}, syncGroup="${syncGroup}"`);
     const currentElement = containerRef.current;
     
-    if (!enabled) {
-      console.log(`[SyncScroll useEffect] 🚫 Sync disabled, exiting early`);
+    if (!enabled || !currentElement) {
       return;
     }
-    
-    if (!currentElement) {
-      console.log(`[SyncScroll useEffect] ❌ No current element, exiting early`);
-      return;
-    }
-
-    console.log(`[SyncScroll useEffect] 📡 Current element scrollTop before setup:`, currentElement.scrollTop);
 
     const syncPeers = document.querySelectorAll<HTMLDivElement>(`[data-sync-group="${syncGroup}"]`);
     if (syncPeers.length <= 1) {
-      console.log(`[SyncScroll useEffect] 👥 Not enough peers (${syncPeers.length}), exiting early`);
       return;
     }
-    
-    console.log(`[SyncScroll useEffect] 👥 Found ${syncPeers.length} sync peers`);
     
     const handleScroll = (event: Event) => {
       if (isScrollingRef.current) return;
@@ -48,11 +36,9 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
       
       // Check if sync is temporarily disabled
       if (currentElement.classList.contains('temp-disable-sync')) {
-        console.log('[SyncScroll] 🚫 Scroll event blocked by temp-disable-sync class');
         return;
       }
 
-      console.log('[SyncScroll] 📜 Processing scroll event from', currentElement.getAttribute('data-sync-group'));
       isScrollingRef.current = true;
       const source = event.target;
       
@@ -70,13 +56,9 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
     };
     
     currentElement.addEventListener('scroll', handleScroll);
-    console.log(`[SyncScroll useEffect] ✅ Event listener added to element with scrollTop:`, currentElement.scrollTop);
     
     return () => {
-      console.log(`[SyncScroll useEffect cleanup] 🧹 Cleaning up event listener`);
-      console.log(`[SyncScroll useEffect cleanup] 📡 Element scrollTop during cleanup:`, currentElement.scrollTop);
       currentElement.removeEventListener('scroll', handleScroll);
-      console.log(`[SyncScroll useEffect cleanup] ✅ Event listener removed`);
     };
   }, [enabled, syncGroup, style]); // Re-run if enabled, group, or style (affecting scrollability) changes
   

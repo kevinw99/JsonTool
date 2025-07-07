@@ -5,9 +5,8 @@ import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompa
 import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
-import JsonTextEditor from './components/JsonTextEditor'
 import { ViewControls } from './components/ViewControls'
-// import { SyncScroll } from './components/SyncScroll' // Not needed anymore
+import { SyncScroll } from './components/SyncScroll'
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
 import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone'
@@ -84,6 +83,22 @@ function traverseAndSortJson(data: JsonValue, currentPath: string = "", idKeysCo
         return aHasId ? -1 : 1;
       });
       
+      // SPECIAL DEBUG: Print contributions arrays after sorting - only for specific path
+      if (currentPath.includes('boomerForecastV3Requests') && currentPath.includes('accountParams') && currentPath.includes('contributions')) {
+        console.log(`🔥 CONTRIBUTIONS_SORTED_DEBUG 🔥 Path: ${currentPath}`);
+        console.log('Original array length:', data.length);
+        console.log('Sorted array items:');
+        arrayToProcess.forEach((item, index) => {
+          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+            const itemObj = item as JsonObject;
+            const idValue = detectedIdKey ? itemObj[detectedIdKey] : 'NO_ID';
+            console.log(`  ${index}: ${detectedIdKey}=${idValue}`);
+          } else {
+            console.log(`  ${index}: ${typeof item} - ${JSON.stringify(item).substring(0, 100)}`);
+          }
+        });
+        console.log(`🔥 END CONTRIBUTIONS_SORTED_DEBUG 🔥`);
+      }
     }
     
     // Recursively process array items (now sorted)
@@ -140,7 +155,6 @@ function App() {
   const [idKeysUsed, setIdKeysUsed] = useState<IdKeyInfo[]>([])
   const [error, setError] = useState<string | null>(null)
   const [syncScroll, setSyncScroll] = useState<boolean>(true)
-  const programmaticScrollRef = useRef<boolean>(false) // Flag for programmatic scrolling
   
   // Queue for handling multiple file drops
   // const [pendingFiles, setPendingFiles] = useState<Array<{content: JsonValue | string, isTextMode: boolean, fileName?: string}>>([])
@@ -365,6 +379,8 @@ function App() {
         return null;
       }
       
+      console.log(`- File 1: /${fileState.file1Name}`);
+      console.log(`- File 2: /${fileState.file2Name}`);
       
       // Try to load both files from public directory
       const [file1Response, file2Response] = await Promise.all([
@@ -378,6 +394,8 @@ function App() {
       
       // If either file fails to load, remove from storage and return null
       if (!file1Response?.ok || !file2Response?.ok) {
+        console.log(`- File 1 response: ${file1Response?.status} ${file1Response?.statusText}`);
+        console.log(`- File 2 response: ${file2Response?.status} ${file2Response?.statusText}`);
         localStorage.removeItem('jsontool-saved-filenames');
         return null;
       }
@@ -434,6 +452,7 @@ function App() {
       
       // Auto-save the sample filenames so they persist on reload
       saveFilenamesFromData(file1Data, file2Data);
+      console.log('Sample files loaded and filenames saved');
     } catch (e) {
       setError('Failed to load sample JSON files.')
       console.error("Error loading or comparing JSON:", e);
@@ -464,6 +483,7 @@ function App() {
             setIdKeysUsed(comparisonResult.idKeysUsed);
             
             // Don't re-save the same filenames we just loaded
+            console.log('ℹ️ Skipping filename save during initial restore');
           } catch (e) {
             console.error('❌ Error comparing restored files:', e);
             setError('Error comparing restored files');
@@ -606,44 +626,18 @@ function App() {
   const handleViewModeToggle = () => {
     if (file1) {
       const newIsTextMode = !file1.isTextMode;
-      
-      let newContent;
-      try {
-        if (newIsTextMode) {
-          // When switching to text mode, ensure proper formatting
-          newContent = JSON.stringify(file1.content, null, 2);
-        } else {
-          // When switching back to tree mode, parse the JSON
-          newContent = JSON.parse(file1.content as string);
-        }
-      } catch (error) {
-        console.error('[App] Error parsing JSON during mode toggle:', error);
-        newContent = file1.content; // Keep current content if parsing fails
-      }
-      
       setFile1({ 
         ...file1, 
         isTextMode: newIsTextMode,
-        content: newContent
+        content: newIsTextMode ? JSON.stringify(file1.content, null, 2) : file1.content
       });
     }
     if (file2) {
       const newIsTextMode = !file2.isTextMode;
-      
-      let newContent;
-      try {
-        newContent = newIsTextMode 
-          ? JSON.stringify(file2.content, null, 2) 
-          : JSON.parse(file2.content as string);
-      } catch (error) {
-        console.error('[App] Error parsing JSON during mode toggle for file2:', error);
-        newContent = file2.content; // Keep current content if parsing fails
-      }
-      
       setFile2({ 
         ...file2, 
         isTextMode: newIsTextMode,
-        content: newContent
+        content: newIsTextMode ? JSON.stringify(file2.content, null, 2) : file2.content
       });
     }
   };
@@ -911,115 +905,12 @@ function App() {
 
   // Debug: log mount/unmount
   useEffect(() => {
+    console.log('[App] Component mounted, initial syncScroll:', syncScroll);
     return () => {
-      // Component unmounting
+      console.log('[App] Component unmounting');
     };
   }, []);
 
-  // Custom sync handler
-  useEffect(() => {
-    if (!syncScroll) {
-      return;
-    }
-    
-    let isScrolling = false;
-    
-    const handleScroll = (event: Event) => {
-//       
-      const source = event.target as HTMLElement;
-      
-      // Find the actual scroll container (might be nested)
-      let scrollContainer = source;
-      if (source.classList.contains('json-viewer-scroll-container')) {
-        scrollContainer = source;
-      } else {
-        // If the event came from a child, find the parent container
-        const parent = source.closest('.json-viewer-scroll-container');
-        if (parent) {
-          scrollContainer = parent as HTMLElement;
-        } else {
-          return;
-        }
-      }
-      
-      if (isScrolling) {
-        return;
-      }
-      
-      if (programmaticScrollRef.current) {
-        //console.log('[Scroll Event] Programmatic scroll in progress, ignoring');
-        return;
-      }
-      
-      isScrolling = true;
-      
-      // Find both viewers and sync them
-      const allViewers = document.querySelectorAll('.json-viewer-scroll-container');
-      //console.log('[Scroll Event] Found', allViewers.length, 'viewers to sync');
-      
-      allViewers.forEach((viewer, idx) => {
-        if (viewer !== scrollContainer) {
-          const targetViewer = viewer as HTMLElement;
-          console.log(`[Scroll Event] Syncing viewer ${idx} to scrollTop:`, scrollContainer.scrollTop);
-          targetViewer.scrollTop = scrollContainer.scrollTop;
-          targetViewer.scrollLeft = scrollContainer.scrollLeft;
-        }
-      });
-      
-      setTimeout(() => {
-        isScrolling = false;
-      }, 50);
-    };
-    
-    // Add listeners to both viewers
-    const setupListeners = () => {
-      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
-      
-      viewers.forEach((viewer, index) => {
-        const htmlViewer = viewer as HTMLElement;
-        
-        // Add scroll listener with capture to catch events from children
-        viewer.addEventListener('scroll', handleScroll, { capture: true, passive: false });
-        
-        // Also check if any child elements are scrollable
-        const scrollableChildren = viewer.querySelectorAll('*');
-        scrollableChildren.forEach(child => {
-          const childElement = child as HTMLElement;
-          const style = window.getComputedStyle(childElement);
-          if (style.overflow === 'auto' || style.overflow === 'scroll' || 
-              style.overflowY === 'auto' || style.overflowY === 'scroll') {
-            childElement.addEventListener('scroll', handleScroll);
-          }
-        });
-        
-      });
-    };
-    
-    // Set up listeners after DOM is ready - try multiple times
-    const attemptSetup = (attempts = 0) => {
-      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
-      if (viewers.length >= 2 || attempts >= 10) {
-        setupListeners();
-      } else {
-        setTimeout(() => attemptSetup(attempts + 1), 200);
-      }
-    };
-    
-    const timeoutId = setTimeout(() => attemptSetup(), 500);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      const viewers = document.querySelectorAll('.json-viewer-scroll-container');
-      viewers.forEach(viewer => {
-        viewer.removeEventListener('scroll', handleScroll, { capture: true });
-        // Also remove from any scrollable children
-        const scrollableChildren = viewer.querySelectorAll('*');
-        scrollableChildren.forEach(child => {
-          child.removeEventListener('scroll', handleScroll);
-        });
-      });
-    };
-  }, [syncScroll]); // Re-run when syncScroll changes
   
   const toggleSyncScroll = () => {
     setSyncScroll(prev => {
@@ -1148,10 +1039,10 @@ function App() {
                 overflow: 'hidden',
                 minHeight: 0
               }}>
-                <div 
+                <SyncScroll
+                  enabled={syncScroll}
+                  syncGroup="json-viewers"
                   className="json-viewer-scroll-container"
-                  data-sync-group="json-viewers"
-                  data-sync-enabled={syncScroll ? 'true' : 'false'}
                   style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
@@ -1174,15 +1065,9 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file1.isTextMode ? (
-                          <JsonTextEditor 
-                            key="file1-text-editor"
-                            value={typeof file1.content === 'string' ? file1.content : JSON.stringify(file1.content, null, 2)} 
-                            onChange={(newContent) => {
-                              setFile1({ ...file1, content: newContent });
-                            }}
-                            readOnly={false}
-                            height="100%"
-                            theme="light"
+                          <TextViewer 
+                            text={file1.content as string} 
+                            fileName={file1.fileName}
                           />
                         ) : (
                           <JsonTreeView
@@ -1198,11 +1083,12 @@ function App() {
                       </div>
                     </div>
                   </FileDropZone>
-                </div>
+                </SyncScroll>
                 
-                <div 
+                <SyncScroll
+                  enabled={syncScroll}
+                  syncGroup="json-viewers"
                   className="json-viewer-scroll-container"
-                  data-sync-group="json-viewers"
                   style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
                 >
                   <FileDropZone 
@@ -1225,15 +1111,9 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {file2.isTextMode ? (
-                          <JsonTextEditor 
-                            key="file2-text-editor"
-                            value={typeof file2.content === 'string' ? file2.content : JSON.stringify(file2.content, null, 2)} 
-                            onChange={(newContent) => {
-                              setFile2({ ...file2, content: newContent });
-                            }}
-                            readOnly={false}
-                            height="100%"
-                            theme="light"
+                          <TextViewer 
+                            text={file2.content as string} 
+                            fileName={file2.fileName}
                           />
                         ) : (
                           <JsonTreeView
@@ -1249,7 +1129,7 @@ function App() {
                       </div>
                     </div>
                   </FileDropZone>
-                </div>
+                </SyncScroll>
               </div>
             </div>
 
@@ -1309,8 +1189,11 @@ function App() {
               overflow: 'hidden',
               minHeight: 0
             }}>
-              <div className="json-viewer-scroll-container"
-                style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
+              <SyncScroll
+                enabled={syncScroll}
+                syncGroup="json-viewers"
+                className="json-viewer-scroll-container"
+                style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
               >
                 <FileDropZone 
                   onFileDrop={handleSmartFileDrop}
@@ -1346,10 +1229,13 @@ function App() {
                     </div>
                   </div>
                 </FileDropZone>
-              </div>
+              </SyncScroll>
               
-              <div className="json-viewer-scroll-container"
-                style={{width: "49%", height: "100%", display: 'flex', flexDirection: 'column'}}
+              <SyncScroll
+                enabled={syncScroll}
+                syncGroup="json-viewers"
+                className="json-viewer-scroll-container"
+                style={{width: "49%", height: "100%", overflowY: 'auto', display: 'flex', flexDirection: 'column'}}
               >
                 <FileDropZone 
                   onFileDrop={handleSmartFileDrop}
@@ -1385,7 +1271,7 @@ function App() {
                     </div>
                   </div>
                 </FileDropZone>
-              </div>
+              </SyncScroll>
             </div>
             
             <div style={{

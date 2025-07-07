@@ -427,9 +427,24 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
+    // Helper function to disable sync scrolling
+    const disableSyncScrolling = useCallback(() => {
+      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+      syncContainers.forEach(container => {
+        container.classList.add('temp-disable-sync');
+      });
+      return syncContainers;
+    }, []);
+
+    // Helper function to re-enable sync scrolling
+    const enableSyncScrolling = useCallback(() => {
+      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+      syncContainers.forEach(container => {
+        container.classList.remove('temp-disable-sync');
+      });
+    }, []);
+
     const goToDiffWithPaths = useCallback((leftPath: string, rightPath: string, highlightLeft: boolean = true, highlightRight: boolean = true) => {
-      console.log('[goToDiffWithPaths] 🎯 Navigating to LEFT:', leftPath, 'RIGHT:', rightPath, 'Highlight L/R:', highlightLeft, highlightRight);
-      
       // Ensure paths have root prefix
       const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
       const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
@@ -450,8 +465,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           highlightPaths.add(createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.right')));
         }
         setPersistentHighlightPaths(highlightPaths);
-        
-        console.log('[goToDiffWithPaths] 🎨 Set selective highlighting for:', Array.from(highlightPaths));
         
         // Expand and navigate both viewers simultaneously
         setExpandedPathsState(currentExpandedPaths => {
@@ -475,7 +488,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
               }
               const viewerPath = createViewerPath(viewerPrefix as ViewerId, validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.goToDiffWithPaths.expandPath'));
               newExpandedPaths.add(viewerPath);
-              console.log(`[goToDiffWithPaths] 📂 Added ${viewerPrefix} path:`, viewerPath);
             }
           };
           
@@ -488,41 +500,62 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         // Scroll to both target elements
         setTimeout(() => {
+          console.log('[goToDiff] 🔍 Searching for elements with paths:');
+          console.log('[goToDiff] 🔍 leftPathWithRoot:', leftPathWithRoot);
+          console.log('[goToDiff] 🔍 rightPathWithRoot:', rightPathWithRoot);
+          
           const leftElement = document.querySelector(`[data-path="${leftPathWithRoot}"]`);
           const rightElement = document.querySelector(`[data-path="${rightPathWithRoot}"]`);
           
-          console.log('[goToDiffWithPaths] 🎯 Found elements - LEFT:', !!leftElement, 'RIGHT:', !!rightElement);
+          console.log('[goToDiff] 🔍 Found elements:');
+          console.log('[goToDiff] 🔍 leftElement:', leftElement ? 'FOUND' : 'NOT FOUND');
+          console.log('[goToDiff] 🔍 rightElement:', rightElement ? 'FOUND' : 'NOT FOUND');
           
-          // Scroll left viewer
+          // Temporarily disable sync to prevent interference during programmatic scrolling
+          disableSyncScrolling();
+          
+          // Wait a moment for the disable to take effect
+          setTimeout(() => {
+          
+          // Helper function to scroll element into view
+          const scrollElementIntoView = (element: Element, viewerName: string) => {
+            const container = element.closest('.json-tree-content');
+            if (!container) {
+              console.warn(`[goToDiff] ${viewerName}: Could not find .json-tree-content container`);
+              return;
+            }
+
+            const rect = element.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const scrollTop = Math.max(0, container.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
+            
+            console.log(`[goToDiff] ${viewerName} scroll:`, {
+              currentScrollTop: container.scrollTop,
+              targetScrollTop: scrollTop,
+              elementPath: element.getAttribute('data-path')
+            });
+            
+            container.scrollTop = scrollTop;
+          };
+
+          // Scroll both viewers
           if (leftElement) {
-            const leftContainer = leftElement.closest('.json-viewer-scroll-container');
-            if (leftContainer) {
-              const rect = leftElement.getBoundingClientRect();
-              const containerRect = leftContainer.getBoundingClientRect();
-              const scrollTop = Math.max(0, leftContainer.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
-              leftContainer.scrollTop = scrollTop;
-              console.log('[goToDiffWithPaths] ⬅️ Scrolled left viewer to:', scrollTop);
-            }
+            scrollElementIntoView(leftElement, 'LEFT');
+          }
+          if (rightElement) {
+            scrollElementIntoView(rightElement, 'RIGHT');
           }
           
-          // Scroll right viewer
-          if (rightElement) {
-            const rightContainer = rightElement.closest('.json-viewer-scroll-container');
-            if (rightContainer) {
-              const rect = rightElement.getBoundingClientRect();
-              const containerRect = rightContainer.getBoundingClientRect();
-              const scrollTop = Math.max(0, rightContainer.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
-              rightContainer.scrollTop = scrollTop;
-              console.log('[goToDiffWithPaths] ➡️ Scrolled right viewer to:', scrollTop);
-            }
-          }
+            // Re-enable sync after scrolling is complete
+            setTimeout(() => {
+              enableSyncScrolling();
+            }, 100);
+          }, 50); // Small delay to let disable take effect
         }, 1200);
       }, 50);
-    }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState]);
+    }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState, disableSyncScrolling, enableSyncScrolling]);
 
     const goToDiff = useCallback((pathToExpand: string) => {
-      console.log('[goToDiff] 🎯 Single path navigation:', pathToExpand);
-      
       // Check if this is an ID-based path using PathTypes utility
       const isIdPath = hasIdBasedSegments(createIdBasedPath(pathToExpand));
       
@@ -536,26 +569,20 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         if (result.leftPath && result.rightPath) {
           // Path exists in both viewers - highlight both
-          console.log('[goToDiff] 🔄 ID path exists in both viewers');
           goToDiffWithPaths(result.leftPath, result.rightPath, true, true);
           return;
         } else if (result.leftPath) {
           // Only exists in left viewer - highlight only left
-          console.log('[goToDiff] ⬅️ ID path only in LEFT viewer');
           goToDiffWithPaths(result.leftPath, result.leftPath, true, false);
           return;
         } else if (result.rightPath) {
           // Only exists in right viewer - highlight only right
-          console.log('[goToDiff] ➡️ ID path only in RIGHT viewer');
           goToDiffWithPaths(result.rightPath, result.rightPath, false, true);
           return;
-        } else {
-          console.warn('[goToDiff] ⚠️ Failed to resolve ID-based path:', pathToExpand);
         }
       }
       
       // For non-ID paths (already numeric), navigate to same path in both viewers
-      console.log('[goToDiff] 📍 Using numeric path for both viewers:', pathToExpand);
       goToDiffWithPaths(pathToExpand, pathToExpand);
     }, [jsonData, idKeysUsed, goToDiffWithPaths]);
 
@@ -611,25 +638,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, [jsonData, idKeysUsed, goToDiffWithPaths, goToDiff]);
 
     // Removed ref update effect as manual expansion no longer triggers sync
-
-    // Helper function to disable sync scrolling
-    const disableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
-      console.log('[Context] 🔧 Disabling sync on', syncContainers.length, 'containers');
-      syncContainers.forEach(container => {
-        container.classList.add('temp-disable-sync');
-      });
-      return syncContainers;
-    }, []);
-
-    // Helper function to re-enable sync scrolling
-    const enableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
-      console.log('[Context] 🔄 Re-enabling sync on', syncContainers.length, 'containers');
-      syncContainers.forEach(container => {
-        container.classList.remove('temp-disable-sync');
-      });
-    }, []);
 
     // Wildcard pattern matching function
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {
