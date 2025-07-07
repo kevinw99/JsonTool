@@ -8,7 +8,7 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerId } from '../utils/PathTypes';
 import { createIdBasedPath, createViewerPath, validateAndCreateNumericPath, validateAndCreateIdBasedPath } from '../utils/PathTypes';
-import { JsonPathBreadcrumb } from './JsonPathBreadcrumb';
+import { JsonPathBreadcrumb, createBreadcrumbFromViewport, type BreadcrumbSegment } from './JsonPathBreadcrumb';
 
 // Utility hook to get the previous value of a variable
 function usePrevious<T>(value: T): T | undefined {
@@ -750,6 +750,8 @@ interface JsonTreeViewProps {
 export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, jsonSide, idKeySetting, /* idKeysUsed, */ showDiffsOnly, isCompareMode = false }) => {
   const [selectedPath, setSelectedPath] = useState<string>('');
   const [selectedLine, setSelectedLine] = useState<number>(0);
+  const [breadcrumbSegments, setBreadcrumbSegments] = useState<BreadcrumbSegment[]>([]);
+  const [isDynamicBreadcrumb, setIsDynamicBreadcrumb] = useState<boolean>(false);
   const treeContentRef = useRef<HTMLDivElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
@@ -819,14 +821,59 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
     }
   };
 
+  // Function to enable dynamic breadcrumb mode
+  const enableDynamicBreadcrumb = () => {
+    setIsDynamicBreadcrumb(true);
+  };
+
+  // Function to disable dynamic breadcrumb mode  
+  const disableDynamicBreadcrumb = () => {
+    setIsDynamicBreadcrumb(false);
+    setBreadcrumbSegments([]);
+  };
+
+  // Function to update breadcrumb with out-of-view nodes
+  const updateBreadcrumbFromViewport = (outOfViewNodes: Array<{
+    key: string;
+    path: string;
+    lineNumber: number;
+    isArray: boolean;
+    indentLevel: number;
+  }>) => {
+    const segments = createBreadcrumbFromViewport(outOfViewNodes);
+    setBreadcrumbSegments(segments);
+  };
+
   return (
     <div className="json-tree-view-container">
-      {/* Breadcrumb Section - Static Test */}
+      {/* Breadcrumb Section - Dynamic/Static */}
       <JsonPathBreadcrumb
-        currentPath={testPath}
+        currentPath={isDynamicBreadcrumb ? undefined : testPath}
         currentLine={30}
         onSegmentClick={handleBreadcrumbClick}
+        segments={isDynamicBreadcrumb ? breadcrumbSegments : undefined}
+        isDynamic={isDynamicBreadcrumb}
       />
+
+      {/* Development Controls */}
+      <div style={{ padding: '4px 8px', background: '#f0f0f0', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
+        <button onClick={enableDynamicBreadcrumb} disabled={isDynamicBreadcrumb}>
+          Enable Dynamic
+        </button>
+        <button onClick={disableDynamicBreadcrumb} disabled={!isDynamicBreadcrumb}>
+          Disable Dynamic
+        </button>
+        <button onClick={() => updateBreadcrumbFromViewport([
+          { key: 'boomerForecastV3Requests', path: 'root.boomerForecastV3Requests', lineNumber: 2, isArray: true, indentLevel: 0 },
+          { key: 'parameters', path: 'root.boomerForecastV3Requests[0].parameters', lineNumber: 4, isArray: false, indentLevel: 1 },
+          { key: 'accountParams', path: 'root.boomerForecastV3Requests[0].parameters.accountParams', lineNumber: 5, isArray: true, indentLevel: 2 }
+        ])}>
+          Test Dynamic Update
+        </button>
+        <span style={{ marginLeft: '16px', color: '#666' }}>
+          Mode: {isDynamicBreadcrumb ? 'Dynamic' : 'Static'} | Segments: {breadcrumbSegments.length}
+        </span>
+      </div>
 
       {/* Main Content with Line Numbers and Tree */}
       <div className="json-tree-main-content">
@@ -839,7 +886,7 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
         <div className="json-tree-content json-tree-view" ref={treeContentRef}>
           <JsonNode
             data={data}
-            path={createIdBasedPath(`root_${viewerId}_root`)}
+            path={createIdBasedPath(`root`)}
             level={0}
             viewerId={viewerId as ViewerId}
             jsonSide={jsonSide}

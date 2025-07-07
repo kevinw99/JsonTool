@@ -7,28 +7,74 @@
 import React, { useMemo } from 'react';
 import './JsonPathBreadcrumb.css';
 
+// Utility function to create breadcrumb segments from out-of-view tree nodes
+export const createBreadcrumbFromViewport = (
+  outOfViewNodes: Array<{
+    key: string;
+    path: string;
+    lineNumber: number;
+    isArray: boolean;
+    indentLevel: number;
+  }>
+): BreadcrumbSegment[] => {
+  return outOfViewNodes.map(node => ({
+    key: node.key,
+    path: node.path,
+    lineNumber: node.lineNumber,
+    bracket: node.isArray ? '[' : '{',
+    indentLevel: node.indentLevel
+  }));
+};
+
 export interface PathSegment {
   key: string;
   path: string;
   isArray?: boolean;
   isIndex?: boolean;
   isArrayContainer?: boolean; // For array objects like "items": [
+  lineNumber?: number;
+  bracket?: string;
+}
+
+export interface BreadcrumbSegment {
+  key: string;
+  path: string;
+  lineNumber: number;
+  bracket: string; // '[' for arrays, '{' for objects
+  indentLevel: number;
 }
 
 interface JsonPathBreadcrumbProps {
-  currentPath: string;
+  currentPath?: string; // Made optional for dynamic mode
   currentLine?: number;
   onSegmentClick: (path: string) => void;
-  mode?: 'tree' | 'text'; // Made optional since it's not used yet
-  outOfViewPaths?: string[]; // New prop for viewport-aware breadcrumb
+  mode?: 'tree' | 'text';
+  outOfViewPaths?: string[];
+  // New dynamic props
+  segments?: BreadcrumbSegment[]; // Direct segment data
+  isDynamic?: boolean; // Toggle between static and dynamic mode
 }
 
 export const JsonPathBreadcrumb: React.FC<JsonPathBreadcrumbProps> = ({
   currentPath,
   currentLine,
-  onSegmentClick
+  onSegmentClick,
+  segments,
+  isDynamic = false
 }) => {
   const pathSegments = useMemo(() => {
+    // Dynamic mode: use provided segments
+    if (isDynamic && segments) {
+      return segments.map(segment => ({
+        key: segment.key,
+        path: segment.path,
+        lineNumber: segment.lineNumber,
+        bracket: segment.bracket,
+        isArray: segment.bracket === '['
+      }));
+    }
+
+    // Static mode: fallback to hardcoded segments
     if (!currentPath || currentPath === 'root' || currentPath === '') {
       return [];
     }
@@ -43,16 +89,16 @@ export const JsonPathBreadcrumb: React.FC<JsonPathBreadcrumbProps> = ({
       return [];
     }
 
-    // Simple breadcrumb showing only object properties (no indices/IDs)
-    const segments: PathSegment[] = [
-      { key: 'boomerForecastV3Requests', path: 'boomerForecastV3Requests', isArray: false },
-      { key: 'parameters', path: 'boomerForecastV3Requests[0].parameters', isArray: false },
-      { key: 'accountParams', path: 'boomerForecastV3Requests[0].parameters.accountParams', isArray: false },
-      { key: 'contributions', path: 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions', isArray: false }
+    // Static fallback - exact copy of tree lines with proper brackets and line numbers
+    const staticSegments: PathSegment[] = [
+      { key: 'boomerForecastV3Requests', path: 'boomerForecastV3Requests', isArray: true, lineNumber: 2, bracket: '[' },
+      { key: 'parameters', path: 'boomerForecastV3Requests[0].parameters', isArray: false, lineNumber: 4, bracket: '{' },
+      { key: 'accountParams', path: 'boomerForecastV3Requests[0].parameters.accountParams', isArray: true, lineNumber: 5, bracket: '[' },
+      { key: 'contributions', path: 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions', isArray: false, lineNumber: 7, bracket: '{' }
     ];
 
-    return segments;
-  }, [currentPath]);
+    return staticSegments;
+  }, [currentPath, segments, isDynamic]);
 
   return (
     <div className="json-path-breadcrumb">
@@ -64,16 +110,20 @@ export const JsonPathBreadcrumb: React.FC<JsonPathBreadcrumbProps> = ({
         {pathSegments.map((segment, index) => (
           <div 
             key={index}
-            className={`breadcrumb-segment-line ${segment.isArray ? 'array-segment' : 'object-segment'} ${segment.isIndex ? 'index-segment' : ''}`}
+            className="breadcrumb-segment-line"
             onClick={() => onSegmentClick(segment.path)}
             title={`Navigate to ${segment.path}`}
-            style={{ '--indent-level': index } as React.CSSProperties}
           >
-            {segment.isArray ? (
-              <span className="array-segment-text">{segment.key}</span>
-            ) : (
-              <span className="object-segment-text">"{segment.key}": {`{`}</span>
-            )}
+            {/* Line number (like tree view gutter) */}
+            <span className="breadcrumb-line-number">{segment.lineNumber}</span>
+            
+            {/* Content with proper indentation */}
+            <div className="breadcrumb-content" style={{ 
+              '--indent-level': isDynamic && segments ? segments[index]?.indentLevel || 0 : index 
+            } as React.CSSProperties}>
+              <span className="breadcrumb-key">{segment.key}:</span>
+              <span className="breadcrumb-bracket">{segment.bracket}</span>
+            </div>
           </div>
         ))}
       </div>

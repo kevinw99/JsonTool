@@ -43,12 +43,39 @@
 
 .breadcrumb-segment-line {
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background-color 0.15s ease;
   white-space: nowrap;
-  padding-left: calc(var(--indent-level) * 20px + 8px);
   position: relative;
+  display: flex;
+  align-items: center;
+  font-family: 'SF Mono', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.breadcrumb-line-number {
+  width: 50px;
+  text-align: right; /* Right aligned like tree viewer line numbers gutter */
+  color: #999;
+  padding-right: 8px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.breadcrumb-content {
+  /* Add proper indentation for the content after line number */
+  padding-left: calc(var(--indent-level) * 20px);
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-key {
+  color: #881391; /* Same as --key-color */
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.breadcrumb-bracket {
+  color: #333; /* Same as --bracket-color */
 }
 
 .breadcrumb-segment-line:hover {
@@ -72,13 +99,20 @@
 }
 
 .object-segment-text {
-  color: #0066cc;
+  color: #881391; /* Same as tree key color */
   font-weight: 500;
 }
 
 .array-segment-text {
   color: #8b4a9c;
   font-weight: 500;
+}
+
+/* Add expander space to match tree structure */
+.breadcrumb-segment-line::before {
+  content: '';
+  width: 18px; /* Same as --expander-width */
+  display: inline-block;
 }
 
 .object-segment {
