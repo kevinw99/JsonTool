@@ -90,4 +90,96 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
     expect(idKey === 'firstName' || (idKey.includes('firstName') && idKey.includes('lastName'))).toBe(true)
     expect(result.idKeysUsed[0].arrayPath).toBe('users[]')
   })
+
+  it('should not generate IDKeys for arrays that exist on only one side', () => {
+    const json1 = {
+      boomerForecastV3Requests: [
+        {
+          requestId: 'req1',
+          parameters: {
+            accountParams: [
+              { id: 'acc1', contributions: [{ amount: 100 }] }
+            ]
+          }
+        }
+      ],
+      contributionsSearchOutputs: [
+        {
+          contributionsAdvice: {
+            contributionsPerAccount: [
+              { id: 'acc1', employeeContributionBreakdown: [{ type: 'regular' }] }
+            ]
+          }
+        }
+      ]
+    }
+
+    const json2 = {
+      boomerForecastV3Requests: [
+        {
+          requestId: 'req1',
+          parameters: {
+            accountParams: [
+              { id: 'acc1', contributions: [{ amount: 200 }] }
+            ]
+          }
+        }
+      ],
+      // Note: contributionsSearchOutputs is missing from json2
+      contributionsSearchOutputs: null
+    }
+
+    const result = jsonCompare(json1, json2)
+    
+    expect(result.idKeysUsed).toBeDefined()
+    
+    // Should have IDKeys for arrays that exist on both sides
+    const validPaths = result.idKeysUsed.map(idKey => idKey.arrayPath)
+    expect(validPaths).toContain('boomerForecastV3Requests[]')
+    expect(validPaths).toContain('boomerForecastV3Requests[].parameters.accountParams[]')
+    expect(validPaths).toContain('boomerForecastV3Requests[].parameters.accountParams[].contributions[]')
+    
+    // Should NOT have IDKeys for arrays that only exist on one side
+    expect(validPaths).not.toContain('contributionsSearchOutputs[]')
+    expect(validPaths).not.toContain('contributionsSearchOutputs[].contributionsAdvice.contributionsPerAccount[]')
+    expect(validPaths).not.toContain('contributionsSearchOutputs[].contributionsAdvice.contributionsPerAccount[].employeeContributionBreakdown[]')
+    
+    // Verify exact count - should only have the 3 valid arrays that exist on both sides
+    expect(result.idKeysUsed).toHaveLength(3)
+  })
+
+  it('should generate correct ArrayPatternPath format with all bracket types', () => {
+    const json1 = {
+      accounts: [
+        { accountType: 'savings', transactions: [{ id: 1, amount: 100 }] },
+        { accountType: 'checking', transactions: [{ id: 2, amount: 200 }] }
+      ]
+    }
+
+    const json2 = {
+      accounts: [
+        { accountType: 'savings', transactions: [{ id: 1, amount: 150 }] },
+        { accountType: 'investment', transactions: [{ id: 3, amount: 300 }] }
+      ]
+    }
+
+    const result = jsonCompare(json1, json2)
+    
+    expect(result.idKeysUsed).toBeDefined()
+    expect(result.idKeysUsed.length).toBeGreaterThan(0)
+    
+    // All ArrayPatternPaths should end with []
+    result.idKeysUsed.forEach(idKey => {
+      expect(idKey.arrayPath).toMatch(/\[\]$/, `ArrayPatternPath should end with []: ${idKey.arrayPath}`)
+      // Should not contain specific indices or ID values
+      expect(idKey.arrayPath).not.toMatch(/\[0\]|\[1\]|\[accountType=|\[id=/, `ArrayPatternPath should not contain specific indices or ID values: ${idKey.arrayPath}`)
+    })
+    
+    // Expected paths
+    const expectedPaths = ['accounts[]', 'accounts[].transactions[]']
+    const actualPaths = result.idKeysUsed.map(idKey => idKey.arrayPath)
+    expectedPaths.forEach(expectedPath => {
+      expect(actualPaths).toContain(expectedPath)
+    })
+  })
 })

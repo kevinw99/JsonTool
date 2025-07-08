@@ -22,11 +22,11 @@ export interface JsonCompareResult {
 }
 
 function findIdKey(arr1: any[], arr2: any[]): string | null {
-  // Skip idKey detection for arrays with 0 or 1 length since there's no meaningful comparison
-  if (arr1.length <= 1 && arr2.length <= 1) return null;
+  // Skip idKey detection for arrays with very few total elements or when either array is empty
+  if (arr1.length + arr2.length <= 1) return null;
   
-  // Also skip if either array is empty (original check)
-  if (!arr1.length && !arr2.length) return null;
+  // Also skip if either array is empty (arrays need elements on both sides for meaningful comparison)
+  if (!arr1.length || !arr2.length) return null;
 
   const getObjectItems = (arr: any[]) =>
     arr.filter((item) => typeof item === "object" && item !== null);
@@ -129,10 +129,15 @@ function findIdKey(arr1: any[], arr2: any[]): string | null {
       const set1 = getValueSet(objArr1);
       const set2 = getValueSet(objArr2);
       
-      // Check if arrays have overlapping values
-      const intersection = new Set([...set1].filter(x => set2.has(x)));
-      if (intersection.size === 0) {
-        return false;
+      // For single-element arrays, skip overlap check since there's only one element per side
+      if (objArr1.length === 1 && objArr2.length === 1) {
+        // Skip overlap check for single-element arrays
+      } else {
+        // Check if arrays have overlapping values
+        const intersection = new Set([...set1].filter(x => set2.has(x)));
+        if (intersection.size === 0) {
+          return false;
+        }
       }
     }
 

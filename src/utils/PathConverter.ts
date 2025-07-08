@@ -485,8 +485,8 @@ export function convertPathForDisplay(
 }
 
 /**
- * Converts ArrayPatternPath to NumericPath by replacing [] with [0] for navigation
- * Example: "requests[].params[].items[]" -> "root.requests[0].params[0].items"
+ * Converts ArrayPatternPath to NumericPath by intelligently finding array elements that contain the nested structure
+ * Example: "requests[].params[].items[]" -> "root.requests[0].params[1].items" (if params[1] has items but params[0] doesn't)
  * Use case: Converting IdKeys panel array patterns to navigable paths
  */
 export function convertArrayPatternToNumericPath(
@@ -495,67 +495,128 @@ export function convertArrayPatternToNumericPath(
 ): NumericPath {
   console.log(`[PathConverter] 🔍 Converting ArrayPattern: "${arrayPattern}"`);
   
+  if (!context.jsonData) {
+    throw new Error('JSON data is required for ArrayPattern conversion');
+  }
+  
   let targetPath = arrayPattern as string;
   
-  // Replace all [] with [0] to navigate through nested arrays  
-  const navigablePath = targetPath.replace(/\[\]/g, '[0]');
+  // Parse the path to identify array patterns and their positions
+  const segments = parsePathSegments(targetPath);
+  const resolvedSegments: string[] = [];
+  let currentData = context.jsonData;
+  
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    
+    if (segment === '[]') {
+      // This is an array pattern - find the first array element that contains the remaining path
+      if (!Array.isArray(currentData)) {
+        throw new Error(`Expected array at path segment but found: ${typeof currentData}`);
+      }
+      
+      const remainingSegments = segments.slice(i + 1);
+      const foundIndex = findValidArrayIndex(currentData, remainingSegments);
+      
+      if (foundIndex === -1) {
+        // If no valid path found, fall back to [0]
+        console.log(`[PathConverter] ⚠️  No valid array element found, falling back to [0]`);
+        resolvedSegments.push('[0]');
+        currentData = currentData[0];
+      } else {
+        console.log(`[PathConverter] ✅ Found valid array element at index ${foundIndex}`);
+        resolvedSegments.push(`[${foundIndex}]`);
+        currentData = currentData[foundIndex];
+      }
+    } else if (segment.startsWith('[') && segment.endsWith(']')) {
+      // Already resolved array index
+      resolvedSegments.push(segment);
+      const index = parseInt(segment.slice(1, -1), 10);
+      currentData = Array.isArray(currentData) ? currentData[index] : undefined;
+    } else {
+      // Property name
+      resolvedSegments.push(segment);
+      currentData = currentData?.[segment];
+    }
+  }
+  
+  // Join segments back into a path
+  let resolvedPath = '';
+  for (let i = 0; i < resolvedSegments.length; i++) {
+    const segment = resolvedSegments[i];
+    if (i === 0) {
+      resolvedPath = segment;
+    } else if (segment.startsWith('[')) {
+      resolvedPath += segment;
+    } else {
+      resolvedPath += '.' + segment;
+    }
+  }
   
   // For ArrayPatternPath ending with [], we want to navigate to the array container itself
-  // So we remove the final [0] to get the path to the array property
-  let containerPath = navigablePath;
-  if (containerPath.endsWith('[0]')) {
-    containerPath = containerPath.slice(0, -3);
+  // So we remove the final array index to get the path to the array property
+  if (arrayPattern.endsWith('[]') && resolvedPath.match(/\[\d+\]$/)) {
+    resolvedPath = resolvedPath.replace(/\[\d+\]$/, '');
   }
   
   // Add root prefix if missing
-  const fullPath = containerPath.startsWith('root.') ? containerPath : `root.${containerPath}`;
+  const fullPath = resolvedPath.startsWith('root.') ? resolvedPath : `root.${resolvedPath}`;
   
-  console.log(`[PathConverter] 🔍 ArrayPattern -> navigable path: "${fullPath}"`);
-  
-  // For navigation, we actually want to navigate to the array itself, not just validate the container
-  // Try both the container path and the path with [0] to find which exists
-  let pathToValidate = fullPath;
-  if (!validatePathInJsonData(pathToValidate, context.jsonData)) {
-    // If container doesn't exist, try with [0] appended
-    const pathWithIndex = pathToValidate + '[0]';
-    if (validatePathInJsonData(pathWithIndex, context.jsonData)) {
-      pathToValidate = pathWithIndex;
-    } else {
-      throw new Error(`ArrayPattern path does not exist in JSON data: "${fullPath}" or "${pathWithIndex}"`);
-    }
-  }
+  console.log(`[PathConverter] 🔍 ArrayPattern "${arrayPattern}" -> navigable path: "${fullPath}"`);
   
   return validateAndCreateNumericPath(fullPath, 'PathConverter.convertArrayPatternToNumericPath');
 }
 
 /**
- * Validates that a numeric path exists in the given JSON data
+ * Finds the first array element that contains a valid path for the remaining segments
  */
-function validatePathInJsonData(path: string, jsonData: any): boolean {
-  if (!jsonData) return false;
+function findValidArrayIndex(array: any[], remainingSegments: string[]): number {
+  if (remainingSegments.length === 0) {
+    return array.length > 0 ? 0 : -1;
+  }
   
-  try {
-    const pathWithoutRoot = path.startsWith('root.') ? path.substring(5) : path;
-    const segments = pathWithoutRoot.split(/([.\[])/);
-    let current = jsonData;
-    
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
-      if (segment === '.' || segment === '[') continue;
-      
-      if (segment.endsWith(']')) {
-        // Array access like "0]"
-        const index = parseInt(segment.slice(0, -1));
-        if (!Array.isArray(current) || index >= current.length) return false;
-        current = current[index];
-      } else if (segment) {
-        // Property access
-        if (!current || typeof current !== 'object' || !(segment in current)) return false;
-        current = current[segment];
+  for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    if (element && typeof element === 'object') {
+      if (validateRemainingPath(element, remainingSegments)) {
+        return i;
       }
     }
-    return true;
-  } catch {
-    return false;
   }
+  
+  return -1;
 }
+
+/**
+ * Validates that the remaining path segments exist in the current data
+ */
+function validateRemainingPath(data: any, segments: string[]): boolean {
+  let current = data;
+  
+  for (const segment of segments) {
+    if (segment === '[]') {
+      // For array patterns, just check if current is an array
+      if (!Array.isArray(current)) {
+        return false;
+      }
+      // For validation purposes, we don't need to go deeper into arrays
+      return true;
+    } else if (segment.startsWith('[') && segment.endsWith(']')) {
+      // Array index
+      const index = parseInt(segment.slice(1, -1), 10);
+      if (!Array.isArray(current) || index >= current.length) {
+        return false;
+      }
+      current = current[index];
+    } else {
+      // Property name
+      if (!current || typeof current !== 'object' || !(segment in current)) {
+        return false;
+      }
+      current = current[segment];
+    }
+  }
+  
+  return true;
+}
+
