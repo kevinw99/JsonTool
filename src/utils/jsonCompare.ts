@@ -234,20 +234,14 @@ function compareRecursively(
           type: "added",
           value2: obj2[key],
         });
-        // Skip recursive processing for arrays - no IDKey needed for added arrays
-        if (!Array.isArray(obj2[key])) {
-          compareRecursively(undefined, obj2[key], newPath, result, idKeysUsed);
-        }
+        // Don't recurse for added properties - the "added" diff covers the entire subtree
       } else if (!(key in obj2)) {
         result.push({
           idBasedPath: newPath,
           type: "removed",
           value1: obj1[key],
         });
-        // Skip recursive processing for arrays - no IDKey needed for removed arrays
-        if (!Array.isArray(obj1[key])) {
-          compareRecursively(obj1[key], undefined, newPath, result, idKeysUsed);
-        }
+        // Don't recurse for removed properties - the "removed" diff covers the entire subtree
       } else {
         compareRecursively(obj1[key], obj2[key], newPath, result, idKeysUsed);
       }

@@ -182,4 +182,34 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
       expect(actualPaths).toContain(expectedPath)
     })
   })
+
+  it('should not generate duplicate diffs for added properties', () => {
+    const json1 = {
+      existingProperty: 'value'
+    }
+
+    const json2 = {
+      existingProperty: 'value',
+      contributionsCalculatorSavingsSlidersResponse: {
+        key1: 'value1',
+        key2: 'value2',
+        key3: 'value3'
+      }
+    }
+
+    const result = jsonCompare(json1, json2)
+    
+    // Should only have one diff for the added property
+    const contributionDiffs = result.diffs.filter(diff => 
+      diff.idBasedPath === 'contributionsCalculatorSavingsSlidersResponse'
+    )
+    
+    expect(contributionDiffs).toHaveLength(1)
+    expect(contributionDiffs[0].type).toBe('added')
+    expect(contributionDiffs[0].value2).toEqual({
+      key1: 'value1',
+      key2: 'value2', 
+      key3: 'value3'
+    })
+  })
 })
