@@ -185,25 +185,26 @@ function compareRecursively(
     const arr1 = obj1 as any[];
     const arr2 = obj2 as any[];
 
-    // Only detect IDKeys when both arrays exist and have elements to compare
-    if (arr1.length > 0 && arr2.length > 0) {
-      const idKey = findIdKey(arr1, arr2);
-      if (idKey) {
-        // Store the idKey info
-        idKeysUsed.push({
-          arrayPath: path,
-          idKey: idKey,
-          isComposite: idKey.includes('+'),
-          arraySize1: arr1.length,
-          arraySize2: arr2.length
-        });
+    // Skip IDKey generation if one or both sides are empty
+    if (arr1.length === 0 || arr2.length === 0) {
+      compareArraysByIndex(arr1, arr2, path, result, idKeysUsed);
+      return;
+    }
 
-        compareArraysWithIdKey(arr1, arr2, idKey, path, result, idKeysUsed);
-      } else {
-        compareArraysByIndex(arr1, arr2, path, result, idKeysUsed);
-      }
+    // Only detect IDKeys when both arrays exist and have elements to compare
+    const idKey = findIdKey(arr1, arr2);
+    if (idKey) {
+      // Store the idKey info
+      idKeysUsed.push({
+        arrayPath: path,
+        idKey: idKey,
+        isComposite: idKey.includes('+'),
+        arraySize1: arr1.length,
+        arraySize2: arr2.length
+      });
+
+      compareArraysWithIdKey(arr1, arr2, idKey, path, result, idKeysUsed);
     } else {
-      // Use index-based comparison for empty arrays or when one side is empty
       compareArraysByIndex(arr1, arr2, path, result, idKeysUsed);
     }
   } else if (type1 === "object") {

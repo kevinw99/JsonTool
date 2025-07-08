@@ -515,7 +515,19 @@ function App() {
       // Generate diffs on the already-sorted data
       const finalComparisonResult: JsonCompareResult = jsonCompare(file1Result.sortedData, file2Result.sortedData);
       setDiffs(finalComparisonResult.diffs);
-      setIdKeysUsed(combinedIdKeys);
+      
+      // Filter combined IDKeys to only include arrays that exist in both files
+      const filteredIdKeys = combinedIdKeys.filter(idKey => {
+        // Check if this IDKey exists in both file results
+        const existsInFile1 = file1Result.idKeysUsed.some(f1Key => 
+          f1Key.arrayPath === idKey.arrayPath && f1Key.idKey === idKey.idKey);
+        const existsInFile2 = file2Result.idKeysUsed.some(f2Key => 
+          f2Key.arrayPath === idKey.arrayPath && f2Key.idKey === idKey.idKey);
+        return existsInFile1 && existsInFile2;
+      });
+      
+      console.log(`[IDKey Filter] Before: ${combinedIdKeys.length} IDKeys, After: ${filteredIdKeys.length} IDKeys`);
+      setIdKeysUsed(filteredIdKeys);
       
       // Store idKeysUsed globally for debug access
       if (typeof window !== 'undefined') {
