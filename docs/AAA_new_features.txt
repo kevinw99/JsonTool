@@ -286,3 +286,4 @@ IDKey only makes sense when both side have the nodes, so that we can compare the
 
 also I see codes assume [id=xxx] for testing IdbasedPath, but it could be [key=xxx] as well. can you do a
 comprehensive searhch and fix all those issues?
+here is an example: I click on this node, and it cause errors in log.

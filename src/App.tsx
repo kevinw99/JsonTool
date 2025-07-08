@@ -15,130 +15,9 @@ import { FileSelector } from './components/FileSelector'
 import { GlobalDropZone } from './components/GlobalDropZone'
 // ViewportTestButton removed - not used in this component
 import './components/JsonLayout.css'
-import type { JsonValue, JsonObject } from './components/JsonTreeView'
+import type { JsonValue } from './components/JsonTreeView'
 import { useJsonViewerSync } from './components/JsonViewerSyncContext'
 
-// Single-pass traversal that detects ID keys and sorts arrays immediately
-function traverseAndSortJson(data: JsonValue, currentPath: string = "", idKeysCollected: IdKeyInfo[] = []): { sortedData: JsonValue, idKeysUsed: IdKeyInfo[] } {
-  if (data === null) {
-    return { sortedData: data, idKeysUsed: idKeysCollected };
-  }
-  
-  if (Array.isArray(data)) {
-    // Detect the best ID key for this specific array
-    const candidateKeys = ['id', 'key', 'uuid', 'name', 'accountType', 'resolvedDisplayLabel', 'type'];
-    let detectedIdKey: string | null = null;
-    
-    for (const candidateKey of candidateKeys) {
-      let validCount = 0;
-      const seenValues = new Set<string>();
-      
-      for (const item of data) {
-        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-          const itemObj = item as JsonObject;
-          if (candidateKey in itemObj) {
-            const value = String(itemObj[candidateKey]);
-            if (value && !seenValues.has(value)) {
-              seenValues.add(value);
-              validCount++;
-            }
-          }
-        }
-      }
-      
-      // If most items have unique values for this key, use it
-      if (validCount >= Math.max(2, Math.floor(data.length * 0.8))) {
-        detectedIdKey = candidateKey;
-        break;
-      }
-    }
-    
-    // Sort the array immediately if we found an ID key
-    let arrayToProcess = data;
-    if (detectedIdKey) {
-      // Record this ID key detection
-      idKeysCollected.push({
-        arrayPath: currentPath,
-        idKey: detectedIdKey,
-        isComposite: false,
-        arraySize1: data.length,
-        arraySize2: data.length
-      });
-      
-      // Sort the array by the detected ID key
-      arrayToProcess = [...data].sort((a, b) => {
-        const aHasId = typeof a === 'object' && a !== null && !Array.isArray(a) && detectedIdKey in a;
-        const bHasId = typeof b === 'object' && b !== null && !Array.isArray(b) && detectedIdKey in b;
-        
-        if (aHasId && bHasId) {
-          const aId = String((a as JsonObject)[detectedIdKey]);
-          const bId = String((b as JsonObject)[detectedIdKey]);
-          return aId.localeCompare(bId);
-        }
-        
-        if (!aHasId && !bHasId) {
-          return JSON.stringify(a).localeCompare(JSON.stringify(b));
-        }
-        
-        return aHasId ? -1 : 1;
-      });
-      
-      // SPECIAL DEBUG: Print contributions arrays after sorting - only for specific path
-      if (currentPath.includes('boomerForecastV3Requests') && currentPath.includes('accountParams') && currentPath.includes('contributions')) {
-        console.log(`🔥 CONTRIBUTIONS_SORTED_DEBUG 🔥 Path: ${currentPath}`);
-        console.log('Original array length:', data.length);
-        console.log('Sorted array items:');
-        arrayToProcess.forEach((item, index) => {
-          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-            const itemObj = item as JsonObject;
-            const idValue = detectedIdKey ? itemObj[detectedIdKey] : 'NO_ID';
-            console.log(`  ${index}: ${detectedIdKey}=${idValue}`);
-          } else {
-            console.log(`  ${index}: ${typeof item} - ${JSON.stringify(item).substring(0, 100)}`);
-          }
-        });
-        console.log(`🔥 END CONTRIBUTIONS_SORTED_DEBUG 🔥`);
-      }
-    }
-    
-    // Recursively process array items (now sorted)
-    const processedArray: JsonValue[] = [];
-    for (let i = 0; i < arrayToProcess.length; i++) {
-      const item = arrayToProcess[i];
-      let itemPath: string;
-      
-      if (detectedIdKey && typeof item === 'object' && item !== null && !Array.isArray(item)) {
-        // Use ID-based path notation
-        const itemObj = item as JsonObject;
-        const idValue = itemObj[detectedIdKey];
-        itemPath = `${currentPath}[${detectedIdKey}=${idValue}]`;
-      } else {
-        // Use numeric index
-        itemPath = `${currentPath}[${i}]`;
-      }
-      
-      const result = traverseAndSortJson(item, itemPath, idKeysCollected);
-      processedArray.push(result.sortedData);
-    }
-    
-    return { sortedData: processedArray, idKeysUsed: idKeysCollected };
-    
-  } else if (typeof data === 'object' && data !== null) {
-    // Process object properties
-    const result: JsonObject = {};
-    
-    for (const [key, value] of Object.entries(data as JsonObject)) {
-      const propertyPath = currentPath ? `${currentPath}.${key}` : key;
-      const processResult = traverseAndSortJson(value, propertyPath, idKeysCollected);
-      result[key] = processResult.sortedData;
-    }
-    
-    return { sortedData: result, idKeysUsed: idKeysCollected };
-  }
-  
-  // Primitive values remain unchanged
-  return { sortedData: data, idKeysUsed: idKeysCollected };
-}
 
 interface FileData {
   content: JsonValue | string;
@@ -149,8 +28,6 @@ interface FileData {
 function App() {
   const [file1, setFile1] = useState<FileData | null>(null)
   const [file2, setFile2] = useState<FileData | null>(null)
-  const [sortedFile1Data, setSortedFile1Data] = useState<JsonValue | null>(null)
-  const [sortedFile2Data, setSortedFile2Data] = useState<JsonValue | null>(null)
   const [diffs, setDiffs] = useState<DiffResult[]>([])
   const [idKeysUsed, setIdKeysUsed] = useState<IdKeyInfo[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -500,45 +377,19 @@ function App() {
 
   useEffect(() => {
     if (file1 && file2 && !file1.isTextMode && !file2.isTextMode) {
-      // Single-pass: traverse and sort both JSON structures, collecting ID keys as we go
-      const file1Result = traverseAndSortJson(file1.content as JsonValue, "root");
-      const file2Result = traverseAndSortJson(file2.content as JsonValue, "root");
+      // Use jsonCompare to detect IDKeys and generate diffs
+      const comparisonResult: JsonCompareResult = jsonCompare(file1.content, file2.content);
+      setDiffs(comparisonResult.diffs);
       
-      // Combine ID keys from both files (merge and deduplicate)
-      const combinedIdKeys = [...file1Result.idKeysUsed];
-      file2Result.idKeysUsed.forEach(idKey2 => {
-        if (!combinedIdKeys.find(idKey1 => idKey1.arrayPath === idKey2.arrayPath && idKey1.idKey === idKey2.idKey)) {
-          combinedIdKeys.push(idKey2);
-        }
-      });
-      
-      // Generate diffs on the already-sorted data
-      const finalComparisonResult: JsonCompareResult = jsonCompare(file1Result.sortedData, file2Result.sortedData);
-      setDiffs(finalComparisonResult.diffs);
-      
-      // Filter combined IDKeys to only include arrays that exist in both files
-      const filteredIdKeys = combinedIdKeys.filter(idKey => {
-        // Check if this IDKey exists in both file results
-        const existsInFile1 = file1Result.idKeysUsed.some(f1Key => 
-          f1Key.arrayPath === idKey.arrayPath && f1Key.idKey === idKey.idKey);
-        const existsInFile2 = file2Result.idKeysUsed.some(f2Key => 
-          f2Key.arrayPath === idKey.arrayPath && f2Key.idKey === idKey.idKey);
-        return existsInFile1 && existsInFile2;
-      });
-      
-      console.log(`[IDKey Filter] Before: ${combinedIdKeys.length} IDKeys, After: ${filteredIdKeys.length} IDKeys`);
-      setIdKeysUsed(filteredIdKeys);
+      // Use all IDKeys generated by jsonCompare since it already filters out arrays that don't exist on both sides
+      setIdKeysUsed(comparisonResult.idKeysUsed);
       
       // Store idKeysUsed globally for debug access
       if (typeof window !== 'undefined') {
-        (window as any).currentIdKeysUsed = combinedIdKeys;
-        (window as any).file1IdKeys = file1Result.idKeysUsed;
-        (window as any).file2IdKeys = file2Result.idKeysUsed;
+        (window as any).currentIdKeysUsed = comparisonResult.idKeysUsed;
+        (window as any).currentDiffs = comparisonResult.diffs;
       }
       
-      // Store sorted data separately to avoid infinite loop
-      setSortedFile1Data(file1Result.sortedData);
-      setSortedFile2Data(file2Result.sortedData);
     } else {
       // Clear diffs and idKeys if either file is in text mode
       setDiffs([]);
@@ -1022,7 +873,7 @@ function App() {
                           />
                         ) : (
                           <JsonTreeView
-                            data={(sortedFile1Data || file1.content) as JsonValue}
+                            data={file1.content as JsonValue}
                             viewerId="left"
                             jsonSide='left'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
@@ -1067,7 +918,7 @@ function App() {
                           />
                         ) : (
                           <JsonTreeView
-                            data={(sortedFile2Data || file2.content) as JsonValue}
+                            data={file2.content as JsonValue}
                             viewerId="right"
                             jsonSide='right'
                             idKeySetting={getPrimaryIdKey(idKeysUsed)}
@@ -1118,8 +969,8 @@ function App() {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   jsonData={{ 
-                    left: sortedFile1Data || file1.content, 
-                    right: sortedFile2Data || file2.content 
+                    left: file1.content, 
+                    right: file2.content 
                   }}
                 />
               )}
@@ -1312,7 +1163,7 @@ function App() {
         initialShowDiffsOnly={false}
         initialSyncEnabled={syncScroll} 
         diffResults={diffs}
-        jsonData={{ left: sortedFile1Data || file1?.content, right: sortedFile2Data || file2?.content }}
+        jsonData={{ left: file1?.content, right: file2?.content }}
         idKeysUsed={idKeysUsed}
       >
         <div className="App">

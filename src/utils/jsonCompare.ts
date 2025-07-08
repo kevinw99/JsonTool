@@ -200,8 +200,8 @@ function compareRecursively(
       if (arrayPatternPath.startsWith('root.')) {
         arrayPatternPath = arrayPatternPath.substring(5);
       }
-      // Replace all [index] with [] and add final [] to represent this array
-      arrayPatternPath = arrayPatternPath.replace(/\[\d+\]/g, '[]') + '[]';
+      // Replace all [index] and [id=value] with [] and add final [] to represent this array
+      arrayPatternPath = arrayPatternPath.replace(/\[[^\]]+\]/g, '[]') + '[]';
       
       idKeysUsed.push({
         arrayPath: arrayPatternPath,
@@ -389,8 +389,8 @@ export function detectIdKeysInSingleJson(data: any, basePath: string = ""): IdKe
         if (arrayPatternPath.startsWith('root.')) {
           arrayPatternPath = arrayPatternPath.substring(5);
         }
-        // Replace all [index] with [] and add final [] to represent this array
-        arrayPatternPath = arrayPatternPath.replace(/\[\d+\]/g, '[]') + '[]';
+        // Replace all [index] and [id=value] with [] and add final [] to represent this array
+        arrayPatternPath = arrayPatternPath.replace(/\[[^\]]+\]/g, '[]') + '[]';
         
         idKeys.push({
           arrayPath: arrayPatternPath,

@@ -1,0 +1,28 @@
+{
+  "id": 104,
+  "request": "generate correct ArrayPatternPath format at source\n\n- Fixed jsonCompare.ts to generate ArrayPatternPath with proper [] format\n- Removed forced [] addition in IdKeysPanel consolidation logic\n- Updated PathConverter to handle ArrayPatternPath validation correctly\n- Fixed test data to match expected ArrayPatternPath format\n- Ensured ArrayPatternPath ends with [] as intended by user requirements\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, ID keys)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-08T04:59:01.408Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}
