@@ -4,8 +4,11 @@ import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
 import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerPath, ViewerId, NumericPath } from '../utils/PathTypes';
-import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath, queryElementByViewerPath, getAllElementsForViewer } from '../utils/PathTypes';
-import { resolveIdBasedPathToNumeric } from '../utils/pathResolution'; 
+import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath,
+  getAllElementsForViewer, extractGenericPath, viewerPathToGenericWithoutRoot } from '../utils/PathTypes';
+import { resolveIdBasedPathToNumeric } from '../utils/pathResolution';
+import { ScrollService } from '../services/ScrollService';
+import { ScrollError } from '../services/ScrollError'; 
 
 export interface JsonViewerSyncContextProps { // Exporting the interface
   viewMode: 'text' | 'tree';
@@ -30,7 +33,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   updateIgnoredPattern: (id: string, newPattern: string) => void;
   isPathIgnoredByPattern: (path: IdBasedPath) => boolean;
   goToDiff: (diffPath: IdBasedPath) => void; // Diff paths can be either numeric or ID-based
-  goToDiffWithPaths: (leftPath: NumericPath, rightPath: NumericPath, highlightLeft?: boolean, highlightRight?: boolean) => void; // Navigate with separate paths for each viewer
+  goToDiffWithPaths: (leftViewerPath: ViewerPath, rightViewerPath: ViewerPath, highlightLeft?: boolean, highlightRight?: boolean) => void; // Navigate with ViewerPaths for each viewer
   highlightPath: NumericPath | null; // Highlighting uses numeric paths
   setHighlightPath: (path: NumericPath | null | ((prevState: NumericPath | null) => NumericPath | null)) => void;
   persistentHighlightPaths: Set<ViewerPath>; // Viewer-specific highlighting using ViewerPath
@@ -46,8 +49,7 @@ export interface JsonViewerSyncContextProps { // Exporting the interface
   toggleArraySorting: (arrayPath: NumericPath) => void;
   syncToCounterpart: (nodePath: IdBasedPath, viewerId: ViewerId) => void; // Receives ID-based paths from JsonTreeView
   // Manual sync control functions
-  disableSyncScrolling: () => void;
-  enableSyncScrolling: () => void;
+  // Sync control moved to ScrollService
   // Test function for viewport debugging
   testViewportDetection: () => void;
   // PathConverter context data
@@ -429,42 +431,29 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
     }, []);
 
-    // Helper function to disable sync scrolling
-    const disableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-tree-content"]');
-      syncContainers.forEach(container => {
-        container.classList.add('temp-disable-sync');
-      });
-      return syncContainers;
-    }, []);
+    // Sync control is now handled by ScrollService
 
-    // Helper function to re-enable sync scrolling
-    const enableSyncScrolling = useCallback(() => {
-      const syncContainers = document.querySelectorAll('[data-sync-group="json-tree-content"]');
-      syncContainers.forEach(container => {
-        container.classList.remove('temp-disable-sync');
-      });
-    }, []);
+    const goToDiffWithPaths = useCallback((leftViewerPath: ViewerPath, rightViewerPath: ViewerPath, highlightLeft: boolean = true, highlightRight: boolean = true) => {
+      // Extract generic paths from ViewerPaths for highlighting and expansion
+      const leftGenericPath = extractGenericPath(leftViewerPath);
+      const rightGenericPath = extractGenericPath(rightViewerPath);
 
-    const goToDiffWithPaths = useCallback((leftPath: string, rightPath: string, highlightLeft: boolean = true, highlightRight: boolean = true) => {
-      // Ensure paths have root prefix
-      const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
-      const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
-      
+      viewerPathToGenericWithoutRoot
       // Clear existing highlights before setting new ones
       setHighlightPathState(null);
       setPersistentHighlightPaths(new Set<ViewerPath>());
       
       setTimeout(() => {
-        setHighlightPathState(validateAndCreateNumericPath(leftPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths'));
+        // Set highlight to the left path (highlighting uses NumericPath)
+        setHighlightPathState(validateAndCreateNumericPath(leftGenericPath, 'JsonViewerSyncContext.goToDiffWithPaths'));
         
         // Set viewer-specific persistent highlights only for requested viewers
         const highlightPaths = new Set<ViewerPath>();
         if (highlightLeft) {
-          highlightPaths.add(createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.left')));
+          highlightPaths.add(leftViewerPath);
         }
         if (highlightRight) {
-          highlightPaths.add(createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'JsonViewerSyncContext.goToDiffWithPaths.right')));
+          highlightPaths.add(rightViewerPath);
         }
         setPersistentHighlightPaths(highlightPaths);
         
@@ -494,70 +483,59 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
           };
           
           // Add expansion paths for both viewers
-          addExpansionPaths('left', leftPathWithRoot);
-          addExpansionPaths('right', rightPathWithRoot);
+          addExpansionPaths('left', leftGenericPath);
+          addExpansionPaths('right', rightGenericPath);
           
           return newExpandedPaths;
         });
         
-        // Scroll to both target elements
-        setTimeout(() => {
-          console.log('[goToDiff] 🔍 Searching for elements with paths:');
-          console.log('[goToDiff] 🔍 leftPathWithRoot:', leftPathWithRoot);
-          console.log('[goToDiff] 🔍 rightPathWithRoot:', rightPathWithRoot);
-          
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot));
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot));
-          const leftElement = queryElementByViewerPath(leftViewerPath);
-          const rightElement = queryElementByViewerPath(rightViewerPath);
-          
-          console.log('[goToDiff] 🔍 Found elements:');
-          console.log('[goToDiff] 🔍 leftElement:', leftElement ? 'FOUND' : 'NOT FOUND');
-          console.log('[goToDiff] 🔍 rightElement:', rightElement ? 'FOUND' : 'NOT FOUND');
-          
-          // Temporarily disable sync to prevent interference during programmatic scrolling
-          disableSyncScrolling();
-          
-          // Wait a moment for the disable to take effect
-          setTimeout(() => {
-          
-          // Helper function to scroll element into view
-          const scrollElementIntoView = (element: Element, viewerName: string) => {
-            const container = element.closest('.json-tree-content');
-            if (!container) {
-              console.warn(`[goToDiff] ${viewerName}: Could not find .json-tree-content container`);
+        // Wait for expansion to complete, then navigate with fail-fast
+        setTimeout(async () => {
+          try {
+            // First, verify elements exist after expansion using the ViewerPaths directly
+            const leftElement = document.querySelector(`[data-path="${leftViewerPath}"]`);
+            const rightElement = document.querySelector(`[data-path="${rightViewerPath}"]`);
+            
+            if (!leftElement && !rightElement) {
+              console.error(`[goToDiff] ❌ Elements not found after expansion:
+                Looking for ViewerPath elements:
+                Left: [data-path="${leftViewerPath}"] - ${leftElement ? 'FOUND' : 'NOT FOUND'}
+                Right: [data-path="${rightViewerPath}"] - ${rightElement ? 'FOUND' : 'NOT FOUND'}
+                
+                This indicates the expansion logic failed or the path doesn't exist in the data.`);
               return;
             }
-
-            const rect = element.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const scrollTop = Math.max(0, container.scrollTop + rect.top - containerRect.top - containerRect.height / 2);
             
-            console.log(`[goToDiff] ${viewerName} scroll:`, {
-              currentScrollTop: container.scrollTop,
-              targetScrollTop: scrollTop,
-              elementPath: element.getAttribute('data-path')
+            // Determine which viewers to scroll to based on found elements
+            let viewer: 'left' | 'right' | 'both' = 'both';
+            if (leftElement && !rightElement) viewer = 'left';
+            else if (!leftElement && rightElement) viewer = 'right';
+//             const leftGenericPathWORoot = viewerPathToGenericWithoutRoot(leftViewerPath);
+//             const rightGenericPathWORoot = viewerPathToGenericWithoutRoot(rightViewerPath);
+            console.log('[goToDiff] ✅ ScrollService.navigate() , target: ', leftGenericPath);
+
+            // Navigate using unified ScrollService (fail-fast)
+            await ScrollService.navigate({
+              type: 'path',
+              target: leftGenericPath, // Use generic path without root, ScrollService will convert to ViewerPath
+              viewer,
+              highlight: true,
+              scrollBehavior: 'smooth',
+              alignment: 'center'
             });
             
-            container.scrollTop = scrollTop;
-          };
-
-          // Scroll both viewers
-          if (leftElement) {
-            scrollElementIntoView(leftElement, 'LEFT');
+            console.log('[goToDiff] ✅ Navigation completed via ScrollService');
+          } catch (error) {
+            if (error instanceof ScrollError) {
+              console.error('[goToDiff] ❌ Navigation failed (fail-fast):', error.getDetailedReport());
+              console.error('[goToDiff] 🔍 Debug info: Check if parent containers were properly expanded');
+            } else {
+              console.error('[goToDiff] ❌ Unexpected navigation error:', error);
+            }
           }
-          if (rightElement) {
-            scrollElementIntoView(rightElement, 'RIGHT');
-          }
-          
-            // Re-enable sync after scrolling is complete
-            setTimeout(() => {
-              enableSyncScrolling();
-            }, 100);
-          }, 50); // Small delay to let disable take effect
-        }, 1200);
+        }, 200); // Wait for DOM expansion to complete
       }, 50);
-    }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState, disableSyncScrolling, enableSyncScrolling]);
+    }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState]);
 
     const goToDiff = useCallback((pathToExpand: string) => {
       // Check if this is an ID-based path using PathTypes utility
@@ -573,21 +551,29 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         
         if (result.leftPath && result.rightPath) {
           // Path exists in both viewers - highlight both
-          goToDiffWithPaths(result.leftPath, result.rightPath, true, true);
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftPath'));
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightPath'));
+          goToDiffWithPaths(leftViewerPath, rightViewerPath, true, true);
           return;
         } else if (result.leftPath) {
           // Only exists in left viewer - highlight only left
-          goToDiffWithPaths(result.leftPath, result.leftPath, true, false);
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftOnly'));
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftOnly')); // Use same path for right viewer but don't highlight it
+          goToDiffWithPaths(leftViewerPath, rightViewerPath, true, false);
           return;
         } else if (result.rightPath) {
           // Only exists in right viewer - highlight only right
-          goToDiffWithPaths(result.rightPath, result.rightPath, false, true);
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightOnly')); // Use same path for left viewer but don't highlight it
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightOnly'));
+          goToDiffWithPaths(leftViewerPath, rightViewerPath, false, true);
           return;
         }
       }
       
       // For non-ID paths (already numeric), navigate to same path in both viewers
-      goToDiffWithPaths(pathToExpand, pathToExpand);
+      const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(pathToExpand, 'goToDiff.numeric'));
+      const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(pathToExpand, 'goToDiff.numeric'));
+      goToDiffWithPaths(leftViewerPath, rightViewerPath);
     }, [jsonData, idKeysUsed, goToDiffWithPaths]);
 
     const toggleShowDiffsOnly = useCallback(() => {
@@ -816,9 +802,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         forceSortedArrays,
         toggleArraySorting,
         syncToCounterpart,
-        // Manual sync control functions
-        disableSyncScrolling,
-        enableSyncScrolling,
+        // Manual sync control functions moved to ScrollService
         // Test function
         testViewportDetection,
         // PathConverter context data
@@ -857,8 +841,6 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         forceSortedArrays,
         toggleArraySorting,
         syncToCounterpart,
-        disableSyncScrolling,
-        enableSyncScrolling,
         testViewportDetection,
         effectiveIgnoredDiffs,
         jsonData,

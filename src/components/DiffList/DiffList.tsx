@@ -81,8 +81,15 @@ export const DiffList: React.FC<DiffListProps> = ({
           console.log('[DiffList] 🎯 LEFT path (left):', leftPath);
           console.log('[DiffList] 🎯 RIGHT path (right):', rightPath);
           
-          // Use the new dual-path navigation function
-          goToDiffWithPaths(validateAndCreateNumericPath(leftPath, 'DiffList.handleGoToDiff.left'), validateAndCreateNumericPath(rightPath, 'DiffList.handleGoToDiff.right'));
+          // Create ViewerPaths for navigation
+          const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
+          const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
+          
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.left'));
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.right'));
+          
+          // Use the new dual-path navigation function with ViewerPaths
+          goToDiffWithPaths(leftViewerPath, rightViewerPath);
           
         } else {
           console.log('[DiffList] ❌ PathConverter could not resolve paths - falling back to ID-based path');

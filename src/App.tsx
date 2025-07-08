@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { jsonCompare, detectIdKeysInSingleJson } from './utils/jsonCompare'
 import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompare'
@@ -6,6 +6,7 @@ import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
 import { ViewControls } from './components/ViewControls'
+import { ScrollService } from './services/ScrollService'
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
 import { ResizableDivider } from './components/ResizableDivider/ResizableDivider'
 import { FileDropZone } from './components/FileDropZone'
@@ -928,85 +929,26 @@ function App() {
   };
 
   // Smart sync alignment when re-enabling sync
-  const performSmartSyncAlignment = () => {
+  const performSmartSyncAlignment = async () => {
     console.log('[App] 🎯 Starting smart sync alignment');
     
-    // Step 1: Find highlighted/visible node in center of LEFT viewer
-    const leftViewer = document.querySelector('[data-sync-group="json-viewers"]');
-    if (!leftViewer) {
-      console.log('[App] ❌ Left viewer not found');
-      setSyncScroll(true); // Just enable sync without alignment
-      return;
-    }
-    
-    // Find highlighted node or node near center of left viewer
-    const leftRect = leftViewer.getBoundingClientRect();
-    const leftCenterY = leftRect.top + leftRect.height / 2;
-    
-    // Look for highlighted nodes first, then fallback to center node
-    let targetNode = leftViewer.querySelector('.highlighted-node, .persistent-highlight');
-    
-    if (!targetNode) {
-      // Fallback: Find node closest to center of left viewer
-      const allNodes = leftViewer.querySelectorAll('[data-path]');
-      let closestNode = null;
-      let closestDistance = Infinity;
-      
-      allNodes.forEach(node => {
-        const nodeRect = node.getBoundingClientRect();
-        const distance = Math.abs(nodeRect.top + nodeRect.height / 2 - leftCenterY);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestNode = node;
-        }
+    try {
+      // Use ScrollService for alignment
+      await ScrollService.navigate({
+        type: 'alignment',
+        scrollBehavior: 'smooth',
+        alignment: 'center'
       });
       
-      targetNode = closestNode;
-    }
-    
-    if (!targetNode) {
-      console.log('[App] ❌ No target node found in left viewer');
-      setSyncScroll(true); // Just enable sync without alignment
-      return;
-    }
-    
-    const nodePath = targetNode.getAttribute('data-path');
-    console.log('[App] 🎯 Found target node path:', nodePath);
-    
-    // Step 2: Find corresponding node in RIGHT viewer
-    const rightViewer = document.querySelectorAll('[data-sync-group="json-viewers"]')[1];
-    if (!rightViewer) {
-      console.log('[App] ❌ Right viewer not found');
-      setSyncScroll(true); // Just enable sync without alignment
-      return;
-    }
-    
-    const correspondingNode = rightViewer.querySelector(`[data-path="${nodePath}"]`);
-    if (!correspondingNode) {
-      console.log('[App] ❌ Corresponding node not found in right viewer');
-      setSyncScroll(true); // Just enable sync without alignment
-      return;
-    }
-    
-    // Step 3: Scroll RIGHT viewer to align with LEFT
-    const rightRect = rightViewer.getBoundingClientRect();
-    const rightCenterY = rightRect.top + rightRect.height / 2;
-    const correspondingRect = correspondingNode.getBoundingClientRect();
-    
-    const targetScrollTop = rightViewer.scrollTop + (correspondingRect.top + correspondingRect.height / 2 - rightCenterY);
-    
-    console.log('[App] 📏 Aligning right viewer - scrollTop:', targetScrollTop);
-    
-    rightViewer.scrollTo({
-      top: targetScrollTop,
-      behavior: 'smooth'
-    });
-    
-    // Step 4: Enable sync after alignment completes
-    setTimeout(() => {
-      console.log('[App] ✅ Smart alignment complete - enabling sync');
+      // Enable sync after alignment
       setSyncScroll(true);
-    }, 500); // Wait for smooth scroll to complete
+      console.log('[App] ✅ Smart alignment completed via ScrollService');
+      
+    } catch (error) {
+      console.error('[App] ❌ Smart alignment failed:', error);
+      // Fallback - just enable sync without alignment
+      setSyncScroll(true);
+    }
   };
 
   // Inner component to access context

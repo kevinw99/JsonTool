@@ -1471,6 +1471,86 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Status**: 🚧 In Progress  
 
 
+### Request #96 - 🎨 UI/UX
+**Date**: 2025-07-07  
+**Request**: "manual CSS update and sample file updates (JSON tree navigation)"  
+**Commit**: [`903f826`](https://github.com/user/repo/commit/903f826)  
+**Files**: CHAT_LOG.md, docs/AAA_new_features.txt, public/sample1.json...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #97 - 🐛 Bug Fix
+**Date**: 2025-07-07  
+**Request**: "implement viewer-prefixed data-path attributes for robust element identification
+
+- Replace generic data-path with ViewerPath format (e.g., "left_root.array[0]" vs "root.array[0]")
+- Add DOM query helpers: queryElementByViewerPath, getViewerPathFromElement, getAllElementsForViewer
+- Update all querySelector calls to use type-safe ViewerPath creation and converters
+- Remove data-original-path attribute (no longer needed)
+- Update test files to handle viewer-prefixed selectors
+- Fix TypeScript type issues with IdBasedPath and NumericPath conversions
+
+This eliminates cross-viewer element collisions and makes DOM queries unambiguous.
+Previously querySelector('[data-path="root.array[0]"]') could return elements from
+either viewer - now each viewer has uniquely prefixed paths.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation)"  
+**Commit**: [`5963940`](https://github.com/user/repo/commit/5963940)  
+**Files**: src/components/JsonTreeView.tsx, src/components/JsonViewerSyncContext.tsx, src/test/debug-goToDiff.test.tsx...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #98 - 🧭 Navigation
+**Date**: 2025-07-07  
+**Request**: "manual- remove backup files (JSON tree navigation, styling)"  
+**Commit**: [`7ec382e`](https://github.com/user/repo/commit/7ec382e)  
+**Files**: backup/DiffFilteredJsonView.tsx, backup/FilteredJsonViewer.css, backup/FilteredJsonViewer.tsx...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #99 - 🚨 Critical Bug
+**Date**: 2025-07-07  
+**Request**: "eliminate nested scrollable containers for robust scroll synchronization
+
+## Problem
+- Scroll synchronization was not working due to nested scrollable containers
+- Outer SyncScroll wrapper and inner .json-tree-content both had overflow:auto
+- Users scrolled inner container but sync listened to outer container
+
+## Solution
+- Move SyncScroll inside JsonTreeView to wrap only actual scrollable content
+- Eliminate outer SyncScroll wrappers from App.tsx
+- Change sync group from "json-viewers" to "json-tree-content"
+- Keep breadcrumb as fixed header outside scrollable area
+
+## Architecture Changes
+- Before: SyncScroll (outer) <- listening / .json-tree-content <- scrolling
+- After: Breadcrumb (fixed) / SyncScroll (.json-tree-content) <- both
+
+## Key Benefits
+- Single scrollable container per viewer eliminates conflicts
+- Direct targeting matches user interaction with synchronization
+- Consistent with previous .json-tree-content targeting fixes
+- Clean separation of fixed UI vs scrollable content
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, main app)"  
+**Commit**: [`3932d75`](https://github.com/user/repo/commit/3932d75)  
+**Files**: src/App.tsx, src/components/JsonTreeView.tsx, src/components/JsonViewerSyncContext.tsx  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

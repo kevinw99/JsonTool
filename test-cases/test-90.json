@@ -1,9 +1,9 @@
 {
   "id": 90,
-  "request": "clean up CSS organization and implement human-readable color names\n\n## CSS Improvements\n- Reorganized JsonTreeView.css into logical sections with clear headers\n- Replaced hex colors with human-readable CSS color names in variables\n- Consolidated all diff highlighting into single source of truth\n- Removed redundant rules and \\!important declarations\n- Added proper CSS variable organization for maintainability\n\n## Color System Changes\n- lightblue/blue for parent diff highlighting\n- limegreen/darkgreen for added nodes\n- mistyrose/crimson for deleted nodes\n- lightyellow/orange for changed values\n- Preserved original hex values as comments for reference\n\n## Structure Improvements\n- Clear section organization with comment headers\n- Single location for all diff type definitions (A, B, C)\n- Improved CSS specificity without overuse of \\!important\n- Better browser compatibility and responsive design sections\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, ID keys, styling, main app)",
-  "category": "Feature",
+  "request": "implement viewport-aware breadcrumb system and enhance tree view\n\n- Add JsonPathBreadcrumb component with multi-line tree-like display\n- Implement line numbers gutter with scroll synchronization\n- Add simplified breadcrumb showing object properties without indices\n- Restore sophisticated CSS structure with organized sections\n- Comment out parent diff background colors for cleaner display\n- Fix import references to use correct jsonCompare.ts interface\n- Update container layout to support breadcrumb integration\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)",
+  "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-06T20:05:55.539Z",
+  "created": "2025-07-07T02:05:47.554Z",
   "testSteps": [
     "1. Load sample JSON files (sample1.json, sample2.json)",
     "2. Wait for differences to be calculated",
@@ -12,7 +12,7 @@
     "5. Verify navigation to correct JSON node",
     "6. Verify node is expanded and highlighted"
   ],
-  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
     "primaryFiles": [
       "sample1.json",
@@ -24,5 +24,5 @@
     ],
     "description": "Use sample files to test JSON comparison and navigation features"
   },
-  "verificationCommand": "npm run dev # Then manually test across different screen sizes"
+  "verificationCommand": "npm run test && npm run test:e2e"
 }

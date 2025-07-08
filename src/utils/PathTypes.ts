@@ -364,6 +364,15 @@ export function viewerPathToGeneric(viewerPath: ViewerPath): NumericPath {
 }
 
 /**
+ * Extract generic path without root prefix from ViewerPath
+ * Example: "left_root.boomerForecastV3Requests[0]..." → "boomerForecastV3Requests[0]..."
+ */
+export function viewerPathToGenericWithoutRoot(viewerPath: ViewerPath): string {
+  const withRoot = extractGenericPath(viewerPath); // "root.boomerForecastV3Requests[0]..."
+  return withRoot.startsWith('root.') ? withRoot.substring(5) : withRoot;
+}
+
+/**
  * Validate and create viewer path from potentially unsafe string
  */
 export function validateViewerPath(path: string, source: string = 'unknown'): ViewerPath {

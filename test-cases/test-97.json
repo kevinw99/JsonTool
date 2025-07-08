@@ -1,20 +1,28 @@
 {
   "id": 97,
-  "request": "correct test array indices for randomized data structure\n\nFixed all failing tests by updating array index expectations to match the actual randomized test data:\n\n**Data Structure**:\n- Left Panel: pre[0], extra[1], catchup[2]\n- Right Panel: pre[0], catchup[1], after[2]\n\n**Tests Fixed**:\n- NewHighlightingProcessor.test.ts: Updated contribution array indices and diff expectations\n- pathResolution.test.ts: Fixed syncToCounterpart functionality tests with correct array indices\n\n**Results**: All 99 tests now passing (3 test files passed)\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "request": "implement viewer-prefixed data-path attributes for robust element identification\n\n- Replace generic data-path with ViewerPath format (e.g., \"left_root.array[0]\" vs \"root.array[0]\")\n- Add DOM query helpers: queryElementByViewerPath, getViewerPathFromElement, getAllElementsForViewer\n- Update all querySelector calls to use type-safe ViewerPath creation and converters\n- Remove data-original-path attribute (no longer needed)\n- Update test files to handle viewer-prefixed selectors\n- Fix TypeScript type issues with IdBasedPath and NumericPath conversions\n\nThis eliminates cross-viewer element collisions and makes DOM queries unambiguous.\nPreviously querySelector('[data-path=\"root.array[0]\"]') could return elements from\neither viewer - now each viewer has uniquely prefixed paths.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation)",
   "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-07T00:27:47.513Z",
+  "created": "2025-07-07T21:13:18.465Z",
   "testSteps": [
-    "1. Reproduce the bug using the provided steps",
-    "2. Verify the issue exists before the fix",
-    "3. Apply the fix",
-    "4. Test the specific scenario that was broken",
-    "5. Test related functionality to ensure no regressions",
-    "6. Verify edge cases work correctly"
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
   ],
   "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
   "sampleData": {
-    "description": "Use existing application state and sample data for testing"
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
   },
   "verificationCommand": "npm run test && npm run test:e2e"
 }

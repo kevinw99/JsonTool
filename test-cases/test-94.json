@@ -1,18 +1,18 @@
 {
   "id": 94,
-  "request": "move test data to external files and enhance test scenarios\n\n- Add new test entry `45626988::2_prtcpnt-extra_0` to left panel for node removal testing\n- Randomize contributions array order in both test files to test ID key sorting behavior\n- Refactor all utils tests to load data from external JSON files instead of hardcoded data\n- Update NewHighlightingProcessor.test.ts to use external highlighting-test files\n- Update pathResolution.test.ts to use external highlighting-test files\n- Update PathConverter.test.ts to use external highlighting-test files\n\nTechnical improvements:\n- Tests now validate real sorting behavior with out-of-order array elements\n- Enhanced test coverage for node addition/removal scenarios\n- Eliminated hardcoded JSON data duplication across test files\n- Single source of truth for test data in external files\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
-  "category": "Feature",
-  "priority": "high",
-  "created": "2025-07-06T23:36:58.678Z",
+  "request": "resolve synchronize scrolling issues with clean SyncScroll implementation\n\n## Problem\n- Synchronize scrolling was not working between left and right JSON viewers\n- Complex custom sync implementation was causing conflicts and failures\n- goToDiff navigation could expand nodes but wouldn't scroll to target elements\n\n## Solution\n- Replaced complex custom sync handler with clean SyncScroll component\n- Fixed goToDiff to target correct scrollable containers (.json-tree-content)\n- Added proper CSS class names for scroll container identification\n- Implemented temporary sync disabling during programmatic scrolling\n- Refactored duplicate scroll logic into reusable helper function\n\n## Key Changes\n- App.tsx: Replaced custom sync implementation with SyncScroll components\n- SyncScroll.tsx: Cleaned up debug logging, simplified scroll handling\n- JsonViewerSyncContext.tsx: Fixed container targeting and refactored scroll logic\n- Added comprehensive test cases for goToDiff functionality\n\n## Technical Details\n- Uses .json-tree-content as the actual scrollable container\n- Temporary sync disabling prevents interference during programmatic navigation\n- Proper dependency ordering fixes initialization issues\n- Clean separation of concerns between sync and navigation logic\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (main app)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-07T19:48:07.502Z",
   "testSteps": [
-    "1. Load the application",
-    "2. Navigate to the relevant feature area",
-    "3. Perform the requested action/change",
-    "4. Verify expected behavior",
-    "5. Test edge cases and error conditions",
-    "6. Verify no existing functionality is broken"
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
   ],
-  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
   "sampleData": {
     "primaryFiles": [
       "sample1.json",

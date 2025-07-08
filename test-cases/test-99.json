@@ -1,0 +1,28 @@
+{
+  "id": 99,
+  "request": "eliminate nested scrollable containers for robust scroll synchronization\n\n## Problem\n- Scroll synchronization was not working due to nested scrollable containers\n- Outer SyncScroll wrapper and inner .json-tree-content both had overflow:auto\n- Users scrolled inner container but sync listened to outer container\n\n## Solution\n- Move SyncScroll inside JsonTreeView to wrap only actual scrollable content\n- Eliminate outer SyncScroll wrappers from App.tsx\n- Change sync group from \"json-viewers\" to \"json-tree-content\"\n- Keep breadcrumb as fixed header outside scrollable area\n\n## Architecture Changes\n- Before: SyncScroll (outer) <- listening / .json-tree-content <- scrolling\n- After: Breadcrumb (fixed) / SyncScroll (.json-tree-content) <- both\n\n## Key Benefits\n- Single scrollable container per viewer eliminates conflicts\n- Direct targeting matches user interaction with synchronization\n- Consistent with previous .json-tree-content targeting fixes\n- Clean separation of fixed UI vs scrollable content\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, main app)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-07T22:19:22.434Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually test across different screen sizes"
+}

@@ -246,27 +246,28 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     if (isPendingScroll && nodeRef.current) {
       const isReadyForScroll = isExpanded || !hasChildren;
       if (isReadyForScroll) {
-        const scrollContainer = nodeRef.current.closest('.json-viewer-scroll-container');
-        
-        if (scrollContainer) {
-          const containerRect = scrollContainer.getBoundingClientRect();
-          const nodeRect = nodeRef.current.getBoundingClientRect();
-          
-          // Calculate the node's position relative to the container's viewport
-          const offsetTopInContainer = nodeRect.top - containerRect.top;
-          
-          // Calculate the desired scrollTop to center the node
-          const desiredScrollTop = scrollContainer.scrollTop + offsetTopInContainer - (containerRect.height / 2) + (nodeRect.height / 2);
-          
-          scrollContainer.scrollTo({
-            top: desiredScrollTop,
-            behavior: 'smooth'
+        // Use ScrollService instead of manual scrolling
+        import('../services/ScrollService').then(({ ScrollService }) => {
+          ScrollService.navigate({
+            type: 'element',
+            target: nodeRef.current!,
+            scrollBehavior: 'smooth',
+            alignment: 'center'
+          }).catch(error => {
+            console.warn('[JsonTreeView] ScrollService navigation failed, using element fallback:', error);
+            // Use ScrollService element navigation as fallback instead of direct scrollIntoView
+            ScrollService.navigate({
+              type: 'element',
+              target: nodeRef.current!,
+              scrollBehavior: 'auto', // Use auto to avoid potential smooth scroll issues
+              alignment: 'center'
+            }).catch(fallbackError => {
+              console.error('[JsonTreeView] ScrollService element fallback also failed:', fallbackError);
+              // Only use native scrollIntoView as last resort
+              nodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
           });
-
-        } else {
-          console.warn("Scroll container .json-viewer-scroll-container not found. Falling back to scrollIntoView.");
-          nodeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        });
 
         setIsPendingScroll(false); // Disarm trigger after scrolling
       }
@@ -786,15 +787,20 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
     return () => observer.disconnect();
   }, [data, showDiffsOnly]);
 
-  // Sync scroll between line numbers and tree content
+  // Sync scroll between line numbers and tree content using ScrollService pattern
   useEffect(() => {
     if (!treeContentRef.current || !lineNumbersRef.current) return;
 
     const treeContent = treeContentRef.current;
     const lineNumbers = lineNumbersRef.current;
 
+    // Use ScrollService-compatible sync pattern
     const syncScroll = (source: Element, target: Element) => {
-      target.scrollTop = source.scrollTop;
+      // Use scrollTo method for consistency with ScrollService
+      target.scrollTo({
+        top: source.scrollTop,
+        behavior: 'auto' // Immediate sync, no smooth scrolling for line numbers
+      });
     };
 
     const handleTreeScroll = () => syncScroll(treeContent, lineNumbers);
@@ -884,6 +890,7 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
           syncGroup="json-tree-content"
           className="json-tree-content json-tree-view"
           style={{ flex: 1, overflow: 'auto' }}
+          viewer={jsonSide}
         >
           <div ref={treeContentRef}>
             <JsonNode

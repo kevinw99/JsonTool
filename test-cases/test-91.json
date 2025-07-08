@@ -1,9 +1,9 @@
 {
   "id": 91,
-  "request": "prevent misleading highlights for asymmetric diffs\n\n## Problem\nWhen navigating to asymmetric diffs (e.g., nodes that exist in only one panel),\nthe system would highlight both panels even when the target node didn't exist\nin one of them. This was misleading for users.\n\n## Solution\nAdded optional highlighting parameters to goToDiffWithPaths():\n- highlightLeft?: boolean (default: true)\n- highlightRight?: boolean (default: true)\n\n## Implementation\n- Updated goToDiffWithPaths() to conditionally highlight based on flags\n- Modified goToDiff() to pass appropriate highlighting flags:\n  * Both paths exist: highlight both panels\n  * Left-only path: highlight only left panel\n  * Right-only path: highlight only right panel\n- Preserved all existing navigation, expansion, and scrolling behavior\n\n## Benefits\n- No misleading highlights for non-existent nodes\n- Clear visual feedback for asymmetric diffs\n- Backward compatible with existing calls\n- Uses existing code without duplication\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "request": "enhance breadcrumb with dynamic interface and exact tree styling\n\n- Create dynamic breadcrumb interface with BreadcrumbSegment type\n- Add support for viewport-aware breadcrumb updates\n- Fix breadcrumb styling to exactly match tree viewer appearance\n  - Remove expand/collapse triangles\n  - Left-align line numbers to match tree gutter\n  - Remove quotes from keys\n  - Use correct brackets ([ for arrays, { for objects)\n  - Match exact indentation and colors from tree nodes\n- Add development controls for testing dynamic/static modes\n- Fix root path generation issue (remove duplicate 'root_viewerId_root')\n- Add utility function createBreadcrumbFromViewport for viewport integration\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, styling)",
   "category": "Bug Fix",
   "priority": "high",
-  "created": "2025-07-06T20:29:52.393Z",
+  "created": "2025-07-07T04:47:32.599Z",
   "testSteps": [
     "1. Load sample JSON files (sample1.json, sample2.json)",
     "2. Wait for differences to be calculated",

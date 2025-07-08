@@ -1,22 +1,25 @@
 import React, { useEffect, useRef } from 'react';
+import { ScrollService } from '../services/ScrollService';
+import type { ViewerId } from '../types/ScrollTypes';
 
 interface SyncScrollProps {
   enabled: boolean;
   children: React.ReactNode;
   syncGroup?: string;
   className?: string; 
-  style?: React.CSSProperties; // Allow passing styles directly to the scrollable div
+  style?: React.CSSProperties;
+  viewer?: ViewerId; // Which viewer this container represents
 }
 
 export const SyncScroll: React.FC<SyncScrollProps> = ({ 
   enabled = true,
   children,
-  syncGroup = 'default',
+  syncGroup = 'json-tree-content',
   className,
-  style
+  style,
+  viewer
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef<boolean>(false);
   
   useEffect(() => {
     const currentElement = containerRef.current;
@@ -24,35 +27,14 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
     if (!enabled || !currentElement) {
       return;
     }
-
-    const syncPeers = document.querySelectorAll<HTMLDivElement>(`[data-sync-group="${syncGroup}"]`);
-    if (syncPeers.length <= 1) {
-      return;
-    }
     
     const handleScroll = (event: Event) => {
-      if (isScrollingRef.current) return;
-      if (!(event.target instanceof HTMLElement) || event.target !== currentElement) return;
-      
-      // Check if sync is temporarily disabled
-      if (currentElement.classList.contains('temp-disable-sync')) {
+      if (!(event.target instanceof HTMLElement) || event.target !== currentElement) {
         return;
       }
-
-      isScrollingRef.current = true;
-      const source = event.target;
       
-      syncPeers.forEach(targetPeerElement => {
-        // Ensure we don't try to scroll the source element via the peer list
-        if (targetPeerElement !== currentElement) {
-          targetPeerElement.scrollTop = source.scrollTop;
-          targetPeerElement.scrollLeft = source.scrollLeft;
-        }
-      });
-      
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 50); // Debounce to prevent scroll fight / oscillations
+      // Delegate to unified ScrollService
+      ScrollService.handleManualScroll(currentElement);
     };
     
     currentElement.addEventListener('scroll', handleScroll);
@@ -60,14 +42,15 @@ export const SyncScroll: React.FC<SyncScrollProps> = ({
     return () => {
       currentElement.removeEventListener('scroll', handleScroll);
     };
-  }, [enabled, syncGroup, style]); // Re-run if enabled, group, or style (affecting scrollability) changes
+  }, [enabled, syncGroup]); // Re-run if enabled or group changes
   
   return (
     <div 
       ref={containerRef} 
-      data-sync-group={syncGroup} 
+      data-sync-scroll={syncGroup}
+      data-viewer={viewer}
       className={className} 
-      style={style} // Apply provided styles (should include overflow, height, etc.)
+      style={style}
     >
       {children}
     </div>

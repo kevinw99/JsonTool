@@ -120,3 +120,146 @@ Synchronize scrolling is not working
 
 should I start a new session once in a while? I see the performance is getting slower if I keep using the same session.
 
+  // Get all elements with data-path attribute
+  const allDataPaths = document.querySelectorAll('[data-path]');
+  console.log(`Found ${allDataPaths.length} elements with data-path`);
+  // Show first 20
+  [...allDataPaths].slice(20, 80).forEach((el, i) => {
+    console.log(`${i}: ${el.getAttribute('data-path')}`);
+  });
+
+I want to see the complete list of data-path attributes in the document, can you help me to print them out those
+under "root.boomerForecastV3Requests[0].parameters.accountParams[1]"
+
+
+ 1. Check if there are duplicate elements with the same data-path:
+
+  // Check for duplicates of the same path
+  const leftPath =
+  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[1]";
+  const rightPath =
+  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[1]";
+
+  const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
+  const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
+
+  console.log(`Elements with leftPath: ${leftElements.length}`);
+  console.log(`Elements with rightPath: ${rightElements.length}`);
+
+  leftElements.forEach((el, i) => {
+    console.log(`Left element ${i}:`, {
+      element: el,
+      container: el.closest('.json-tree-content'),
+      viewerContainer: el.closest('[data-sync-group="json-viewers"]')
+    });
+  });
+
+  rightElements.forEach((el, i) => {
+    console.log(`Right element ${i}:`, {
+      element: el,
+      container: el.closest('.json-tree-content'),
+      viewerContainer: el.closest('[data-sync-group="json-viewers"]')
+    });
+  });
+
+  2. Check the DOM structure to see how viewers are organized:
+
+  // Check the structure of sync containers
+  const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+  console.log(`Found ${syncContainers.length} sync containers`);
+
+  syncContainers.forEach((container, i) => {
+    const treeContent = container.querySelector('.json-tree-content');
+    const sampleElements = treeContent?.querySelectorAll('[data-path*="boomerForecastV3Requests"]');
+    console.log(`Container ${i} (${i === 0 ? 'LEFT' : 'RIGHT'}):`, {
+      container: container,
+      treeContent: treeContent,
+      sampleElementsCount: sampleElements?.length || 0,
+      firstFewPaths: [...(sampleElements || [])].slice(0, 3).map(el => el.getAttribute('data-path'))
+    });
+  });
+
+  3. My theory - Check if querySelector naturally returns elements in DOM order:
+
+  // Test querySelector behavior with identical paths
+  const testPath =
+  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[1]";
+  const firstElement = document.querySelector(`[data-path="${testPath}"]`);
+  const allElements = document.querySelectorAll(`[data-path="${testPath}"]`);
+
+  console.log('querySelector test:', {
+    firstElementReturned: firstElement,
+    allElementsCount: allElements.length,
+    allElements: [...allElements]
+  });
+
+  // Check which container each element belongs to
+  allElements.forEach((el, i) => {
+    const containers = document.querySelectorAll('[data-sync-group="json-viewers"]');
+    let whichContainer = 'UNKNOWN';
+    containers.forEach((container, containerIndex) => {
+      if (container.contains(el)) {
+        whichContainer = containerIndex === 0 ? 'LEFT' : 'RIGHT';
+      }
+    });
+    console.log(`Element ${i} is in: ${whichContainer} container`);
+  });
+
+
+  3. My theory - Check if querySelector naturally returns elements in DOM order:
+
+  // Test querySelector behavior with identical paths
+  const testPath =
+  "root.boomerForecastV3Requests[0].parameters.effectiveDate";
+  const firstElement = document.querySelector(`[data-path="${testPath}"]`);
+  const allElements = document.querySelectorAll(`[data-path="${testPath}"]`);
+
+  console.log('querySelector test:', {
+    firstElementReturned: firstElement,
+    allElementsCount: allElements.length,
+    allElements: [...allElements]
+  });
+root.boomerForecastV3Requests[0].parameters.effectiveDate
+
+recently we fixed a bug that the wrong container for scrolling is found. Can you search the commit history to see
+what change was made?
+
+I like to have some UI test case on synchronized scrolling. 1. load real data file sample1 and sample2 from
+./public, 2. pick  nodes in the left panel (right panel node could be differnent) that needs scrolling:
+ a. "boomerForecastV3Requests[0].parameters.decumulationPhaseStartDate"
+ b..root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[3]
+verify the right panel scrolls to the correct node.
+
+Actually, can you not have this outer/inner container, just have one container, the breadcrumb area does not need a
+ container, it is simply a div inside the main container, and this div can not be scrolled, only the tree view area
+  is. is it possible?
+
+
+  what does SyncScroll do?
+
+lets comprehensinvely review the synchronized scrolling code, and see if we can use one single mechanism to handle
+various scenarios: GotoDiff, SynctoScroll, manual scroll, goto Idkey,  pleaes list a plan where codes could be
+cleanuped  up, and reused.
+
+also pay attention to retry and timing logic, usually that is sign of futile attempt, we should just fail and
+report error with information such as what node it is trying to do what action.
+
+let's fix these issues:
+  Error: Loaded ~/.bash_profile
+
+     > jsontool@0.0.0 build
+     > tsc -b && vite build
+
+     src/components/CodeMirror/jsonPathExtension.ts(6,10): error TS1484: 'Extension' is a type and must be
+      imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+     src/components/CodeMirror/jsonPathExtension.ts(7,36): error TS6133: 'Decoration' is declared but its
+     value is never read.
+     src/components/CodeMirror/jsonPathExtension.ts(16,30): error TS6133: 'side' is declared but its value
+      is never read.
+     src/components/IdKeysPanel.tsx(4,10): error TS6133: 'validateAndCreateNumericPath' is declared but
+     its value is never read.
+     src/components/IdKeysPanel.tsx(118,79): error TS18046: 'rightError' is of type 'unknown'.
+     … +15 lines (ctrl+r to see all)
+
+can you review timing and wait time you added, are they still needed? Usally they are sign of potential probblem. I
+ rather we fail fast and report error than keep retrying and waiting.
