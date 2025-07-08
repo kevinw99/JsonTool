@@ -185,19 +185,25 @@ function compareRecursively(
     const arr1 = obj1 as any[];
     const arr2 = obj2 as any[];
 
-    const idKey = findIdKey(arr1, arr2);
-    if (idKey) {
-      // Store the idKey info
-      idKeysUsed.push({
-        arrayPath: path,
-        idKey: idKey,
-        isComposite: idKey.includes('+'),
-        arraySize1: arr1.length,
-        arraySize2: arr2.length
-      });
+    // Only detect IDKeys when both arrays exist and have elements to compare
+    if (arr1.length > 0 && arr2.length > 0) {
+      const idKey = findIdKey(arr1, arr2);
+      if (idKey) {
+        // Store the idKey info
+        idKeysUsed.push({
+          arrayPath: path,
+          idKey: idKey,
+          isComposite: idKey.includes('+'),
+          arraySize1: arr1.length,
+          arraySize2: arr2.length
+        });
 
-      compareArraysWithIdKey(arr1, arr2, idKey, path, result, idKeysUsed);
+        compareArraysWithIdKey(arr1, arr2, idKey, path, result, idKeysUsed);
+      } else {
+        compareArraysByIndex(arr1, arr2, path, result, idKeysUsed);
+      }
     } else {
+      // Use index-based comparison for empty arrays or when one side is empty
       compareArraysByIndex(arr1, arr2, path, result, idKeysUsed);
     }
   } else if (type1 === "object") {
@@ -214,12 +220,20 @@ function compareRecursively(
           type: "added",
           value2: obj2[key],
         });
+        // Skip recursive processing for arrays - no IDKey needed for added arrays
+        if (!Array.isArray(obj2[key])) {
+          compareRecursively(undefined, obj2[key], newPath, result, idKeysUsed);
+        }
       } else if (!(key in obj2)) {
         result.push({
           idBasedPath: newPath,
           type: "removed",
           value1: obj1[key],
         });
+        // Skip recursive processing for arrays - no IDKey needed for removed arrays
+        if (!Array.isArray(obj1[key])) {
+          compareRecursively(obj1[key], undefined, newPath, result, idKeysUsed);
+        }
       } else {
         compareRecursively(obj1[key], obj2[key], newPath, result, idKeysUsed);
       }
