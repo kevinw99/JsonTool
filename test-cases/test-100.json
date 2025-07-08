@@ -1,0 +1,28 @@
+{
+  "id": 100,
+  "request": "consolidate all scrolling to unified ScrollService\n\n- Replace legacy scroll implementations with ScrollService patterns\n- Fix ViewerPath format bug in ScrollService.findElementByViewerPath()\n- Update JsonTreeView line number sync to use scrollTo() method\n- Improve ScrollService element navigation with proper fallback handling\n- Convert DiffList and JsonViewerSyncContext to use ViewerPath format\n- Add viewerPathToGenericWithoutRoot() utility function\n- Create comprehensive PathTypes test suite with 56 test cases\n- Eliminate manual scrollTop manipulation in favor of unified approach\n\nGoToDiff now works correctly. IDKeys and syncToCounterpart still need fixes.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-08T03:34:48.834Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

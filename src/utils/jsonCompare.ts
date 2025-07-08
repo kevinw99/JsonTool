@@ -194,9 +194,17 @@ function compareRecursively(
     // Only detect IDKeys when both arrays exist and have elements to compare
     const idKey = findIdKey(arr1, arr2);
     if (idKey) {
-      // Store the idKey info
+      // Store the idKey info with ArrayPatternPath format
+      // Convert path like "root.accounts" to ArrayPatternPath like "accounts[]"
+      let arrayPatternPath = path;
+      if (arrayPatternPath.startsWith('root.')) {
+        arrayPatternPath = arrayPatternPath.substring(5);
+      }
+      // Replace all [index] with [] and add final [] to represent this array
+      arrayPatternPath = arrayPatternPath.replace(/\[\d+\]/g, '[]') + '[]';
+      
       idKeysUsed.push({
-        arrayPath: path,
+        arrayPath: arrayPatternPath,
         idKey: idKey,
         isComposite: idKey.includes('+'),
         arraySize1: arr1.length,
@@ -376,8 +384,16 @@ export function detectIdKeysInSingleJson(data: any, basePath: string = ""): IdKe
       // Reuse the existing findIdKey logic by creating a duplicate array for comparison
       const idKey = findIdKey(obj, obj); // Use same array for both parameters
       if (idKey) {
+        // Convert currentPath to ArrayPatternPath format
+        let arrayPatternPath = currentPath;
+        if (arrayPatternPath.startsWith('root.')) {
+          arrayPatternPath = arrayPatternPath.substring(5);
+        }
+        // Replace all [index] with [] and add final [] to represent this array
+        arrayPatternPath = arrayPatternPath.replace(/\[\d+\]/g, '[]') + '[]';
+        
         idKeys.push({
-          arrayPath: currentPath,
+          arrayPath: arrayPatternPath,
           idKey: idKey,
           isComposite: idKey.includes('+'),
           arraySize1: obj.length,

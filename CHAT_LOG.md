@@ -1551,6 +1551,101 @@ Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, main app)"
 **Status**: 🚧 In Progress  
 
 
+### Request #100 - 🐛 Bug Fix
+**Date**: 2025-07-08  
+**Request**: "consolidate all scrolling to unified ScrollService
+
+- Replace legacy scroll implementations with ScrollService patterns
+- Fix ViewerPath format bug in ScrollService.findElementByViewerPath()
+- Update JsonTreeView line number sync to use scrollTo() method
+- Improve ScrollService element navigation with proper fallback handling
+- Convert DiffList and JsonViewerSyncContext to use ViewerPath format
+- Add viewerPathToGenericWithoutRoot() utility function
+- Create comprehensive PathTypes test suite with 56 test cases
+- Eliminate manual scrollTop manipulation in favor of unified approach
+
+GoToDiff now works correctly. IDKeys and syncToCounterpart still need fixes.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, diff panel, main app)"  
+**Commit**: [`7403fd5`](https://github.com/user/repo/commit/7403fd5)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #101 - 🚨 Critical Bug
+**Date**: 2025-07-08  
+**Request**: "handle added/removed items in DiffList navigation
+
+- Fix navigation for added/removed items that only exist in one viewer
+- Use goToDiffWithPaths with proper single-viewer logic for expansion
+- Added items: navigate only to right viewer where item exists
+- Removed items: navigate only to left viewer where item exists
+- Changed items: navigate to both viewers as before
+- Leverage existing expansion logic to ensure parent containers are opened
+- Eliminate Element not found errors for missing elements in other viewer
+
+Fixes GoToDiff functionality for added/removed items.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (diff panel)"  
+**Commit**: [`ce8695f`](https://github.com/user/repo/commit/ce8695f)  
+**Files**: src/components/DiffList/DiffList.tsx  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #102 - ✨ Feature
+**Date**: 2025-07-08  
+**Request**: "skip IDKey generation for added/removed arrays
+
+- Skip recursive processing of arrays that exist only on one side
+- Only generate IDKeys for arrays that exist on both sides and have elements
+- For added arrays: mark as added but don't process for IDKeys
+- For removed arrays: mark as removed but don't process for IDKeys
+- For empty arrays: use index-based comparison instead of IDKey detection
+- Eliminates meaningless IDKeys in panel for one-sided array changes
+
+This makes IDKey panel cleaner by only showing correlations between
+arrays that actually exist on both sides for meaningful comparison.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`095c28e`](https://github.com/user/repo/commit/095c28e)  
+**Files**: src/utils/jsonCompare.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #103 - 🐛 Bug Fix
+**Date**: 2025-07-08  
+**Request**: "filter IDKeys to only show arrays that exist on both sides
+
+- Skip IDKey generation for added/removed arrays in comparison logic
+- Filter consolidated IDKeys in App.tsx to exclude single-file IDKeys
+- Preserve existing consolidation architecture for consistent sorting
+- Remove debug logging after confirming fix works correctly
+
+This eliminates meaningless IDKeys like contributionsCalculatorSavingsSlidersRequest.accounts
+that only exist on one side during comparison.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (main app)"  
+**Commit**: [`666ec26`](https://github.com/user/repo/commit/666ec26)  
+**Files**: src/App.tsx, src/utils/jsonCompare.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

@@ -183,8 +183,7 @@ under "root.boomerForecastV3Requests[0].parameters.accountParams[1]"
 
   // Test querySelector behavior with identical paths
   const testPath =
-  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[1]";
-  const firstElement = document.querySelector(`[data-path="${testPath}"]`);
+  "left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType";
   const allElements = document.querySelectorAll(`[data-path="${testPath}"]`);
 
   console.log('querySelector test:', {
@@ -263,3 +262,27 @@ let's fix these issues:
 
 can you review timing and wait time you added, are they still needed? Usally they are sign of potential probblem. I
  rather we fail fast and report error than keep retrying and waiting.
+
+
+this is wrong:
+    // Check if this diff involves ID-based arrays
+    const idBasedPath = diff.idBasedPath;
+    const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
+
+
+This already shows the wrong "root." in the target.
+
+[ScrollService] Navigate request: {type: 'path', target: 'root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType', viewer: 'both', highlight: true, scrollBehavior: 'smooth', …}
+it should be
+
+
+I thought we already consolidate to scroll service to handle all scrolling? why do we still have code in other places to do scrolling?
+
+let's look at the case when array nodes are added. Here the right side node has arrays added, but does it make
+sense to generate IDkey for the added nodes?  I think not, since the left side does not have those nodes, so there
+is no comparison needed. can you review the logic and see if we can skip generating IDkey for added nodes? same for
+ removed nodes. please list the plan before making any code change.
+IDKey only makes sense when both side have the nodes, so that we can compare them.
+
+also I see codes assume [id=xxx] for testing IdbasedPath, but it could be [key=xxx] as well. can you do a
+comprehensive searhch and fix all those issues?

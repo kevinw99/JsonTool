@@ -39,28 +39,28 @@ const mockJsonData = {
 
 const mockIdKeysUsed: IdKeyInfo[] = [
   {
-    arrayPath: 'boomerForecastV3Requests.household.accounts[]',
+    arrayPath: 'boomerForecastV3Requests[].household.accounts[]',
     idKey: 'id',
     isComposite: false,
     arraySize1: 2,
     arraySize2: 2
   },
   {
-    arrayPath: 'boomerForecastV3Requests.household.jobs[]',
+    arrayPath: 'boomerForecastV3Requests[].household.jobs[]',
     idKey: 'id', 
     isComposite: false,
     arraySize1: 2,
     arraySize2: 2
   },
   {
-    arrayPath: 'boomerForecastV3Requests.household.taxRates[]',
+    arrayPath: 'boomerForecastV3Requests[].household.taxRates[]',
     idKey: 'year',
     isComposite: false,
     arraySize1: 2,
     arraySize2: 2
   },
   {
-    arrayPath: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
+    arrayPath: 'boomerForecastV3Requests[].parameters.accountParams[].contributions[]',
     idKey: '',
     isComposite: false,
     arraySize1: 1,
@@ -78,7 +78,7 @@ const TestNavigationComponent = () => {
       <div data-testid="highlight-path">{highlightPath || 'none'}</div>
       <IdKeysPanel 
         idKeysUsed={mockIdKeysUsed}
-        jsonData={mockJsonData}
+        jsonData={{ left: mockJsonData, right: mockJsonData }}
       />
       <div className="json-viewer-scroll-container" style={{ height: '400px', overflowY: 'auto' }}>
         <JsonTreeView
@@ -206,17 +206,17 @@ describe('Navigation Feature Tests', () => {
       // Test clicking on different ID key paths
       const testCases = [
         {
-          idBasedPath: 'boomerForecastV3Requests.household.accounts[]',
+          idBasedPath: 'boomerForecastV3Requests[].household.accounts[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].household.accounts',
           description: 'simple nested array'
         },
         {
-          idBasedPath: 'boomerForecastV3Requests.household.jobs[]',
+          idBasedPath: 'boomerForecastV3Requests[].household.jobs[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].household.jobs',
           description: 'another simple nested array'
         },
         {
-          idBasedPath: 'boomerForecastV3Requests.parameters.accountParams.contributions[]',
+          idBasedPath: 'boomerForecastV3Requests[].parameters.accountParams[].contributions[]',
           expectedNumericPath: 'root.boomerForecastV3Requests[0].parameters.accountParams[0].contributions',
           description: 'deeply nested array with intermediate arrays'
         }
@@ -416,7 +416,7 @@ describe('Navigation Feature Tests', () => {
             <div data-testid="highlight-path">{highlightPath || 'none'}</div>
             <IdKeysPanel 
               idKeysUsed={simpleIdKeys}
-              jsonData={simpleData}
+              jsonData={{ left: simpleData, right: simpleData }}
             />
           </div>
         );

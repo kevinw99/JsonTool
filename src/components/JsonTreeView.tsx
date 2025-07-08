@@ -136,7 +136,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
       const idKeysUsed = (context as any)?.idKeysUsed;
       
       if (jsonData && idKeysUsed) {
-        console.log(`[JsonNode DEBUG] 🔧 Attempting conversion for: "${basePath}"`);
+//         console.log(`[JsonNode DEBUG] 🔧 Attempting conversion for: "${basePath}"`);
         try {
           const sourceContext = { jsonData, idKeysUsed };
           const convertedPath = convertIdPathToIndexPath(
@@ -148,7 +148,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
             throw new Error(`PathConverter returned null for: "${basePath}"`);
           }
           basePath = convertedPath;
-          console.log(`[JsonNode DEBUG] 🔧 PathConverter SUCCESS: "${path}" -> "${basePath}"`);
+//           console.log(`[JsonNode DEBUG] 🔧 PathConverter SUCCESS: "${path}" -> "${basePath}"`);
         } catch (error) {
           console.error(`[JsonNode DEBUG] 🔧 PathConverter failed for: "${basePath}"`, error);
           throw new Error(`Cannot convert ID-based path "${basePath}": ${error.message}`);

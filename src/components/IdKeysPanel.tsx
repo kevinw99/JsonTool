@@ -42,7 +42,8 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
     // Replace all specific array indices with [] to generalize the path
     // This handles cases like [0], [1], [636106], etc.
     // IMPORTANT: Keep ALL [] markers to show complete array structure
-    const consolidatedPathStr = originalPath.replace(/\[[^\]]*\]/g, '[]');
+    let consolidatedPathStr = originalPath.replace(/\[[^\]]*\]/g, '[]');
+    
     const consolidatedKey = `${consolidatedPathStr}::${idKeyInfo.idKey}`;
 
     if (consolidatedMap.has(consolidatedKey)) {

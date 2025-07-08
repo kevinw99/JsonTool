@@ -486,7 +486,7 @@ export function convertPathForDisplay(
 
 /**
  * Converts ArrayPatternPath to NumericPath by replacing [] with [0] for navigation
- * Example: "requests[].params[].items" -> "root.requests[0].params[0].items"
+ * Example: "requests[].params[].items[]" -> "root.requests[0].params[0].items"
  * Use case: Converting IdKeys panel array patterns to navigable paths
  */
 export function convertArrayPatternToNumericPath(
@@ -495,23 +495,34 @@ export function convertArrayPatternToNumericPath(
 ): NumericPath {
   console.log(`[PathConverter] 🔍 Converting ArrayPattern: "${arrayPattern}"`);
   
-  // Remove trailing [] to get path to array container
   let targetPath = arrayPattern as string;
-  if (targetPath.endsWith('[]')) {
-    targetPath = targetPath.slice(0, -2);
-  }
   
-  // Replace all intermediate [] with [0] to navigate through nested arrays
+  // Replace all [] with [0] to navigate through nested arrays  
   const navigablePath = targetPath.replace(/\[\]/g, '[0]');
   
+  // For ArrayPatternPath ending with [], we want to navigate to the array container itself
+  // So we remove the final [0] to get the path to the array property
+  let containerPath = navigablePath;
+  if (containerPath.endsWith('[0]')) {
+    containerPath = containerPath.slice(0, -3);
+  }
+  
   // Add root prefix if missing
-  const fullPath = navigablePath.startsWith('root.') ? navigablePath : `root.${navigablePath}`;
+  const fullPath = containerPath.startsWith('root.') ? containerPath : `root.${containerPath}`;
   
   console.log(`[PathConverter] 🔍 ArrayPattern -> navigable path: "${fullPath}"`);
   
-  // Validate path exists in JSON data
-  if (!validatePathInJsonData(fullPath, context.jsonData)) {
-    throw new Error(`ArrayPattern path does not exist in JSON data: "${fullPath}"`);
+  // For navigation, we actually want to navigate to the array itself, not just validate the container
+  // Try both the container path and the path with [0] to find which exists
+  let pathToValidate = fullPath;
+  if (!validatePathInJsonData(pathToValidate, context.jsonData)) {
+    // If container doesn't exist, try with [0] appended
+    const pathWithIndex = pathToValidate + '[0]';
+    if (validatePathInJsonData(pathWithIndex, context.jsonData)) {
+      pathToValidate = pathWithIndex;
+    } else {
+      throw new Error(`ArrayPattern path does not exist in JSON data: "${fullPath}" or "${pathWithIndex}"`);
+    }
   }
   
   return validateAndCreateNumericPath(fullPath, 'PathConverter.convertArrayPatternToNumericPath');

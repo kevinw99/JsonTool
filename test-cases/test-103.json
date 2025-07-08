@@ -1,0 +1,20 @@
+{
+  "id": 103,
+  "request": "filter IDKeys to only show arrays that exist on both sides\n\n- Skip IDKey generation for added/removed arrays in comparison logic\n- Filter consolidated IDKeys in App.tsx to exclude single-file IDKeys\n- Preserve existing consolidation architecture for consistent sorting\n- Remove debug logging after confirming fix works correctly\n\nThis eliminates meaningless IDKeys like contributionsCalculatorSavingsSlidersRequest.accounts\nthat only exist on one side during comparison.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-08T04:41:45.594Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

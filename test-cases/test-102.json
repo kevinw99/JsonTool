@@ -1,0 +1,20 @@
+{
+  "id": 102,
+  "request": "skip IDKey generation for added/removed arrays\n\n- Skip recursive processing of arrays that exist only on one side\n- Only generate IDKeys for arrays that exist on both sides and have elements\n- For added arrays: mark as added but don't process for IDKeys\n- For removed arrays: mark as removed but don't process for IDKeys\n- For empty arrays: use index-based comparison instead of IDKey detection\n- Eliminates meaningless IDKeys in panel for one-sided array changes\n\nThis makes IDKey panel cleaner by only showing correlations between\narrays that actually exist on both sides for meaningful comparison.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-08T04:16:54.821Z",
+  "testSteps": [
+    "1. Load the application",
+    "2. Navigate to the relevant feature area",
+    "3. Perform the requested action/change",
+    "4. Verify expected behavior",
+    "5. Test edge cases and error conditions",
+    "6. Verify no existing functionality is broken"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "description": "Use existing application state and sample data for testing"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}
