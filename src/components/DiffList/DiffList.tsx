@@ -76,20 +76,42 @@ export const DiffList: React.FC<DiffListProps> = ({
         
         console.log('[DiffList] 🎯 PathConverter results - LEFT:', leftPath, 'RIGHT:', rightPath);
         
-        if (leftPath && rightPath) {
-          console.log('[DiffList] ✅ Found both paths - using new goToDiffWithPaths navigation');
-          console.log('[DiffList] 🎯 LEFT path (left):', leftPath);
-          console.log('[DiffList] 🎯 RIGHT path (right):', rightPath);
+        if (leftPath || rightPath) {
+          console.log('[DiffList] ✅ Found path(s) - diff type:', diff.type);
+          console.log('[DiffList] 🎯 LEFT path:', leftPath || 'null');
+          console.log('[DiffList] 🎯 RIGHT path:', rightPath || 'null');
           
-          // Create ViewerPaths for navigation
-          const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
-          const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
-          
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.left'));
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.right'));
-          
-          // Use the new dual-path navigation function with ViewerPaths
-          goToDiffWithPaths(leftViewerPath, rightViewerPath);
+          if (leftPath && rightPath) {
+            // Both paths exist - changed item
+            console.log('[DiffList] 🔄 Changed item - navigate to both viewers');
+            const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
+            const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
+            
+            const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.left'));
+            const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.right'));
+            
+            goToDiffWithPaths(leftViewerPath, rightViewerPath, true, true);
+            
+          } else if (leftPath && !rightPath) {
+            // Only left path exists - removed item
+            console.log('[DiffList] ➖ Removed item - use goToDiffWithPaths with left viewer path');
+            const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
+            const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.removed'));
+            
+            // For removed items, pass the left path for both parameters
+            // goToDiffWithPaths will detect that only the left element exists and navigate accordingly
+            goToDiffWithPaths(leftViewerPath, leftViewerPath, true, false);
+            
+          } else if (!leftPath && rightPath) {
+            // Only right path exists - added item
+            console.log('[DiffList] ➕ Added item - use goToDiffWithPaths with right viewer path');
+            const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
+            const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.added'));
+            
+            // For added items, pass the right path for both parameters  
+            // goToDiffWithPaths will detect that only the right element exists and navigate accordingly
+            goToDiffWithPaths(rightViewerPath, rightViewerPath, false, true);
+          }
           
         } else {
           console.log('[DiffList] ❌ PathConverter could not resolve paths - falling back to ID-based path');
