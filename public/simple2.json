@@ -1,0 +1,269 @@
+{
+  "outputType": "SEARCH",
+  "contributionsCalculatorSavingsSlidersRequest": {
+    "accounts": [
+      {
+        "id": "45626988::2",
+        "ownerId": "45626988::1",
+        "jobId": null,
+        "accountType": "IRA",
+        "subAccountType": null,
+        "eligibilityStatus": "ACTIVE",
+        "isOwnerAllowsContributions": true,
+        "isOwnerAllows50PlusCatchUpContributions": null,
+        "isOwnerAllowsAfterTaxContributions": true,
+        "contributionsSpecification": {
+          "employeeContributionsEscalationStartDate": null,
+          "employeeContributions": [
+            {
+              "type": "PRETAX50PLUS",
+              "annualRate": {
+                "dollars": 1000,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "AFTERTAX",
+              "annualRate": {
+                "dollars": 3500,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "PRETAX",
+              "annualRate": {
+                "dollars": 1400,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "ROTH50PLUS",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "ROTH",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            }
+          ],
+          "employeeCatchUpContributions": null,
+          "employerContributions": []
+        }
+      },
+      {
+        "id": "45626988::3",
+        "ownerId": "45626988::1",
+        "jobId": null,
+        "accountType": "TAXABLE",
+        "subAccountType": null,
+        "eligibilityStatus": "ACTIVE",
+        "isOwnerAllowsContributions": true,
+        "isOwnerAllows50PlusCatchUpContributions": null,
+        "isOwnerAllowsAfterTaxContributions": true,
+        "contributionsSpecification": {
+          "employeeContributionsEscalationStartDate": null,
+          "employeeContributions": [
+            {
+              "type": "PRETAX",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "AFTERTAX",
+              "annualRate": {
+                "dollars": 2000,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "PRETAX50PLUS",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "ROTH50PLUS",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            },
+            {
+              "type": "ROTH",
+              "annualRate": {
+                "dollars": 0,
+                "percent": null
+              },
+              "isEligibleForEscalation": false,
+              "escalation": null
+            }
+          ],
+          "employeeCatchUpContributions": null,
+          "employerContributions": []
+        }
+      }
+    ],
+    "persons": [
+      {
+        "id": "45626988::1",
+        "personType": "PARTICIPANT",
+        "birthdate": "1965-07-01",
+        "retirementDate": "2030-07-01"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "45626988::1",
+        "ownerId": "45626988::1",
+        "annualSalaryInTodaysDollars": 100000,
+        "annualGrowthRateInNominal": 0.0375,
+        "startDate": "2025-06-25",
+        "endDate": "2030-07-01"
+      }
+    ],
+    "parameters": {
+      "effectiveDate": "2025-07-01",
+      "numberOfSavingsNotches": null
+    }
+  },
+  "contributionsCalculatorSavingsSlidersResponse": {
+    "watchdogLogs": {
+      "errorLogs": [],
+      "warningLogs": [],
+      "infoLogs": []
+    }
+  },
+  "boomerForecastV3Requests": [
+    {
+      "parameters": {
+        "accountParams": [
+          {
+            "id": "45626988::1",
+            "managementFee": 0.007212962962963
+          },
+          {
+            "id": "45626988::2",
+            "managementFee": 0.007212962962963,
+            "contributions": [
+              {
+                "id": "45626988::2_prtcpnt-pre_0",
+                "contributionType": "PARTICIPANT_PRE_TAX",
+                "contributions": [
+                  3500,
+                  3500,
+                  3500,
+                  3500,
+                  3500
+                ]
+              },
+              {
+                "id": "45626988::2_prtcpnt-catchup-50-separate_0",
+                "contributionType": "CATCH_UP_50_SEPARATE_AFTER_TAX",
+                "contributions": [
+                  1000,
+                  1000,
+                  1000,
+                  1000,
+                  1000
+                ]
+              },
+              {
+                "id": "45626988::2_prtcpnt-after_0",
+                "contributionType": "PARTICIPANT_AFTER_TAX",
+                "contributions": [
+                  3500,
+                  3500,
+                  3500,
+                  3500,
+                  3500
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "zzCustomDataSets": [
+    {
+      "keyUnique": "dataset_001",
+      "name": "Financial Metrics",
+      "category": "analytics",
+      "metrics": [
+        {
+          "metricCode": "ROI_Q1",
+          "value": 15.2,
+          "unit": "percentage"
+        },
+        {
+          "metricCode": "ROI_Q2", 
+          "value": 22.1,
+          "unit": "percentage"
+        },
+        {
+          "metricCode": "ROI_Q3",
+          "value": 19.8,
+          "unit": "percentage"
+        }
+      ]
+    },
+    {
+      "keyUnique": "dataset_003",
+      "name": "Customer Satisfaction",
+      "category": "feedback",
+      "metrics": [
+        {
+          "metricCode": "CSAT_OVERALL",
+          "value": 4.2,
+          "unit": "rating"
+        }
+      ]
+    }
+  ],
+  "zzUserProfiles": [
+    {
+      "username": "alice_smith",
+      "role": "senior_analyst",
+      "permissions": ["read", "write", "admin"],
+      "lastLogin": "2025-01-16"
+    },
+    {
+      "username": "bob_jones", 
+      "role": "viewer",
+      "permissions": ["read"],
+      "lastLogin": "2025-01-10"
+    },
+    {
+      "username": "carol_white",
+      "role": "editor",
+      "permissions": ["read", "write"],
+      "lastLogin": "2025-01-14"
+    }
+  ]
+}

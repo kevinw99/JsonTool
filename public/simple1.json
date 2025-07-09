@@ -1,0 +1,105 @@
+{
+  "outputType": "SEARCH",
+  "contributionsCalculatorSavingsSlidersRequest": null,
+  "legacySavingsSlidersInputAccountIds": [
+    "45626988::2",
+    "45626988::1",
+    "45626988::3"
+  ],
+  "boomerForecastV3Requests": [
+    {
+      "parameters": {
+        "accountParams": [
+          {
+            "id": "45626988::1",
+            "managementFee": 0.007212962962963
+          },
+          {
+            "id": "45626988::2",
+            "managementFee": 0.007212962962963,
+            "contributions": [
+              {
+                "id": "45626988::2_prtcpnt-pre_0",
+                "contributionType": "PARTICIPANT_PRE_TAX",
+                "contributions": [
+                  7000,
+                  7000,
+                  7000,
+                  7000,
+                  7000
+                ]
+              },
+              {
+                "id": "45626988::2_prtcpnt-extra_0",
+                "contributionType": "PARTICIPANT_PRE_TAX",
+                "contributions": [
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000
+                ]
+              },
+              {
+                "id": "45626988::2_prtcpnt-catchup-50-separate_0",
+                "contributionType": "CATCH_UP_50_SEPARATE_PRE_TAX",
+                "contributions": [
+                  1000,
+                  1000,
+                  1000,
+                  1000,
+                  1000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "zzCustomDataSets": [
+    {
+      "keyUnique": "dataset_001",
+      "name": "Financial Metrics",
+      "category": "analytics",
+      "metrics": [
+        {
+          "metricCode": "ROI_Q1",
+          "value": 15.2,
+          "unit": "percentage"
+        },
+        {
+          "metricCode": "ROI_Q2", 
+          "value": 18.7,
+          "unit": "percentage"
+        }
+      ]
+    },
+    {
+      "keyUnique": "dataset_002",
+      "name": "User Engagement",
+      "category": "behavior",
+      "metrics": [
+        {
+          "metricCode": "CTR_MAIN",
+          "value": 3.4,
+          "unit": "percentage"
+        }
+      ]
+    }
+  ],
+  "zzUserProfiles": [
+    {
+      "username": "alice_smith",
+      "role": "analyst",
+      "permissions": ["read", "write"],
+      "lastLogin": "2025-01-15"
+    },
+    {
+      "username": "bob_jones", 
+      "role": "viewer",
+      "permissions": ["read"],
+      "lastLogin": "2025-01-10"
+    }
+  ]
+}
