@@ -11,7 +11,7 @@ test.describe('ID Key Navigation with Real Sample Files - E2E Tests', () => {
     await expect(page.locator('.app-title')).toBeVisible();
     
     // Wait for the JSON data to be loaded and displayed
-    await expect(page.locator('.json-tree-view, .json-viewer')).toBeVisible();
+    await expect(page.locator('.json-tree-view, .json-viewer').first()).toBeVisible();
     
     // Wait for processing/comparison to complete
     await page.waitForTimeout(2000);
@@ -84,7 +84,7 @@ test.describe('ID Key Navigation with Real Sample Files - E2E Tests', () => {
   test('should verify JSON tree expansion and scrolling behavior', async ({ page }) => {
     // Wait for the app to load with sample data
     await expect(page.locator('.app-title')).toBeVisible();
-    await expect(page.locator('.json-tree-view, .json-viewer')).toBeVisible();
+    await expect(page.locator('.json-tree-view, .json-viewer').first()).toBeVisible();
     await page.waitForTimeout(2000);
 
     await page.screenshot({ 
@@ -175,7 +175,7 @@ test.describe('ID Key Navigation with Real Sample Files - E2E Tests', () => {
   test('should test rapid ID key navigation for performance', async ({ page }) => {
     // Wait for the app to load with sample data
     await expect(page.locator('.app-title')).toBeVisible();
-    await expect(page.locator('.json-tree-view, .json-viewer')).toBeVisible();
+    await expect(page.locator('.json-tree-view, .json-viewer').first()).toBeVisible();
     await page.waitForTimeout(2000);
 
     // Click on the ID Keys tab to ensure it's active
