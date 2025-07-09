@@ -4,7 +4,7 @@ import { useJsonViewerSync } from '../JsonViewerSyncContext';
 import type { DiffResult } from '../../utils/jsonCompare';
 import { resolveIdBasedPathToNumeric } from '../../utils/pathResolution';
 import type { IdBasedPath, ViewerPath } from '../../utils/PathTypes';
-import { createViewerPath, validateAndCreateIdBasedPath, validateAndCreateNumericPath } from '../../utils/PathTypes';
+import { createViewerPath, validateAndCreateIdBasedPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../../utils/PathTypes';
 import './DiffList.css';
 
 interface DiffListProps {
@@ -61,7 +61,7 @@ export const DiffList: React.FC<DiffListProps> = ({
     
     // Check if this diff involves ID-based arrays
     const idBasedPath = diff.idBasedPath;
-    const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
+    const hasIdBasedArrays = idBasedPath && hasIdBasedSegments(createIdBasedPath(idBasedPath));
     
     if (hasIdBasedArrays && jsonData && idKeysUsed) {
       console.log('[DiffList] 🔍 Found ID-based arrays - using PathConverter-based correlation');

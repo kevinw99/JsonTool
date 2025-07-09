@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
-import { validateAndCreateNumericPath, createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
+import { createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
 import type { ViewerPath, IdBasedPath, NumericPath, ArrayPatternPath } from '../utils/PathTypes';
 import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, type PathConversionContext } from '../utils/PathConverter';
 import './IdKeysPanel.css';
@@ -116,7 +116,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
         numericPath = convertArrayPatternToNumericPath(pathToExpand, contextRight);
       } catch (rightError) {
         console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert ArrayPatternPath with both left and right data:`, rightError);
-        throw new Error(`Cannot convert ArrayPatternPath "${pathToExpand}": ${rightError.message}`);
+        throw new Error(`Cannot convert ArrayPatternPath "${pathToExpand}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
       }
     }
     
@@ -183,7 +183,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
         console.log(`[EXPANSION_DEBUG] 🎯 converted using right data: "${numericPath}"`);
       } catch (rightError) {
         console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert occurrence path with both left and right data:`, rightError);
-        throw new Error(`Cannot convert occurrence path "${originalPath}": ${rightError.message}`);
+        throw new Error(`Cannot convert occurrence path "${originalPath}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
       }
     }
     

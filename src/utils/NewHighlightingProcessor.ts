@@ -5,7 +5,7 @@ import {
 } from './PathConverter';
 import type { DiffResult } from './jsonCompare';
 import type { AnyPath, ViewerId } from './PathTypes';
-import { unsafeIdBasedPath } from './PathTypes';
+import { unsafeIdBasedPath, hasIdBasedSegments, createIdBasedPath } from './PathTypes';
 
 /**
  * CSS class constants for highlighting
@@ -48,7 +48,7 @@ export class NewHighlightingProcessor {
     const classes: string[] = [];
     
     // Check if the original input path contains ID-based segments
-    const originalPathContainsIdSegments = nodePath.includes('[id=');
+    const originalPathContainsIdSegments = hasIdBasedSegments(createIdBasedPath(nodePath));
     
     // Step 1: Normalize the node path to get all possible variations
     const pathVariations = normalizePathForComparison(nodePath, context);

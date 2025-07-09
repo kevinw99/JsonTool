@@ -184,7 +184,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       console.log(`[JsonViewerSyncContext toggleExpand] Generic path: "${genericPath}"`);
       
       // Check if this is an ID-based array path that needs sync
-      const hasIdBasedSegment = genericPath.includes('[id=');
+      const hasIdBasedSegment = hasIdBasedSegments(createIdBasedPath(genericPath));
       console.log(`[JsonViewerSyncContext toggleExpand] Has ID-based segment: ${hasIdBasedSegment}`);
       
       // Convert to numeric path for consistent storage
@@ -616,7 +616,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
         if (result.leftPath && result.rightPath) {
           console.log('[syncToCounterpart] ✅ Resolved paths - LEFT:', result.leftPath, 'RIGHT:', result.rightPath);
           // Use dual path highlighting - both source and counterpart should be highlighted
-          goToDiffWithPaths(result.leftPath, result.rightPath);
+          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'syncToCounterpart.left'));
+          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'syncToCounterpart.right'));
+          goToDiffWithPaths(leftViewerPath, rightViewerPath);
         } else {
           console.log('[syncToCounterpart] ⚠️ Could not resolve ID paths, using simple sync');
           goToDiff(normalizedPath);
