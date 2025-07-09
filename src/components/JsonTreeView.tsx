@@ -848,25 +848,28 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
 
   return (
     <div className="json-tree-view-container">
-      {/* Breadcrumb Section - Dynamic/Static */}
-      <JsonPathBreadcrumb
-        currentPath={isDynamicBreadcrumb ? undefined : testPath}
-        currentLine={30}
-        onSegmentClick={handleBreadcrumbClick}
-        segments={isDynamicBreadcrumb ? breadcrumbSegments : undefined}
-        isDynamic={isDynamicBreadcrumb}
-      />
+      {/* Breadcrumb Section - Hidden for now */}
+      {false && (
+        <JsonPathBreadcrumb
+          currentPath={isDynamicBreadcrumb ? undefined : testPath}
+          currentLine={30}
+          onSegmentClick={handleBreadcrumbClick}
+          segments={isDynamicBreadcrumb ? breadcrumbSegments : undefined}
+          isDynamic={isDynamicBreadcrumb}
+        />
+      )}
 
-      {/* Development Controls */}
-      <div style={{ padding: '4px 8px', background: '#f0f0f0', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
-        <button onClick={enableDynamicBreadcrumb} disabled={isDynamicBreadcrumb}>
-          Enable Dynamic
-        </button>
-        <button onClick={disableDynamicBreadcrumb} disabled={!isDynamicBreadcrumb}>
-          Disable Dynamic
-        </button>
-        <button onClick={() => updateBreadcrumbFromViewport([
-          { key: 'boomerForecastV3Requests', path: 'root.boomerForecastV3Requests', lineNumber: 2, isArray: true, indentLevel: 0 },
+      {/* Development Controls - Hidden for now */}
+      {false && (
+        <div style={{ padding: '4px 8px', background: '#f0f0f0', fontSize: '12px', borderBottom: '1px solid #ddd' }}>
+          <button onClick={enableDynamicBreadcrumb} disabled={isDynamicBreadcrumb}>
+            Enable Dynamic
+          </button>
+          <button onClick={disableDynamicBreadcrumb} disabled={!isDynamicBreadcrumb}>
+            Disable Dynamic
+          </button>
+          <button onClick={() => updateBreadcrumbFromViewport([
+            { key: 'boomerForecastV3Requests', path: 'root.boomerForecastV3Requests', lineNumber: 2, isArray: true, indentLevel: 0 },
           { key: 'parameters', path: 'root.boomerForecastV3Requests[0].parameters', lineNumber: 4, isArray: false, indentLevel: 1 },
           { key: 'accountParams', path: 'root.boomerForecastV3Requests[0].parameters.accountParams', lineNumber: 5, isArray: true, indentLevel: 2 }
         ])}>
@@ -875,7 +878,8 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
         <span style={{ marginLeft: '16px', color: '#666' }}>
           Mode: {isDynamicBreadcrumb ? 'Dynamic' : 'Static'} | Segments: {breadcrumbSegments.length}
         </span>
-      </div>
+        </div>
+      )}
 
       {/* Main Content with Line Numbers and Tree */}
       <div className="json-tree-main-content">

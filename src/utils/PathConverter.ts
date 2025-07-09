@@ -563,6 +563,7 @@ export function convertArrayPatternToNumericPath(
   const fullPath = resolvedPath.startsWith('root.') ? resolvedPath : `root.${resolvedPath}`;
   
   console.log(`[PathConverter] 🔍 ArrayPattern "${arrayPattern}" -> navigable path: "${fullPath}"`);
+  console.log(`[PathConverter] 🔍 resolvedPath before root prefix: "${resolvedPath}"`);
   
   return validateAndCreateNumericPath(fullPath, 'PathConverter.convertArrayPatternToNumericPath');
 }

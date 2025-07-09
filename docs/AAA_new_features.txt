@@ -287,3 +287,12 @@ IDKey only makes sense when both side have the nodes, so that we can compare the
 also I see codes assume [id=xxx] for testing IdbasedPath, but it could be [key=xxx] as well. can you do a
 comprehensive searhch and fix all those issues?
 here is an example: I click on this node, and it cause errors in log.
+
+I like to add a step to add a test case, could be UI or logical test for each feature or bug fix. .
+Let's have UI tests under src/UItests, test case should use the public/simple1.json and simple2.json files.
+can you add a test case for the following scenario:
+assert the count of Diff and each value,
+GOtoDiff #1~11
+assert the count and value of IdKey
+Goto IdKey #1, 2
+

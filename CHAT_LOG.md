@@ -1666,6 +1666,92 @@ Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, ID keys)"
 **Status**: 🚧 In Progress  
 
 
+### Request #105 - 🐛 Bug Fix
+**Date**: 2025-07-08  
+**Request**: "eliminate duplicate IDKey logic and resolve filtering issues
+
+- Removed traverseAndSortJson function to eliminate code duplication
+- Use single source of truth: jsonCompare.ts for all IDKey detection
+- Fixed ArrayPatternPath generation to handle all bracket patterns
+- Simplified App.tsx to use jsonCompare directly on original data
+- Valid IDKeys preserved while problematic ones naturally filtered out
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (main app)"  
+**Commit**: [`3e01523`](https://github.com/user/repo/commit/3e01523)  
+**Files**: .auto-chat-state.json, CHAT_LOG.md, docs/AAA_new_features.txt...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #106 - 🐛 Bug Fix
+**Date**: 2025-07-08  
+**Request**: "resolve IDKey detection and path navigation issues
+
+- Fixed IDKey detection array length logic to allow single-element arrays
+- Enhanced PathConverter to intelligently find correct array elements
+- Fixed overlap validation for single-element array comparisons
+- Added comprehensive test coverage for edge cases
+- IDKey navigation now works for nested arrays in any position
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`098d6c8`](https://github.com/user/repo/commit/098d6c8)  
+**Files**: src/test/simple-navigation.test.tsx, src/tests/navigation.test.tsx, src/utils/PathConverter.ts...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #107 - 🐛 Bug Fix
+**Date**: 2025-07-08  
+**Request**: "eliminate duplicate diff entries for added/removed properties
+
+- Removed unnecessary recursive calls for added/removed properties
+- Added/removed diffs now cover entire subtree without duplication
+- Added test coverage to prevent regression of duplicate diff issue
+- Fixes issue where same path appeared twice (as "added" and "changed")
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`6993f78`](https://github.com/user/repo/commit/6993f78)  
+**Files**: src/test/simple-navigation.test.tsx, src/utils/jsonCompare.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #108 - 🚨 Critical Bug
+**Date**: 2025-07-09  
+**Request**: "support any property name for IDKey navigation (not just 'id')
+
+Replace hardcoded '[id=' checks with hasIdBasedSegments() function that
+detects any property-based array indexing pattern like [name=], [userId=], etc.
+
+Changes:
+- DiffList: Use hasIdBasedSegments() instead of includes('[id=')
+- JsonViewerSyncContext: Use hasIdBasedSegments() for path detection
+- NewHighlightingProcessor: Use hasIdBasedSegments() for highlighting
+- IdKeysPanel: Fix TypeScript error handling
+
+This enables IDKey navigation to work with arrays using any property
+as the identifier, not just 'id'. The hasIdBasedSegments() function
+uses regex pattern /\[[^=\]]+=[^\]]+\]/ to match any [key=value] format.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (diff panel, ID keys)"  
+**Commit**: [`e2b6889`](https://github.com/user/repo/commit/e2b6889)  
+**Files**: src/components/DiffList/DiffList.tsx, src/components/IdKeysPanel.tsx, src/components/JsonViewerSyncContext.tsx...  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:
