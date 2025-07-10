@@ -1,0 +1,28 @@
+{
+  "id": 113,
+  "request": "implement array-specific ID key sorting instead of global primary key\n\n- Remove global getPrimaryIdKey logic from App.tsx\n- Update JsonTreeView to detect and use array-specific ID keys for sorting\n- Each array now sorts by its own detected ID key (e.g., zzUserProfiles[] uses 'lastLogin')\n- Fix path matching: currentArrayPath now includes '[]' suffix to match idKeysUsed.arrayPath\n- Remove debug logging for cleaner console output\n- Arrays are automatically sorted when their specific ID key is detected\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, ID keys, main app)",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-10T01:12:38.896Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

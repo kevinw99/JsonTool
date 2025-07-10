@@ -296,3 +296,30 @@ GOtoDiff #1~11
 assert the count and value of IdKey
 Goto IdKey #1, 2
 
+can you create UI test cases on manual navigation, such as picking the longest Difflist path, then clicking on
+nodes
+to manually expand/collapse, and assert the the synchronized expand/collapse . Note the Difflist path could be
+idPath so it might need to be converted to a numeric path.
+Also pick a node that could be outside of viewport, manually scroll on the left, and assert the sync scrolling
+works correctly.
+
+Can you add UI test cases to test synctocounterpart?, this can be add-on from the manual navigation test case. once
+ you expand a node, you can click on the synctocounterpart button to see if the right side is expand and scrolled
+ to
+  the viewport. You can also click on the synctocounterpart button on the right side to see if the left side is.
+
+=
+  why in Difference panel the Diff list are not sorted? what determine the order?
+
+
+
+"Aha! The App.tsx is directly using JsonTreeView, not FilteredJsonViewer. That's why my fix didn't work.
+    Let me check how JsonTreeView is being called in App.tsx:
+" is there unused code for FilteredJsonViewer laying around ? can you remove it?
+
+I mean similar file names, not simple file
+
+I like make running tests be a step before commit, so that we can ensure the code is working before
+  committing. Can you add a step to run tests before commit? It should be a pre-commit hook, and it should run
+  both unit tests and UI tests. what are the tests we have now? can you list them?
+  

@@ -1,0 +1,28 @@
+{
+  "id": 111,
+  "request": "add comprehensive e2e tests with non-standard ID key support\n\n- Augmented simple1.json and simple2.json with arrays using non-standard ID keys:\n  * zzCustomDataSets array with keyUnique, name properties\n  * zzUserProfiles array with username property\n  * metrics sub-arrays with metricCode property\n- Added comprehensive-diff-test.spec.ts with 18 total diff validations\n- Verified original 11 diffs remain unchanged (preserves existing tests)\n- New diffs 12-18 test non-standard ID key patterns like [name=], [username=]\n- Updated Playwright config to run only on Chrome for faster execution\n- All tests validate that IDKey navigation works with any property name\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Feature",
+  "priority": "high",
+  "created": "2025-07-09T23:54:00.609Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The new feature should work as specified, integrate seamlessly with existing features, and handle edge cases gracefully.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

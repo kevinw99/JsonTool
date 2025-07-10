@@ -1752,6 +1752,127 @@ Co-Authored-By: Claude <noreply@anthropic.com> (diff panel, ID keys)"
 **Status**: 🚧 In Progress  
 
 
+### Request #109 - 🧭 Navigation
+**Date**: 2025-07-09  
+**Request**: "manual- disable breadcrumb (JSON tree navigation)"  
+**Commit**: [`bee36fc`](https://github.com/user/repo/commit/bee36fc)  
+**Files**: CHAT_LOG.md, docs/AAA_new_features.txt, src/components/JsonTreeView.tsx...  
+**Priority**: medium  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #110 - 🐛 Bug Fix
+**Date**: 2025-07-09  
+**Request**: "resolve strict mode violations in id-key-navigation e2e tests
+
+Fixed locator strict mode violations where '.json-tree-view, .json-viewer'
+matched both left and right JSON panels. Added .first() to ensure locator
+matches exactly one element, allowing all 12 tests to pass.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`00c652b`](https://github.com/user/repo/commit/00c652b)  
+**Files**: e2e/id-key-navigation.spec.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #111 - ✨ Feature
+**Date**: 2025-07-09  
+**Request**: "add comprehensive e2e tests with non-standard ID key support
+
+- Augmented simple1.json and simple2.json with arrays using non-standard ID keys:
+  * zzCustomDataSets array with keyUnique, name properties
+  * zzUserProfiles array with username property
+  * metrics sub-arrays with metricCode property
+- Added comprehensive-diff-test.spec.ts with 18 total diff validations
+- Verified original 11 diffs remain unchanged (preserves existing tests)
+- New diffs 12-18 test non-standard ID key patterns like [name=], [username=]
+- Updated Playwright config to run only on Chrome for faster execution
+- All tests validate that IDKey navigation works with any property name
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`2cdf204`](https://github.com/user/repo/commit/2cdf204)  
+**Files**: e2e/comprehensive-diff-test.spec.ts, playwright.config.ts, public/simple1.json...  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #112 - 🚨 Critical Bug
+**Date**: 2025-07-10  
+**Request**: "add comprehensive manual navigation UI tests
+
+- Created manual-navigation-test.spec.ts with 5 comprehensive test cases:
+  * Synchronized expand/collapse testing with longest diff path navigation
+  * Synchronized scrolling with viewport management (vertical/horizontal)
+  * IDPath to numeric path conversion with non-standard ID key support
+  * Breadcrumb navigation and path display testing
+  * Sync-to-counterpart functionality testing (left-to-right, right-to-left)
+- Tests validate manual node expansion, button interactions, and scroll sync
+- Supports ID-based paths with [id=], [name=], [username=], [keyUnique=] patterns
+- Generates 18 screenshots for visual validation and debugging
+- Added comprehensive documentation in README-ManualNavigationTests.md
+- All tests passing with robust error handling and fallback selectors
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`95d0ac4`](https://github.com/user/repo/commit/95d0ac4)  
+**Files**: e2e/README-ManualNavigationTests.md, e2e/manual-navigation-test.spec.ts  
+**Priority**: critical  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #113 - 🐛 Bug Fix
+**Date**: 2025-07-10  
+**Request**: "implement array-specific ID key sorting instead of global primary key
+
+- Remove global getPrimaryIdKey logic from App.tsx
+- Update JsonTreeView to detect and use array-specific ID keys for sorting
+- Each array now sorts by its own detected ID key (e.g., zzUserProfiles[] uses 'lastLogin')
+- Fix path matching: currentArrayPath now includes '[]' suffix to match idKeysUsed.arrayPath
+- Remove debug logging for cleaner console output
+- Arrays are automatically sorted when their specific ID key is detected
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com> (JSON tree navigation, ID keys, main app)"  
+**Commit**: [`1caff34`](https://github.com/user/repo/commit/1caff34)  
+**Files**: src/App.tsx, src/components/IdKeysPanel.tsx, src/components/JsonTreeView.tsx  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
+### Request #114 - 🐛 Bug Fix
+**Date**: 2025-07-10  
+**Request**: "improve diff list ordering to match visual tree structure
+
+- Fix object key iteration order in jsonCompare.ts to preserve visual tree order
+- Replace Set-based key merging with intelligent interleaving strategy
+- Ensure properties from both objects maintain their relative positions
+- Fix contributionsCalculatorSavingsSlidersResponse appearing at end instead of natural position
+- Update comprehensive-diff-test.spec.ts to reflect new ordering
+- contributionsCalculatorSavingsSlidersResponse moved from #18 to #3
+- All subsequent diffs shifted by 1 position accordingly
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"  
+**Commit**: [`1e2a005`](https://github.com/user/repo/commit/1e2a005)  
+**Files**: e2e/comprehensive-diff-test.spec.ts, src/utils/jsonCompare.ts  
+**Priority**: high  
+**Auto-detected**: ✅  
+**Status**: 🚧 In Progress  
+
+
 ## Key Patterns & Regressions Identified
 
 ### Common Issues:

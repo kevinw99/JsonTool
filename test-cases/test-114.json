@@ -1,0 +1,28 @@
+{
+  "id": 114,
+  "request": "improve diff list ordering to match visual tree structure\n\n- Fix object key iteration order in jsonCompare.ts to preserve visual tree order\n- Replace Set-based key merging with intelligent interleaving strategy\n- Ensure properties from both objects maintain their relative positions\n- Fix contributionsCalculatorSavingsSlidersResponse appearing at end instead of natural position\n- Update comprehensive-diff-test.spec.ts to reflect new ordering\n- contributionsCalculatorSavingsSlidersResponse moved from #18 to #3\n- All subsequent diffs shifted by 1 position accordingly\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-10T01:52:40.449Z",
+  "testSteps": [
+    "1. Reproduce the bug using the provided steps",
+    "2. Verify the issue exists before the fix",
+    "3. Apply the fix",
+    "4. Test the specific scenario that was broken",
+    "5. Test related functionality to ensure no regressions",
+    "6. Verify edge cases work correctly"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

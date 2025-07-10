@@ -1,0 +1,28 @@
+{
+  "id": 106,
+  "request": "resolve IDKey detection and path navigation issues\n\n- Fixed IDKey detection array length logic to allow single-element arrays\n- Enhanced PathConverter to intelligently find correct array elements\n- Fixed overlap validation for single-element array comparisons\n- Added comprehensive test coverage for edge cases\n- IDKey navigation now works for nested arrays in any position\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-08T06:21:48.552Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

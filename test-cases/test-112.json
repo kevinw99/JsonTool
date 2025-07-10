@@ -1,0 +1,28 @@
+{
+  "id": 112,
+  "request": "add comprehensive manual navigation UI tests\n\n- Created manual-navigation-test.spec.ts with 5 comprehensive test cases:\n  * Synchronized expand/collapse testing with longest diff path navigation\n  * Synchronized scrolling with viewport management (vertical/horizontal)\n  * IDPath to numeric path conversion with non-standard ID key support\n  * Breadcrumb navigation and path display testing\n  * Sync-to-counterpart functionality testing (left-to-right, right-to-left)\n- Tests validate manual node expansion, button interactions, and scroll sync\n- Supports ID-based paths with [id=], [name=], [username=], [keyUnique=] patterns\n- Generates 18 screenshots for visual validation and debugging\n- Added comprehensive documentation in README-ManualNavigationTests.md\n- All tests passing with robust error handling and fallback selectors\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-10T00:08:15.144Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}

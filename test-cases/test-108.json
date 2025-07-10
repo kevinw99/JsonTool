@@ -1,0 +1,28 @@
+{
+  "id": 108,
+  "request": "support any property name for IDKey navigation (not just 'id')\n\nReplace hardcoded '[id=' checks with hasIdBasedSegments() function that\ndetects any property-based array indexing pattern like [name=], [userId=], etc.\n\nChanges:\n- DiffList: Use hasIdBasedSegments() instead of includes('[id=')\n- JsonViewerSyncContext: Use hasIdBasedSegments() for path detection\n- NewHighlightingProcessor: Use hasIdBasedSegments() for highlighting\n- IdKeysPanel: Fix TypeScript error handling\n\nThis enables IDKey navigation to work with arrays using any property\nas the identifier, not just 'id'. The hasIdBasedSegments() function\nuses regex pattern /\\[[^=\\]]+=[^\\]]+\\]/ to match any [key=value] format.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com> (diff panel, ID keys)",
+  "category": "Critical Bug",
+  "priority": "critical",
+  "created": "2025-07-09T22:25:50.719Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The requested change should be implemented correctly and not break existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run dev # Then manually verify the changes work as expected"
+}

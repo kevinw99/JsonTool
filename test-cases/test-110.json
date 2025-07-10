@@ -1,0 +1,28 @@
+{
+  "id": 110,
+  "request": "resolve strict mode violations in id-key-navigation e2e tests\n\nFixed locator strict mode violations where '.json-tree-view, .json-viewer'\nmatched both left and right JSON panels. Added .first() to ensure locator\nmatches exactly one element, allowing all 12 tests to pass.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+  "category": "Bug Fix",
+  "priority": "high",
+  "created": "2025-07-09T23:09:39.041Z",
+  "testSteps": [
+    "1. Load sample JSON files (sample1.json, sample2.json)",
+    "2. Wait for differences to be calculated",
+    "3. Open differences panel",
+    "4. Click on a difference item",
+    "5. Verify navigation to correct JSON node",
+    "6. Verify node is expanded and highlighted"
+  ],
+  "expectedResult": "The reported issue should be completely resolved without introducing new bugs or breaking existing functionality.",
+  "sampleData": {
+    "primaryFiles": [
+      "sample1.json",
+      "sample2.json"
+    ],
+    "alternativeFiles": [
+      "Test1RG_request_BM.json",
+      "Test1RG_request_SUT.json"
+    ],
+    "description": "Use sample files to test JSON comparison and navigation features"
+  },
+  "verificationCommand": "npm run test && npm run test:e2e"
+}
