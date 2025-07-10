@@ -29,7 +29,8 @@
     "auto-reset": "node auto-capture.js reset-stats",
     "auto-bg": "./auto-chat.sh start",
     "auto-stop": "./auto-chat.sh stop",
-    "auto-logs": "./auto-chat.sh logs"
+    "auto-logs": "./auto-chat.sh logs",
+    "prepare": "husky"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -49,6 +50,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "puppeteer": "^21.11.0",
     "typescript": "~5.8.3",

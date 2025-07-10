@@ -321,5 +321,5 @@ I mean similar file names, not simple file
 
 I like make running tests be a step before commit, so that we can ensure the code is working before
   committing. Can you add a step to run tests before commit? It should be a pre-commit hook, and it should run
-  both unit tests and UI tests. what are the tests we have now? can you list them?
-  
+  both unit tests and UI tests. what are the tests we have now? can you run them to have a base line?
+

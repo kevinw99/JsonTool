@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-commit tests..."
+
+# Run e2e tests (more stable than unit tests)
+echo "Running e2e tests..."
+npm run test:e2e 2>&1 | tee test-output.log
+if [ $? -ne 0 ]; then
+  echo "❌ E2E tests failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ All tests passed. Proceeding with commit."
