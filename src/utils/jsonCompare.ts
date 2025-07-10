@@ -223,7 +223,25 @@ function compareRecursively(
   } else if (type1 === "object") {
     const keys1 = Object.keys(obj1);
     const keys2 = Object.keys(obj2);
-    const allKeys = new Set([...keys1, ...keys2]);
+    
+    // Merge keys preserving relative order from both objects
+    // Strategy: interleave keys based on their relative positions in each object
+    const allKeys: string[] = [];
+    let i1 = 0, i2 = 0;
+    
+    while (i1 < keys1.length || i2 < keys2.length) {
+      // Add key from obj1 if it exists and we haven't processed it yet
+      if (i1 < keys1.length && !allKeys.includes(keys1[i1])) {
+        allKeys.push(keys1[i1]);
+      }
+      i1++;
+      
+      // Add key from obj2 if it exists and we haven't processed it yet  
+      if (i2 < keys2.length && !allKeys.includes(keys2[i2])) {
+        allKeys.push(keys2[i2]);
+      }
+      i2++;
+    }
 
     for (const key of allKeys) {
       const newPath = path === "root" ? key : `${path}.${key}`;
