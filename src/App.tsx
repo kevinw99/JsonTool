@@ -60,46 +60,6 @@ function App() {
     localStorage.setItem('jsontool-active-tab', activeTab);
   }, [activeTab]);
 
-  // Helper function to get the primary ID key from detected ID keys
-  const getPrimaryIdKey = (idKeysUsed: IdKeyInfo[]): string | null => {
-    
-    if (!idKeysUsed || idKeysUsed.length === 0) {
-      return null;
-    }
-    
-    // Count frequency of each ID key
-    const keyFrequency = new Map<string, number>();
-    idKeysUsed.forEach(info => {
-      const count = keyFrequency.get(info.idKey) || 0;
-      keyFrequency.set(info.idKey, count + 1);
-    });
-    
-    
-    // Get the most frequent non-composite ID key (prefer simple keys over composite ones)
-    let primaryKey: string | null = null;
-    let maxCount = 0;
-    
-    for (const [key, count] of keyFrequency.entries()) {
-      if (count > maxCount && !key.includes('+')) { // Prefer non-composite keys
-        primaryKey = key;
-        maxCount = count;
-      }
-    }
-    
-    // If no non-composite key found, use the most frequent one
-    if (!primaryKey && keyFrequency.size > 0) {
-      for (const [key, count] of keyFrequency.entries()) {
-        if (count > maxCount) {
-          primaryKey = key;
-          maxCount = count;
-        }
-      }
-    }
-    
-    
-    
-    return primaryKey;
-  };
 
   // Helper function to save a single filename to localStorage
   const saveFilenameToStorage = (fileKey: 'file1' | 'file2', fileName: string) => {
@@ -876,7 +836,7 @@ function App() {
                             data={file1.content as JsonValue}
                             viewerId="left"
                             jsonSide='left'
-                            idKeySetting={getPrimaryIdKey(idKeysUsed)}
+                            idKeySetting={null}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                             isCompareMode={true}
@@ -921,7 +881,7 @@ function App() {
                             data={file2.content as JsonValue}
                             viewerId="right"
                             jsonSide='right'
-                            idKeySetting={getPrimaryIdKey(idKeysUsed)}
+                            idKeySetting={null}
                             idKeysUsed={idKeysUsed}
                             showDiffsOnly={showDiffsOnly}
                             isCompareMode={true}

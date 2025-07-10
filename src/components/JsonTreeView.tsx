@@ -308,12 +308,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   const diffStatusClasses = getNodeDiffStatus(); // This returns an array of classes
   const diffStatus = diffStatusClasses.join(' '); // Join for compatibility with existing code
   
-  // DEBUG: Log highlighting for the problematic contributions arrays
-  if (path.includes('contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions')) {
-    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} Path: "${path}"`);
-    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} CSS classes: [${diffStatusClasses.join(', ')}]`);
-    console.log(`[HIGHLIGHTING DEBUG] ${viewerId} genericNumericPathForNode: "${genericNumericPathForNode}"`);
-  }
 
   const calculateIsVisibleInDiffsOnlyMode = (): boolean => {
     // Use showDiffsOnly from props if available, otherwise from context
@@ -379,14 +373,6 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   const toggleExpansion = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log(`[EXPANSION_DEBUG] 🎯 JsonNode click detected:`);
-    console.log(`[EXPANSION_DEBUG] 🎯 viewerId: ${viewerId}`);
-    console.log(`[EXPANSION_DEBUG] 🎯 path: "${path}"`);
-    console.log(`[EXPANSION_DEBUG] 🎯 genericNumericPathForNode: "${genericNumericPathForNode}"`);
-    console.log(`[EXPANSION_DEBUG] 🎯 hasChildren: ${hasChildren}`);
-    console.log(`[EXPANSION_DEBUG] 🎯 isExpanded before toggle: ${isExpanded}`);
-    console.log(`[EXPANSION_DEBUG] 🎯 data type: ${isArray ? 'array' : isObject ? 'object' : typeof data}`);
-    console.log(`[EXPANSION_DEBUG] 🎯 data length/keys: ${isArray ? (data as JsonArray).length : isObject ? Object.keys(data as JsonObject).length : 'N/A'}`);
     
     toggleExpand(path, viewerId as ViewerId);
     if (onNodeToggle) {
@@ -544,8 +530,13 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
         {isExpanded && hasChildren && (
           <div className="json-node-children">
             {(() => {
-              // Sort array by ID key if idKeySetting is provided OR if this array is in forceSortedArrays
-              const shouldSort = idKeySetting || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode));
+              // Find the specific ID key for this array path
+              const currentArrayPath = genericNumericPathForNode.replace(/^root\./, '') + '[]';
+              const arrayIdKey = idKeysUsed?.find(info => info.arrayPath === currentArrayPath)?.idKey;
+              
+              
+              // Sort array by ID key if we have an array-specific ID key OR if this array is in forceSortedArrays
+              const shouldSort = arrayIdKey || forceSortedArrays.has(validateAndCreateNumericPath(genericNumericPathForNode));
               
               let sortedData = [...arrData];
               let sortedIndexMap = new Map<number, number>(); // Maps sorted index to original index
@@ -559,16 +550,16 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
                 }));
                 
                 
-                // Sort by ID key value if available, otherwise by string representation
+                // Sort by array-specific ID key if available, otherwise by string representation
                 itemsWithOriginalIndex.sort((a, b) => {
-                  if (idKeySetting) {
-                    const aHasId = typeof a.item === 'object' && a.item !== null && !Array.isArray(a.item) && idKeySetting in a.item;
-                    const bHasId = typeof b.item === 'object' && b.item !== null && !Array.isArray(b.item) && idKeySetting in b.item;
+                  if (arrayIdKey) {
+                    const aHasId = typeof a.item === 'object' && a.item !== null && !Array.isArray(a.item) && arrayIdKey in a.item;
+                    const bHasId = typeof b.item === 'object' && b.item !== null && !Array.isArray(b.item) && arrayIdKey in b.item;
                     
                     // If both have the ID key, sort by it
                     if (aHasId && bHasId) {
-                      const aId = String((a.item as JsonObject)[idKeySetting]);
-                      const bId = String((b.item as JsonObject)[idKeySetting]);
+                      const aId = String((a.item as JsonObject)[arrayIdKey]);
+                      const bId = String((b.item as JsonObject)[arrayIdKey]);
                       return aId.localeCompare(bId);
                     }
                     
@@ -609,7 +600,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
               
               return sortedData.map((itemValue, sortedIndex) => {
                 const originalIndex = sortedIndexMap.get(sortedIndex) ?? sortedIndex;
-                const itemPathSuffix = getItemPathSuffix(itemValue, originalIndex, idKeySetting);
+                const itemPathSuffix = getItemPathSuffix(itemValue, originalIndex, arrayIdKey || idKeySetting);
                 const childPath: IdBasedPath = createIdBasedPath(`${path}${itemPathSuffix}`);
                 return (
                   <JsonNode

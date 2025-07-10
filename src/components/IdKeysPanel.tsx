@@ -92,8 +92,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
 
 
   const handlePathClick = (pathToExpand: ArrayPatternPath) => {
-    console.log(`[EXPANSION_DEBUG] 🎯 IdKeysPanel handlePathClick triggered:`);
-    console.log(`[EXPANSION_DEBUG] 🎯 ArrayPatternPath: "${pathToExpand}"`);
     
     // Try with left data first, then right as fallback
     const contextLeft: PathConversionContext = {
@@ -105,7 +103,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     try {
       numericPath = convertArrayPatternToNumericPath(pathToExpand, contextLeft);
     } catch (leftError) {
-      console.log(`[EXPANSION_DEBUG] 🎯 Left data conversion failed, trying right data:`, leftError);
       
       const contextRight: PathConversionContext = {
         jsonData: jsonData.right,
@@ -120,7 +117,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       }
     }
     
-    console.log(`[EXPANSION_DEBUG] 🎯 converted numericPath: "${numericPath}"`);
     
     // Set persistent highlight for border highlighting that persists until next navigation
     const highlights = new Set<ViewerPath>([
@@ -128,16 +124,12 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       createViewerPath('right', numericPath)
     ]);
     setPersistentHighlightPaths(highlights);
-    console.log(`[EXPANSION_DEBUG] 🎯 set persistent highlights for both viewers`);
     
     // Call goToDiff which will handle expansion and highlighting
-    console.log(`[EXPANSION_DEBUG] 🎯 calling goToDiff with: "${numericPath}"`);
     goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick.goToDiff'));
   };
 
   const handleOccurrenceClick = (originalPath: IdBasedPath) => {
-    console.log(`[EXPANSION_DEBUG] 🎯 IdKeysPanel handleOccurrenceClick triggered:`);
-    console.log(`[EXPANSION_DEBUG] 🎯 originalPath: "${originalPath}"`);
     
     let targetPath = originalPath as string;
     if (!targetPath.startsWith('root.')) {
@@ -161,9 +153,7 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
         throw new Error('PathConverter returned null');
       }
       numericPath = converted;
-      console.log(`[EXPANSION_DEBUG] 🎯 converted using left data: "${numericPath}"`);
     } catch (leftError) {
-      console.log(`[EXPANSION_DEBUG] 🎯 Left data conversion failed, trying right data:`, leftError);
       
       const contextRight: PathConversionContext = {
         jsonData: jsonData.right,
@@ -180,7 +170,6 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
           throw new Error('PathConverter returned null');
         }
         numericPath = converted;
-        console.log(`[EXPANSION_DEBUG] 🎯 converted using right data: "${numericPath}"`);
       } catch (rightError) {
         console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert occurrence path with both left and right data:`, rightError);
         throw new Error(`Cannot convert occurrence path "${originalPath}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
@@ -193,10 +182,8 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       createViewerPath('right', numericPath)
     ]);
     setPersistentHighlightPaths(highlights);
-    console.log(`[EXPANSION_DEBUG] 🎯 set persistent highlights for both viewers`);
     
     // Call goToDiff which will handle expansion and highlighting
-    console.log(`[EXPANSION_DEBUG] 🎯 calling goToDiff with: "${numericPath}"`);
     goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handleOccurrenceClick.goToDiff'));
   };
 
