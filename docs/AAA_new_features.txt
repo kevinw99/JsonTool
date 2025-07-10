@@ -32,22 +32,13 @@ fully expand a node
 fully collapse a node
 expand/collapse all nodes at the same level, while keeping other levels unchanged
 
-
+what to do if json parse fails?
 
 
 4 other forms:
   as a chrome plugin
   as a intellij plugin
 
-can we  " ensure numeric paths are always  associated with viewers." by making a type to either force a  │
-│   numbericPath always have a viewer/panel attribute, or create a new type, then force attribute not        │
-│   null?
-
-can you check all methods input and return have strict type on either viewerPath or IdBasedPath?         │
-│   NumericPath or string can not be in input or return
-
-
-can you update the place (like tests and other) use DiffResult.idKeyPath to use the new type?
 
 let's fix some UI issues: 1. can you move the ending braket ] and } to align vertically with the matching starting
 one?  it is still not fixed!
@@ -104,197 +95,6 @@ show the segments that are out of view port. can you re-describe the requirement
   ⎿  Loaded ~/.bash_profile
 
 
-1. no, it should be  "   - "boomerForecastV3Requests":                                             │
-│       - "parameters": {                                                                              │
-│       - "accountParams": {                                                                           │
-│       - "contributions": {" no need for index or id. 2. the regular json tree viewer is completely   │
-│   broken! [Image #1] 3. the crumb should be properly indent, just like how they would appear in      │
-│   json tree viewer. basically you find the line in the tree viewer when each seagement shows, then   │
-│   copy it to crumb area (since they are out of view!)
-
-
-currently the crumb area is static, can you build an interface to make it dynamic. Later on we will integrate with
-changing viewport in the tree viewer and pass the current visible path to the crumb area to update it.
-
-Synchronize scrolling is not working
-
-should I start a new session once in a while? I see the performance is getting slower if I keep using the same session.
-
-  // Get all elements with data-path attribute
-  const allDataPaths = document.querySelectorAll('[data-path]');
-  console.log(`Found ${allDataPaths.length} elements with data-path`);
-  // Show first 20
-  [...allDataPaths].slice(20, 80).forEach((el, i) => {
-    console.log(`${i}: ${el.getAttribute('data-path')}`);
-  });
-
-I want to see the complete list of data-path attributes in the document, can you help me to print them out those
-under "root.boomerForecastV3Requests[0].parameters.accountParams[1]"
-
-
- 1. Check if there are duplicate elements with the same data-path:
-
-  // Check for duplicates of the same path
-  const leftPath =
-  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[1]";
-  const rightPath =
-  "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[1]";
-
-  const leftElements = document.querySelectorAll(`[data-path="${leftPath}"]`);
-  const rightElements = document.querySelectorAll(`[data-path="${rightPath}"]`);
-
-  console.log(`Elements with leftPath: ${leftElements.length}`);
-  console.log(`Elements with rightPath: ${rightElements.length}`);
-
-  leftElements.forEach((el, i) => {
-    console.log(`Left element ${i}:`, {
-      element: el,
-      container: el.closest('.json-tree-content'),
-      viewerContainer: el.closest('[data-sync-group="json-viewers"]')
-    });
-  });
-
-  rightElements.forEach((el, i) => {
-    console.log(`Right element ${i}:`, {
-      element: el,
-      container: el.closest('.json-tree-content'),
-      viewerContainer: el.closest('[data-sync-group="json-viewers"]')
-    });
-  });
-
-  2. Check the DOM structure to see how viewers are organized:
-
-  // Check the structure of sync containers
-  const syncContainers = document.querySelectorAll('[data-sync-group="json-viewers"]');
-  console.log(`Found ${syncContainers.length} sync containers`);
-
-  syncContainers.forEach((container, i) => {
-    const treeContent = container.querySelector('.json-tree-content');
-    const sampleElements = treeContent?.querySelectorAll('[data-path*="boomerForecastV3Requests"]');
-    console.log(`Container ${i} (${i === 0 ? 'LEFT' : 'RIGHT'}):`, {
-      container: container,
-      treeContent: treeContent,
-      sampleElementsCount: sampleElements?.length || 0,
-      firstFewPaths: [...(sampleElements || [])].slice(0, 3).map(el => el.getAttribute('data-path'))
-    });
-  });
-
-  3. My theory - Check if querySelector naturally returns elements in DOM order:
-
-  // Test querySelector behavior with identical paths
-  const testPath =
-  "left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType";
-  const allElements = document.querySelectorAll(`[data-path="${testPath}"]`);
-
-  console.log('querySelector test:', {
-    firstElementReturned: firstElement,
-    allElementsCount: allElements.length,
-    allElements: [...allElements]
-  });
-
-  // Check which container each element belongs to
-  allElements.forEach((el, i) => {
-    const containers = document.querySelectorAll('[data-sync-group="json-viewers"]');
-    let whichContainer = 'UNKNOWN';
-    containers.forEach((container, containerIndex) => {
-      if (container.contains(el)) {
-        whichContainer = containerIndex === 0 ? 'LEFT' : 'RIGHT';
-      }
-    });
-    console.log(`Element ${i} is in: ${whichContainer} container`);
-  });
-
-
-  3. My theory - Check if querySelector naturally returns elements in DOM order:
-
-  // Test querySelector behavior with identical paths
-  const testPath =
-  "root.boomerForecastV3Requests[0].parameters.effectiveDate";
-  const firstElement = document.querySelector(`[data-path="${testPath}"]`);
-  const allElements = document.querySelectorAll(`[data-path="${testPath}"]`);
-
-  console.log('querySelector test:', {
-    firstElementReturned: firstElement,
-    allElementsCount: allElements.length,
-    allElements: [...allElements]
-  });
-root.boomerForecastV3Requests[0].parameters.effectiveDate
-
-recently we fixed a bug that the wrong container for scrolling is found. Can you search the commit history to see
-what change was made?
-
-I like to have some UI test case on synchronized scrolling. 1. load real data file sample1 and sample2 from
-./public, 2. pick  nodes in the left panel (right panel node could be differnent) that needs scrolling:
- a. "boomerForecastV3Requests[0].parameters.decumulationPhaseStartDate"
- b..root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[3]
-verify the right panel scrolls to the correct node.
-
-Actually, can you not have this outer/inner container, just have one container, the breadcrumb area does not need a
- container, it is simply a div inside the main container, and this div can not be scrolled, only the tree view area
-  is. is it possible?
-
-
-  what does SyncScroll do?
-
-lets comprehensinvely review the synchronized scrolling code, and see if we can use one single mechanism to handle
-various scenarios: GotoDiff, SynctoScroll, manual scroll, goto Idkey,  pleaes list a plan where codes could be
-cleanuped  up, and reused.
-
-also pay attention to retry and timing logic, usually that is sign of futile attempt, we should just fail and
-report error with information such as what node it is trying to do what action.
-
-let's fix these issues:
-  Error: Loaded ~/.bash_profile
-
-     > jsontool@0.0.0 build
-     > tsc -b && vite build
-
-     src/components/CodeMirror/jsonPathExtension.ts(6,10): error TS1484: 'Extension' is a type and must be
-      imported using a type-only import when 'verbatimModuleSyntax' is enabled.
-     src/components/CodeMirror/jsonPathExtension.ts(7,36): error TS6133: 'Decoration' is declared but its
-     value is never read.
-     src/components/CodeMirror/jsonPathExtension.ts(16,30): error TS6133: 'side' is declared but its value
-      is never read.
-     src/components/IdKeysPanel.tsx(4,10): error TS6133: 'validateAndCreateNumericPath' is declared but
-     its value is never read.
-     src/components/IdKeysPanel.tsx(118,79): error TS18046: 'rightError' is of type 'unknown'.
-     … +15 lines (ctrl+r to see all)
-
-can you review timing and wait time you added, are they still needed? Usally they are sign of potential probblem. I
- rather we fail fast and report error than keep retrying and waiting.
-
-
-this is wrong:
-    // Check if this diff involves ID-based arrays
-    const idBasedPath = diff.idBasedPath;
-    const hasIdBasedArrays = idBasedPath && idBasedPath.includes('[id=');
-
-
-This already shows the wrong "root." in the target.
-
-[ScrollService] Navigate request: {type: 'path', target: 'root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType', viewer: 'both', highlight: true, scrollBehavior: 'smooth', …}
-it should be
-
-
-I thought we already consolidate to scroll service to handle all scrolling? why do we still have code in other places to do scrolling?
-
-let's look at the case when array nodes are added. Here the right side node has arrays added, but does it make
-sense to generate IDkey for the added nodes?  I think not, since the left side does not have those nodes, so there
-is no comparison needed. can you review the logic and see if we can skip generating IDkey for added nodes? same for
- removed nodes. please list the plan before making any code change.
-IDKey only makes sense when both side have the nodes, so that we can compare them.
-
-also I see codes assume [id=xxx] for testing IdbasedPath, but it could be [key=xxx] as well. can you do a
-comprehensive searhch and fix all those issues?
-here is an example: I click on this node, and it cause errors in log.
-
-I like to add a step to add a test case, could be UI or logical test for each feature or bug fix. .
-Let's have UI tests under src/UItests, test case should use the public/simple1.json and simple2.json files.
-can you add a test case for the following scenario:
-assert the count of Diff and each value,
-GOtoDiff #1~11
-assert the count and value of IdKey
-Goto IdKey #1, 2
 
 can you create UI test cases on manual navigation, such as picking the longest Difflist path, then clicking on
 nodes
@@ -307,19 +107,3 @@ Can you add UI test cases to test synctocounterpart?, this can be add-on from th
  you expand a node, you can click on the synctocounterpart button to see if the right side is expand and scrolled
  to
   the viewport. You can also click on the synctocounterpart button on the right side to see if the left side is.
-
-=
-  why in Difference panel the Diff list are not sorted? what determine the order?
-
-
-
-"Aha! The App.tsx is directly using JsonTreeView, not FilteredJsonViewer. That's why my fix didn't work.
-    Let me check how JsonTreeView is being called in App.tsx:
-" is there unused code for FilteredJsonViewer laying around ? can you remove it?
-
-I mean similar file names, not simple file
-
-I like make running tests be a step before commit, so that we can ensure the code is working before
-  committing. Can you add a step to run tests before commit? It should be a pre-commit hook, and it should run
-  both unit tests and UI tests. what are the tests we have now? can you run them to have a base line?
-

@@ -49,7 +49,11 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
                 if (typeof text === 'string') {
                   try {
                     // Try to parse as JSON first
+                    console.log(`🔍 [FileDropZone] Attempting to parse JSON for file: ${file.name}`);
+                    console.log(`📄 [FileDropZone] File content length: ${text.length} characters`);
+                    console.log(`📝 [FileDropZone] First 200 chars:`, text.substring(0, 200));
                     const jsonData = JSON.parse(text);
+                    console.log(`✅ [FileDropZone] JSON parsing successful for: ${file.name}`);
                     resolve({ 
                       content: jsonData, 
                       isTextMode: false, 
@@ -57,7 +61,8 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
                     });
                   } catch (jsonError) {
                     // If JSON parsing fails, fall back to text mode
-                    console.warn('JSON parsing failed, displaying as text:', jsonError);
+                    console.error(`❌ [FileDropZone] JSON parsing failed for ${file.name}:`, jsonError);
+                    console.log(`📄 [FileDropZone] Raw text content:`, text);
                     resolve({ 
                       content: text, 
                       isTextMode: true, 
@@ -96,7 +101,11 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
             if (typeof text === 'string') {
               try {
                 // Try to parse as JSON first
+                console.log(`🔍 [FileDropZone-Single] Attempting to parse JSON for file: ${file.name}`);
+                console.log(`📄 [FileDropZone-Single] File content length: ${text.length} characters`);
+                console.log(`📝 [FileDropZone-Single] First 200 chars:`, text.substring(0, 200));
                 const jsonData = JSON.parse(text);
+                console.log(`✅ [FileDropZone-Single] JSON parsing successful for: ${file.name}`);
                 onFileDrop({ 
                   content: jsonData, 
                   isTextMode: false, 
@@ -104,7 +113,8 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ onFileDrop, onMultip
                 });
               } catch (jsonError) {
                 // If JSON parsing fails, fall back to text mode
-                console.warn('JSON parsing failed, displaying as text:', jsonError);
+                console.error(`❌ [FileDropZone-Single] JSON parsing failed for ${file.name}:`, jsonError);
+                console.log(`📄 [FileDropZone-Single] Raw text content:`, text);
                 onFileDrop({ 
                   content: text, 
                   isTextMode: true, 

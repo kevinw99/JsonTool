@@ -265,10 +265,36 @@ function App() {
   // Sample data loading function
   const loadSamples = async () => {
     try {
+      console.log('🔍 [loadSamples] Starting to load sample files...');
+      const [response1, response2] = await Promise.all([
+        fetch('/simple1.json'),
+        fetch('/simple2.json')
+      ]);
+      
+      console.log('📡 [loadSamples] Fetch responses:', { 
+        simple1Status: response1.status, 
+        simple2Status: response2.status 
+      });
+      
+      if (!response1.ok) {
+        console.error('❌ [loadSamples] Failed to fetch simple1.json:', response1.status, response1.statusText);
+        throw new Error(`Failed to fetch simple1.json: ${response1.status}`);
+      }
+      
+      if (!response2.ok) {
+        console.error('❌ [loadSamples] Failed to fetch simple2.json:', response2.status, response2.statusText);
+        throw new Error(`Failed to fetch simple2.json: ${response2.status}`);
+      }
+      
       const [j1, j2] = await Promise.all([
-        fetch('/simple1.json').then(r => r.json()),
-        fetch('/simple2.json').then(r => r.json())
-      ])
+        response1.json(),
+        response2.json()
+      ]);
+      
+      console.log('✅ [loadSamples] Successfully parsed JSON files');
+      console.log('📄 [loadSamples] simple1.json keys:', Object.keys(j1));
+      console.log('📄 [loadSamples] simple2.json keys:', Object.keys(j2));
+      
       const comparisonResult: JsonCompareResult = jsonCompare(j1, j2);
       const file1Data = { 
         content: comparisonResult.processedJson1, 
@@ -281,6 +307,7 @@ function App() {
         fileName: 'simple2.json' 
       };
       
+      console.log('🎯 [loadSamples] Setting file data with isTextMode: false');
       setFile1(file1Data);
       setFile2(file2Data);
       setDiffs(comparisonResult.diffs);
@@ -289,8 +316,9 @@ function App() {
       
       // Auto-save the sample filenames so they persist on reload
       saveFilenamesFromData(file1Data, file2Data);
-      console.log('Sample files loaded and filenames saved');
+      console.log('✅ [loadSamples] Sample files loaded and filenames saved');
     } catch (e) {
+      console.error('❌ [loadSamples] Error loading sample files:', e);
       setError('Failed to load sample JSON files.')
       console.error("Error loading or comparing JSON:", e);
     }
@@ -609,7 +637,11 @@ function App() {
           if (typeof text === 'string') {
             try {
               // Try to parse as JSON first
+              console.log(`🔍 [App-GlobalDrop] Attempting to parse JSON for file: ${file.name}`);
+              console.log(`📄 [App-GlobalDrop] File content length: ${text.length} characters`);
+              console.log(`📝 [App-GlobalDrop] First 200 chars:`, text.substring(0, 200));
               const jsonData = JSON.parse(text);
+              console.log(`✅ [App-GlobalDrop] JSON parsing successful for: ${file.name}`);
               const data = { 
                 content: jsonData, 
                 isTextMode: false, 
@@ -631,7 +663,8 @@ function App() {
               }
             } catch (jsonError) {
               // If JSON parsing fails, fall back to text mode
-              console.warn('JSON parsing failed, displaying as text:', jsonError);
+              console.error(`❌ [App-GlobalDrop] JSON parsing failed for ${file.name}:`, jsonError);
+              console.log(`📄 [App-GlobalDrop] Raw text content:`, text);
               const data = { 
                 content: text, 
                 isTextMode: true, 
@@ -819,8 +852,7 @@ function App() {
                           side="left"
                         />
                         <FileSelector
-                          availableFiles={getPublicJsonFiles()}
-                          onFileSelect={handleFileSelect('file1')}
+                          onFileSelect={handleFileDrop('file1')}
                           side="left"
                           currentFileName={file1?.fileName}
                         />
@@ -864,8 +896,7 @@ function App() {
                           side="right"
                         />
                         <FileSelector
-                          availableFiles={getPublicJsonFiles()}
-                          onFileSelect={handleFileSelect('file2')}
+                          onFileSelect={handleFileDrop('file2')}
                           side="right"
                           currentFileName={file2?.fileName}
                         />
@@ -967,8 +998,7 @@ function App() {
                         side="left"
                       />
                       <FileSelector
-                        availableFiles={getPublicJsonFiles()}
-                        onFileSelect={handleFileSelect('file1')}
+                        onFileSelect={handleFileDrop('file1')}
                         side="left"
                         currentFileName={file1?.fileName}
                       />
@@ -1007,8 +1037,7 @@ function App() {
                         side="right"
                       />
                       <FileSelector
-                        availableFiles={getPublicJsonFiles()}
-                        onFileSelect={handleFileSelect('file2')}
+                        onFileSelect={handleFileDrop('file2')}
                         side="right"
                         currentFileName={file2?.fileName}
                       />
@@ -1149,6 +1178,22 @@ function App() {
                 onToggleViewMode={handleViewModeToggle} 
                 onSaveFiles={handleSaveFiles}
               />
+              <button
+                className="load-samples-button"
+                onClick={loadSamples}
+                title="Load sample JSON files (simple1.json and simple2.json)"
+                style={{
+                  background: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                📄 Load Samples
+              </button>
             </div>
           </header>
           
