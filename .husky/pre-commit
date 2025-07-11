@@ -1,6 +1,9 @@
 
 echo "Running pre-commit tests..."
 
+# Clean old test results to prevent accumulation
+npm run test:clean
+
 # Run e2e tests (more stable than unit tests)
 echo "Running e2e tests..."
 npm run test:e2e 2>&1 | tee test-output.log
