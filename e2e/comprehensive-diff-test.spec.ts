@@ -4,12 +4,13 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     
-    // Load simple1.json and simple2.json files
-    await page.locator('button:has-text("Browse Files")').first().click();
-    await page.click('text=simple1.json');
+    // Clear localStorage to ensure fresh file loading
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
     
-    await page.locator('button:has-text("Browse Files")').last().click();
-    await page.click('text=simple2.json');
+    // Load simple1.json and simple2.json files using the Load Samples button
+    // The button might have an emoji prefix
+    await page.click('button.load-samples-button');
     
     // Wait for comparison to complete
     await page.waitForSelector('.diff-list-container', { timeout: 10000 });
