@@ -1,16 +1,25 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 
 test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     
-    // Clear localStorage to ensure fresh file loading
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
+    // Load test data directly from files
+    const simple1Content = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public/simple1.json'), 'utf8'));
+    const simple2Content = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public/simple2.json'), 'utf8'));
     
-    // Load simple1.json and simple2.json files using the Load Samples button
-    // The button might have an emoji prefix
-    await page.click('button.load-samples-button');
+    // Wait for the app to be ready and expose testing methods
+    await page.waitForFunction(() => typeof (window as any).setTestFiles === 'function', { timeout: 5000 });
+    
+    // Programmatically inject the test data into the application
+    await page.evaluate(({ file1Data, file2Data }) => {
+      (window as any).setTestFiles(file1Data, file2Data);
+    }, { 
+      file1Data: { content: simple1Content, isTextMode: false, fileName: 'simple1.json' },
+      file2Data: { content: simple2Content, isTextMode: false, fileName: 'simple2.json' }
+    });
     
     // Wait for comparison to complete
     await page.waitForSelector('.diff-list-container', { timeout: 10000 });

@@ -364,6 +364,40 @@ function App() {
     loadInitialFiles();
   }, [])
 
+  // Expose testing methods globally for e2e tests
+  useEffect(() => {
+    // Only in development/test environment
+    if (process.env.NODE_ENV !== 'production') {
+      (window as any).setTestFiles = (file1Data: FileData, file2Data: FileData) => {
+        console.log('📝 [Testing] Setting test files programmatically:', { file1Data, file2Data });
+        setFile1(file1Data);
+        setFile2(file2Data);
+        
+        // If both files are JSON, immediately compare them to generate diffs
+        if (!file1Data.isTextMode && !file2Data.isTextMode) {
+          try {
+            const comparisonResult: JsonCompareResult = jsonCompare(
+              file1Data.content as JsonValue, 
+              file2Data.content as JsonValue
+            );
+            // Update files with processed content that includes any IDs
+            const updatedFile1 = { ...file1Data, content: comparisonResult.processedJson1 };
+            const updatedFile2 = { ...file2Data, content: comparisonResult.processedJson2 };
+            setFile1(updatedFile1);
+            setFile2(updatedFile2);
+            setDiffs(comparisonResult.diffs);
+            setIdKeysUsed(comparisonResult.idKeysUsed);
+            setError(null);
+            console.log(`✅ [Testing] Generated ${comparisonResult.diffs.length} diffs`);
+          } catch (e) {
+            console.error('❌ [Testing] Error comparing test files:', e);
+            setError('Error comparing test files');
+          }
+        }
+      };
+    }
+  }, []);
+
   useEffect(() => {
     if (file1 && file2 && !file1.isTextMode && !file2.isTextMode) {
       // Use jsonCompare to detect IDKeys and generate diffs
