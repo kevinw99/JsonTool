@@ -83,7 +83,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
   idKeysUsed = [] // ID keys for path conversion
 }) => {
   // Removed syncToCounterpartRef as manual expansion no longer triggers sync
-    const [viewMode, _setViewMode] = useState<'text' | 'tree'>(initialViewMode);
+    const [viewMode, _setViewMode] = useState<'text' | 'tree'>(() => {
+      console.log(`🎯 [JsonViewerSyncContext] Initial viewMode: ${initialViewMode}`);
+      return initialViewMode;
+    });
     const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
     const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); 
     // Initialize with a Set including the viewer-specific root paths
@@ -137,8 +140,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     
 
     const memoizedSetViewMode = useCallback((mode: 'text' | 'tree') => {
+      console.log(`🔄 [JsonViewerSyncContext] Setting viewMode: ${viewMode} → ${mode}`);
       _setViewMode(mode);
-    }, []);
+    }, [viewMode]);
     
     const memoizedSetShowColoredDiff = useCallback((show: boolean) => {
       _setShowColoredDiff(show);

@@ -5,6 +5,7 @@ import type { DiffResult, JsonCompareResult, IdKeyInfo } from './utils/jsonCompa
 import { JsonViewerSyncProvider } from './components/JsonViewerSyncContext'
 import { JsonTreeView } from './components/JsonTreeView'
 import { TextViewer } from './components/TextViewer'
+import JsonTextEditor from './components/JsonTextEditor'
 import { ViewControls } from './components/ViewControls'
 import { ScrollService } from './services/ScrollService'
 import { TabbedBottomPanel } from './components/TabbedBottomPanel'
@@ -474,24 +475,7 @@ function App() {
   };
 
   // Handle view mode toggle
-  const handleViewModeToggle = () => {
-    if (file1) {
-      const newIsTextMode = !file1.isTextMode;
-      setFile1({ 
-        ...file1, 
-        isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file1.content, null, 2) : file1.content
-      });
-    }
-    if (file2) {
-      const newIsTextMode = !file2.isTextMode;
-      setFile2({ 
-        ...file2, 
-        isTextMode: newIsTextMode,
-        content: newIsTextMode ? JSON.stringify(file2.content, null, 2) : file2.content
-      });
-    }
-  };
+  // View mode is now handled by JsonViewerSyncContext
 
   // Handler for multiple files dropped at once
   const handleMultipleFilesDrop = (files: Array<{ content: JsonValue | string; isTextMode: boolean; fileName?: string }>) => {
@@ -690,8 +674,16 @@ function App() {
   };
 
   const handleFileDrop = (viewer: 'file1' | 'file2') => (data: { content: JsonValue | string; isTextMode: boolean; fileName?: string }) => {
+    console.log(`🎯 [handleFileDrop-${viewer}] Received data:`, {
+      fileName: data.fileName,
+      isTextMode: data.isTextMode,
+      contentType: typeof data.content,
+      contentLength: typeof data.content === 'string' ? data.content.length : 'object'
+    });
+    
     if (viewer === 'file1') {
       const newFile1 = data;
+      console.log(`📝 [handleFileDrop-file1] Setting file1 with isTextMode:`, data.isTextMode);
       setFile1(newFile1);
       
       if (!data.isTextMode && file2 && !file2.isTextMode) {
@@ -809,7 +801,7 @@ function App() {
 
   // Inner component to access context
   const MainContent = () => {
-    const { showDiffsOnly } = useJsonViewerSync();
+    const { showDiffsOnly, viewMode } = useJsonViewerSync();
 
     return (
       <div className="app-content-wrapper" style={{ 
@@ -858,10 +850,20 @@ function App() {
                         />
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
-                        {file1.isTextMode ? (
-                          <TextViewer 
-                            text={file1.content as string} 
-                            fileName={file1.fileName}
+                        {(() => {
+                          console.log(`🎨 [Render-file1] viewMode: ${viewMode}, isTextMode: ${file1.isTextMode}, fileName: ${file1.fileName}`);
+                          return viewMode === 'text';
+                        })() ? (
+                          <JsonTextEditor 
+                            key="file1-text-editor"
+                            value={typeof file1.content === 'string' ? file1.content : JSON.stringify(file1.content, null, 2)} 
+                            onChange={(newContent) => {
+                              // For read-only mode, we don't update the content
+                              console.log('Text editor is in read-only mode');
+                            }}
+                            readOnly={true}
+                            height="100%"
+                            theme="light"
                           />
                         ) : (
                           <JsonTreeView
@@ -902,10 +904,20 @@ function App() {
                         />
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
-                        {file2.isTextMode ? (
-                          <TextViewer 
-                            text={file2.content as string} 
-                            fileName={file2.fileName}
+                        {(() => {
+                          console.log(`🎨 [Render-file2] viewMode: ${viewMode}, isTextMode: ${file2.isTextMode}, fileName: ${file2.fileName}`);
+                          return viewMode === 'text';
+                        })() ? (
+                          <JsonTextEditor 
+                            key="file2-text-editor"
+                            value={typeof file2.content === 'string' ? file2.content : JSON.stringify(file2.content, null, 2)} 
+                            onChange={(newContent) => {
+                              // For read-only mode, we don't update the content
+                              console.log('Text editor is in read-only mode');
+                            }}
+                            readOnly={true}
+                            height="100%"
+                            theme="light"
                           />
                         ) : (
                           <JsonTreeView
@@ -1175,7 +1187,6 @@ function App() {
                 <span>{syncScroll ? 'Sync ON' : 'Sync OFF'}</span>
               </button>
               <ViewControls 
-                onToggleViewMode={handleViewModeToggle} 
                 onSaveFiles={handleSaveFiles}
               />
               <button
