@@ -536,7 +536,9 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
           <div className="json-node-children">
             {(() => {
               // Find the specific ID key for this array path
-              const currentArrayPath = genericNumericPathForNode.replace(/^root\./, '') + '[]';
+              let currentArrayPath = genericNumericPathForNode.replace(/^root\./, '');
+              // Replace all specific array indices with [] to match the format in idKeysUsed
+              currentArrayPath = currentArrayPath.replace(/\[[^\]]+\]/g, '[]') + '[]';
               const arrayIdKey = idKeysUsed?.find(info => info.arrayPath === currentArrayPath)?.idKey;
               
               
