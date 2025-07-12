@@ -50,7 +50,6 @@
   font-family: var(--font-family);
   font-size: var(--font-size);
   line-height: var(--line-height);
-  height: 100%;
   max-height: 60vh; /* Constrain height to force scrolling */
 }
 
@@ -101,6 +100,7 @@
   font-size: var(--font-size);
   line-height: var(--line-height);
   padding: 8px;
+  padding-bottom: 20px; /* Add extra padding to ensure last line is fully visible */
   /* Remove overflow settings to let parent SyncScroll handle scrolling */
   white-space: nowrap; /* Prevent wrapping at the tree level */
 }
