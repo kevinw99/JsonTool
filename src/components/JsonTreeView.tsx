@@ -381,6 +381,11 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
+    // Allow browser's default context menu when Shift is held
+    if (e.shiftKey) {
+      return;
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     

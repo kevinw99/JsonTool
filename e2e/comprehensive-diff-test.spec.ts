@@ -138,10 +138,10 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
       // Verify diff type styling (class is directly on the diff-item)
       await expect(diffItem).toHaveClass(new RegExp(`diff-item.*${expectedDiff.type}`));
       
-      // Click "Go To" button
-      const goToButton = diffItem.locator('button:has-text("Go To")');
-      await expect(goToButton).toBeVisible();
-      await goToButton.click();
+      // Click on the diff path
+      const diffPath = diffItem.locator('code.diff-path-inline');
+      await expect(diffPath).toBeVisible();
+      await diffPath.click();
       
       // Wait for navigation to complete
       await page.waitForTimeout(1000);
@@ -198,9 +198,9 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
       }
       
       // Test navigation works for all new diffs
-      const goToButton = diffItem.locator('button:has-text("Go To")');
-      await expect(goToButton).toBeVisible();
-      await goToButton.click();
+      const diffPath = diffItem.locator('code.diff-path-inline');
+      await expect(diffPath).toBeVisible();
+      await diffPath.click();
       await page.waitForTimeout(300); // Brief pause between navigations
     }
     
@@ -216,8 +216,8 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
     // Rapidly navigate through first 5 diffs
     for (let i = 1; i <= 5; i++) {
       const diffItem = page.locator(`.diff-item`).nth(i - 1);
-      const goToButton = diffItem.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = diffItem.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(200); // Brief pause
     }
     
@@ -232,8 +232,8 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
     // Navigate to a few more diffs
     for (let i = 6; i <= 8; i++) {
       const diffItem = page.locator(`.diff-item`).nth(i - 1);
-      const goToButton = diffItem.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = diffItem.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(200);
     }
     
@@ -300,9 +300,9 @@ test.describe('Comprehensive Diff Detection and Navigation Tests', () => {
     await lastDiff.scrollIntoViewIfNeeded();
     await expect(lastDiff).toBeVisible();
     
-    // Test "Go To" button on last diff
-    const goToButton = lastDiff.locator('button:has-text("Go To")');
-    await goToButton.click();
+    // Test clicking on last diff path
+    const diffPath = lastDiff.locator('code.diff-path-inline');
+    await diffPath.click();
     await page.waitForTimeout(1000);
     
     // Verify navigation worked

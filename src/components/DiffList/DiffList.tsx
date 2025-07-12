@@ -187,9 +187,13 @@ export const DiffList: React.FC<DiffListProps> = ({
               >
                 <div className="diff-item-content">
                   <span className="diff-number">{index + 1}.</span>
-                  <span className="diff-path-inline">
+                  <code 
+                    className="diff-path-inline clickable"
+                    onClick={() => handleGoToDiff(diff)}
+                    title={diff.idBasedPath.startsWith('root.') ? diff.idBasedPath.substring(5) : diff.idBasedPath}
+                  >
                     {diff.idBasedPath.startsWith('root.') ? diff.idBasedPath.substring(5) : diff.idBasedPath}
-                  </span>
+                  </code>
                   <span 
                     className="diff-summary-inline"
                     title={getDiffSummary(diff, false)} // Full content for tooltip
@@ -198,13 +202,6 @@ export const DiffList: React.FC<DiffListProps> = ({
                   </span>
                   {ignoredDiffs.has(diff.idBasedPath) && <span className="ignored-badge">Ignored</span>}
                   <div className="diff-actions">
-                    <button 
-                      className="goto-button"
-                      onClick={() => handleGoToDiff(diff)}
-                      title="Navigate to this difference"
-                    >
-                      Go To
-                    </button>
                     <button 
                       className={`ignore-button ${ignoredDiffs.has(diff.idBasedPath) ? 'restore-button' : ''}`}
                       onClick={() => handleIgnore(validateAndCreateIdBasedPath(diff.idBasedPath, 'DiffList.button.onClick'))}

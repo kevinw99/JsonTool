@@ -41,8 +41,8 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
     
     // Navigate to the longest path
     const longestDiffItem = diffItems.nth(longestDiffIndex);
-    const goToButton = longestDiffItem.locator('button:has-text("Go To")');
-    await goToButton.click();
+    const diffPath = longestDiffItem.locator('code.diff-path-inline');
+    await diffPath.click();
     
     // Wait for navigation to complete
     await page.waitForTimeout(2000);
@@ -140,14 +140,14 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
     if (await deepDiffItem.count() > 0) {
       console.log('Found deep nested diff for scroll testing');
       
-      const goToButton = deepDiffItem.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = deepDiffItem.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(2000);
     } else {
       // Fallback: click on any diff and then scroll manually
       const firstDiff = page.locator('.diff-item').first();
-      const goToButton = firstDiff.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = firstDiff.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(2000);
     }
     
@@ -269,8 +269,8 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
         console.log(`Testing ID-based path navigation ${i + 1}: ${pathText}`);
         
         // Navigate to this diff
-        const goToButton = idBasedDiff.locator('button:has-text("Go To")');
-        await goToButton.click();
+        const diffPath = idBasedDiff.locator('code.diff-path-inline');
+        await diffPath.click();
         await page.waitForTimeout(1000);
         
         // Check that navigation was successful by looking for highlighted nodes
@@ -327,8 +327,8 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
       
       console.log(`Testing non-standard ID key navigation: ${customPathText}`);
       
-      const goToButton = customDiff.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = customDiff.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(1000);
       
       // Verify navigation success
@@ -352,8 +352,8 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
     const deepDiff = page.locator('.diff-item:has-text("contributions[")').first();
     
     if (await deepDiff.count() > 0) {
-      const goToButton = deepDiff.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = deepDiff.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(1500);
       
       // Look for breadcrumb or path display elements
@@ -414,8 +414,8 @@ test.describe('Manual Navigation and Synchronized Behavior Tests', () => {
     
     const deepDiff = page.locator('.diff-item:has-text("contributions[")').first();
     if (await deepDiff.count() > 0) {
-      const goToButton = deepDiff.locator('button:has-text("Go To")');
-      await goToButton.click();
+      const diffPath = deepDiff.locator('code.diff-path-inline');
+      await diffPath.click();
       await page.waitForTimeout(2000);
     }
     

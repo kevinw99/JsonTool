@@ -90,10 +90,29 @@
   font-weight: 500;
   color: #333;
   white-space: nowrap;
-  /* Removed overflow: hidden and text-overflow: ellipsis to show full path */
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-width: 120px; /* Reduced to give more space to summary */
-  flex: 0 1 auto; /* Allow it to grow as needed */
+  flex: 0 1 50%; /* Take up to 50% of available space */
+  max-width: 50%; /* Limit to 50% to prevent overlap */
   text-align: left; /* Ensure left alignment */
+  background: #f4f6f8;
+  padding: 3px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+}
+
+.diff-path-inline.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.diff-path-inline.clickable:hover {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
 }
 
 .diff-summary-inline {
@@ -105,7 +124,9 @@
   text-overflow: ellipsis;
   min-width: 150px; /* Minimum space for summary */
   flex: 1; /* Take remaining space */
+  max-width: 35%; /* Limit width to prevent overlap */
   text-align: left; /* Ensure left alignment */
+  margin-left: 8px; /* Add spacing from path */
 }
 
 /* Style the diff symbols with appropriate colors */
@@ -137,6 +158,8 @@
   display: flex;
   gap: 6px;
   flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 8px;
 }
 
 /* Legacy styles - keeping for compatibility but hiding */
@@ -152,7 +175,7 @@
   display: none;
 }
 
-.goto-button, .ignore-button {
+.ignore-button {
   padding: 4px 8px;
   font-size: 12px;
   border-radius: 4px;
@@ -160,15 +183,6 @@
   border: 1px solid #ddd;
   background: white;
   transition: all 0.2s ease;
-}
-
-.goto-button {
-  color: #1890ff;
-  border-color: #1890ff;
-}
-
-.goto-button:hover {
-  background-color: #e6f7ff;
 }
 
 .ignore-button {
@@ -297,24 +311,33 @@
 @media (max-width: 768px) {
   .diff-item-content {
     gap: 4px !important;
+    flex-wrap: wrap !important; /* Allow wrapping on small screens */
   }
   
   .diff-path-inline {
-    flex: 0 0 auto !important; /* Allow it to size naturally */
-    min-width: 80px !important;
-    max-width: none !important; /* Remove max-width to show full path */
+    flex: 1 1 100% !important; /* Full width on its own line */
+    max-width: 100% !important;
+    min-width: unset !important;
     font-size: 12px !important;
+    margin-bottom: 4px !important;
   }
   
   .diff-summary-inline {
-    flex: 1 !important;
-    min-width: 100px !important;
+    flex: 1 1 100% !important; /* Full width on its own line */
+    max-width: 100% !important;
+    min-width: unset !important;
+    font-size: 11px !important;
+    margin-left: 24px !important; /* Indent to align with number */
+  }
+  
+  .ignore-button {
+    padding: 3px 6px !important;
     font-size: 11px !important;
   }
   
-  .goto-button, .ignore-button {
-    padding: 3px 6px !important;
-    font-size: 11px !important;
+  .diff-actions {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
   }
 }
 
