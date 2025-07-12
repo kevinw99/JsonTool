@@ -785,6 +785,7 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
     const treeContent = treeContentRef.current;
     const lineNumbers = lineNumbersRef.current;
 
+
     // Use ScrollService-compatible sync pattern
     const syncScroll = (source: Element, target: Element) => {
       // Use scrollTo method for consistency with ScrollService
@@ -794,8 +795,12 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
       });
     };
 
-    const handleTreeScroll = () => syncScroll(treeContent, lineNumbers);
-    const handleLineNumberScroll = () => syncScroll(lineNumbers, treeContent);
+    const handleTreeScroll = () => {
+      syncScroll(treeContent, lineNumbers);
+    };
+    const handleLineNumberScroll = () => {
+      syncScroll(lineNumbers, treeContent);
+    };
 
     treeContent.addEventListener('scroll', handleTreeScroll);
     lineNumbers.addEventListener('scroll', handleLineNumberScroll);

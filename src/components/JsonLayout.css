@@ -3,6 +3,7 @@
   width: 100%;
   gap: 20px; /* Increased spacing between columns */
   min-height: 70vh; /* Use at least 70% of viewport height */
+  max-height: 80vh; /* Limit to reasonable height and enable scrolling */
   margin: 0 auto 1.5rem;
   box-sizing: border-box;
 }

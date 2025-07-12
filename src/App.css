@@ -15,7 +15,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Use viewport height */
+  min-height: 100vh; /* Use minimum viewport height to allow content expansion */
 }
 
 .logo {
@@ -61,7 +61,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  overflow: hidden;
+  /* overflow: hidden; */ /* Allow content to scroll */
 }
 
 .json-viewers-section {
@@ -82,7 +82,7 @@
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent scrolling on the body */
+  /* overflow: hidden; */ /* Allow scrolling on the body for debugging */
 }
 
 .app-header {

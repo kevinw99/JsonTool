@@ -51,12 +51,14 @@
   font-size: var(--font-size);
   line-height: var(--line-height);
   height: 100%;
+  max-height: 60vh; /* Constrain height to force scrolling */
 }
 
 .json-tree-main-content {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow: hidden; /* Contain the scrollable children */
+  min-height: 0; /* Allow flex shrinking */
 }
 
 .json-tree-content {
@@ -76,7 +78,7 @@
   color: #999;
   text-align: right;
   user-select: none;
-  overflow-y: auto;
+  /* overflow-y: auto; */ /* Removed - line numbers should scroll with content */
   position: relative;
 }
 
