@@ -694,3 +694,135 @@ function validateRemainingPath(data: any, segments: string[]): boolean {
   return true;
 }
 
+// ============================================================================
+// ADDITIONAL UTILITY FUNCTIONS FOR CENTRALIZED PATH OPERATIONS
+// ============================================================================
+
+/**
+ * Safely extracts viewer prefix from a path
+ * Example: "left_root.accounts[0]" -> "left"
+ */
+export function extractViewerPrefix(path: AnyPath): ViewerId | null {
+  const match = (path as string).match(/^(left|right)_/);
+  return match ? (match[1] as ViewerId) : null;
+}
+
+/**
+ * Removes viewer prefix from a path
+ * Example: "left_root.accounts[0]" -> "root.accounts[0]"
+ */
+export function removeViewerPrefix(path: AnyPath): AnyPath {
+  return (path as string).replace(/^(left|right)_/, '') as AnyPath;
+}
+
+/**
+ * Adds viewer prefix to a path
+ * Example: ("root.accounts[0]", "left") -> "left_root.accounts[0]"
+ */
+export function addViewerPrefix(path: AnyPath, viewerId: ViewerId): ViewerPath {
+  const pathWithoutPrefix = removeViewerPrefix(path);
+  return `${viewerId}_${pathWithoutPrefix}` as ViewerPath;
+}
+
+/**
+ * Matches a path against a wildcard pattern
+ * Example: ("accounts[0].name", "accounts[*].name") -> true
+ */
+export function matchesWildcardPattern(path: AnyPath, pattern: string): boolean {
+  // Convert pattern to regex, handling wildcards and array patterns
+  const regexPattern = pattern
+    .replace(/\./g, '\\.')  // Escape dots
+    .replace(/\[/g, '\\[')  // Escape opening brackets
+    .replace(/\]/g, '\\]')  // Escape closing brackets
+    .replace(/\\\[\\\*\\\]/g, '\\[[^\\]]*\\]')  // Convert [*] to match any array index
+    .replace(/\\\[\\\]/g, '\\[[^\\]]*\\]')      // Convert [] to match any array index
+    .replace(/\*/g, '[^.\\[]*');  // Convert remaining * to match any non-delimiter chars
+  
+  const regex = new RegExp(`^${regexPattern}$`);
+  return regex.test(stripAllPrefixes(path));
+}
+
+/**
+ * Gets all expansion paths for a given path (for tree expansion)
+ * Example: "root.accounts[0].transactions[1]" -> ["root", "root.accounts", "root.accounts[0]", ...]
+ */
+export function getExpansionPaths(path: NumericPath, viewerPrefix?: ViewerId): ViewerPath[] {
+  const pathWithoutRoot = (path as string).replace(/^root\.?/, '');
+  if (!pathWithoutRoot) return [];
+  
+  const segments = pathWithoutRoot.split(/(?=\[)|\./).filter(Boolean);
+  const expansionPaths: ViewerPath[] = [];
+  let currentPath = 'root';
+  
+  for (const segment of segments) {
+    if (segment.startsWith('[')) {
+      currentPath += segment;
+    } else {
+      currentPath = currentPath === 'root' ? `root.${segment}` : `${currentPath}.${segment}`;
+    }
+    
+    const finalPath = viewerPrefix ? `${viewerPrefix}_${currentPath}` : currentPath;
+    expansionPaths.push(finalPath as ViewerPath);
+  }
+  
+  return expansionPaths;
+}
+
+/**
+ * Extracts parent path from a given path
+ * Example: "root.accounts[0].name" -> "root.accounts[0]"
+ */
+export function getParentPath(path: AnyPath): AnyPath | null {
+  const pathStr = path as string;
+  
+  // Find the last property or array access
+  const lastDotIndex = pathStr.lastIndexOf('.');
+  const lastBracketIndex = pathStr.lastIndexOf('[');
+  
+  if (lastDotIndex === -1 && lastBracketIndex === -1) {
+    return null; // No parent (root level)
+  }
+  
+  if (lastDotIndex > lastBracketIndex) {
+    // Last access was a property
+    return pathStr.substring(0, lastDotIndex) as AnyPath;
+  } else {
+    // Last access was an array index, find the property before it
+    const beforeBracket = pathStr.substring(0, lastBracketIndex);
+    const previousDotIndex = beforeBracket.lastIndexOf('.');
+    
+    if (previousDotIndex === -1) {
+      // Array is at root level
+      return beforeBracket as AnyPath;
+    } else {
+      return beforeBracket as AnyPath;
+    }
+  }
+}
+
+/**
+ * Validates that a path conversion is contextually valid
+ * (e.g., ID-based conversions require context)
+ */
+export function validateConversionRequirements(
+  fromPath: AnyPath,
+  targetFormat: 'numeric' | 'id' | 'viewer',
+  context?: PathConversionContext
+): boolean {
+  const hasIdSegments = hasIdBasedSegments(createIdBasedPath(fromPath as string));
+  
+  // ID-based conversions always require context
+  if (hasIdSegments && !context?.jsonData) {
+    console.warn('[PathConverter] ID-based path conversion requires context with jsonData');
+    return false;
+  }
+  
+  // Viewer path conversions for ID paths require context
+  if (targetFormat === 'viewer' && hasIdSegments && !context?.jsonData) {
+    console.warn('[PathConverter] Viewer path conversion for ID-based paths requires context');
+    return false;
+  }
+  
+  return true;
+}
+
