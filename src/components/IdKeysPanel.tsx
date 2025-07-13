@@ -3,7 +3,8 @@ import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
 import { createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
 import type { ViewerPath, IdBasedPath, NumericPath, ArrayPatternPath } from '../utils/PathTypes';
-import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, convertIdPathToViewerPath, type PathConversionContext } from '../utils/PathConverter';
+import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, convertIdPathToViewerPath,
+  convertIndexPathToIdPath, type PathConversionContext } from '../utils/PathConverter';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
@@ -90,43 +91,75 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
     });
   };
 
-
   const handlePathClick = (pathToExpand: ArrayPatternPath) => {
-    
+    console.log(`[ID Keys] 📁 Path clicked (array pattern): ${pathToExpand}`);
+    console.log(`[ID Keys] ℹ️  This expands to the array container, not a specific element`);
+
     // Try with left data first, then right as fallback
     const contextLeft: PathConversionContext = {
       jsonData: jsonData.left,
       idKeysUsed: idKeysUsed || []
     };
-    
+
+    const contextRight: PathConversionContext = {
+      jsonData: jsonData.right,
+      idKeysUsed: idKeysUsed || []
+    };
+
     let numericPath: NumericPath;
-    try {
-      numericPath = convertArrayPatternToNumericPath(pathToExpand, contextLeft);
-    } catch (leftError) {
-      
-      const contextRight: PathConversionContext = {
-        jsonData: jsonData.right,
-        idKeysUsed: idKeysUsed || []
-      };
-      
-      try {
-        numericPath = convertArrayPatternToNumericPath(pathToExpand, contextRight);
-      } catch (rightError) {
-        console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert ArrayPatternPath with both left and right data:`, rightError);
-        throw new Error(`Cannot convert ArrayPatternPath "${pathToExpand}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
-      }
-    }
-    
-    
+//     try {
+    numericPath = convertArrayPatternToNumericPath(pathToExpand, contextLeft);
+//     } catch (leftError) {
+//
+//       try {
+//         numericPath = convertArrayPatternToNumericPath(pathToExpand, contextRight);
+//       } catch (rightError) {
+//         console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert ArrayPatternPath with both left and right data:`, rightError);
+//         throw new Error(`Cannot convert ArrayPatternPath "${pathToExpand}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
+//       }
+//     }
+//   }
+
+    console.log(`[ID Keys] 📁 target index path node : ${numericPath}`);
+    const leftIDNode : IdBasedPath = convertIndexPathToIdPath(numericPath, contextLeft);
+    console.log(`[ID Keys] 📁 leftIDNode : ${leftIDNode}`);
+    // Convert to ViewerPath
+    const leftTargetViewerNode : ViewerPath = convertIdPathToViewerPath(
+      leftIDNode,
+      contextLeft,
+      'left'
+    );
+    console.log(`[ID Keys] 📁 leftTargetViewerNode : ${leftTargetViewerNode}`);
+    // Convert to ViewerPath for right side
+
+    const rightTargetViewerNode : ViewerPath = convertIdPathToViewerPath(
+      leftIDNode,
+      contextRight,
+      'right'
+    );
+    console.log(`[ID Keys] 📁 rightTargetViewerNode : ${rightTargetViewerNode}`);
+
+//
+//     const rightTargetNode = convertIndexPathToIdPath(numericPath, contextRight);
+//     console.log(`[ID Keys] 📁 leftTargetNode : ${leftTargetNode}`);
+//     console.log(`[ID Keys] 📁 rightTargetNode : ${rightTargetNode}`);
+
+//  viewerPathToIdBasedPath() and idBasedPathToViewerPath()?
+
+
     // Set persistent highlight for border highlighting that persists until next navigation
     const highlights = new Set<ViewerPath>([
-      createViewerPath('left', numericPath),
-      createViewerPath('right', numericPath)
+//       createViewerPath('left', numericPath),
+//       createViewerPath('right', numericPath)
+      leftTargetViewerNode,
+      rightTargetViewerNode
     ]);
-    setPersistentHighlightPaths(highlights);
-    
+//     setPersistentHighlightPaths(highlights);
+
     // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick.goToDiff'));
+//     goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handlePathClick.goToDiff'));
+    goToDiffWithPaths(leftTargetViewerNode, rightTargetViewerNode);
+
   };
 
   const handleOccurrenceClick = (originalPath: IdBasedPath) => {
