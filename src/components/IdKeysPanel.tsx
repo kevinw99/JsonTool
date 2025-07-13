@@ -3,7 +3,7 @@ import type { IdKeyInfo } from '../utils/jsonCompare';
 import { useJsonViewerSync } from './JsonViewerSyncContext';
 import { createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
 import type { ViewerPath, IdBasedPath, NumericPath, ArrayPatternPath } from '../utils/PathTypes';
-import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, type PathConversionContext } from '../utils/PathConverter';
+import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, convertIdPathToViewerPath, type PathConversionContext } from '../utils/PathConverter';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
@@ -73,7 +73,7 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
 };
 
 export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }) => {
-  const { goToDiff, setPersistentHighlightPaths } = useJsonViewerSync();
+  const { goToDiff, goToDiffWithPaths, setPersistentHighlightPaths } = useJsonViewerSync();
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   
   const consolidatedIdKeys = consolidateIdKeys(idKeysUsed || []);
@@ -136,55 +136,44 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
       targetPath = `root.${targetPath}`;
     }
     
-    // Try to convert using left data first, then right
-    const contextLeft: PathConversionContext = {
+    // Use standard PathConverter methods to get ViewerPaths for both sides
+    const leftContext: PathConversionContext = {
       jsonData: jsonData.left,
       idKeysUsed: idKeysUsed || []
     };
     
-    let numericPath: NumericPath;
-    try {
-      const converted = convertIdPathToIndexPath(
-        validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick'),
-        contextLeft,
-        { preservePrefix: true }
-      );
-      if (!converted) {
-        throw new Error('PathConverter returned null');
-      }
-      numericPath = converted;
-    } catch (leftError) {
-      
-      const contextRight: PathConversionContext = {
-        jsonData: jsonData.right,
-        idKeysUsed: idKeysUsed || []
-      };
-      
-      try {
-        const converted = convertIdPathToIndexPath(
-          validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick.right'),
-          contextRight,
-          { preservePrefix: true }
-        );
-        if (!converted) {
-          throw new Error('PathConverter returned null');
-        }
-        numericPath = converted;
-      } catch (rightError) {
-        console.error(`[EXPANSION_DEBUG] 🎯 Failed to convert occurrence path with both left and right data:`, rightError);
-        throw new Error(`Cannot convert occurrence path "${originalPath}": ${rightError instanceof Error ? rightError.message : String(rightError)}`);
-      }
+    const rightContext: PathConversionContext = {
+      jsonData: jsonData.right,
+      idKeysUsed: idKeysUsed || []
+    };
+    
+    const leftViewerPath = convertIdPathToViewerPath(
+      validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick.left'),
+      leftContext,
+      'left'
+    );
+    
+    const rightViewerPath = convertIdPathToViewerPath(
+      validateAndCreateIdBasedPath(targetPath, 'IdKeysPanel.handleOccurrenceClick.right'),
+      rightContext,
+      'right'
+    );
+    
+    if (leftViewerPath && rightViewerPath) {
+      // Both sides exist - use dual path highlighting
+      const highlights = new Set<ViewerPath>([leftViewerPath, rightViewerPath]);
+      setPersistentHighlightPaths(highlights);
+      goToDiffWithPaths(leftViewerPath, rightViewerPath);
+    } else if (leftViewerPath || rightViewerPath) {
+      // One side exists - use single path highlighting
+      const availableViewerPath = leftViewerPath || rightViewerPath!;
+      const highlights = new Set<ViewerPath>([availableViewerPath]);
+      setPersistentHighlightPaths(highlights);
+      goToDiff(originalPath);
+    } else {
+      // Fallback to simple navigation
+      goToDiff(originalPath);
     }
-    
-    // Set persistent highlight for border highlighting that persists until next navigation
-    const highlights = new Set<ViewerPath>([
-      createViewerPath('left', numericPath),
-      createViewerPath('right', numericPath)
-    ]);
-    setPersistentHighlightPaths(highlights);
-    
-    // Call goToDiff which will handle expansion and highlighting
-    goToDiff(validateAndCreateIdBasedPath(numericPath, 'IdKeysPanel.handleOccurrenceClick.goToDiff'));
   };
 
   if (!idKeysUsed || idKeysUsed.length === 0) {

@@ -435,3 +435,4 @@ export function getAllElementsForViewer(viewerId: ViewerId): NodeListOf<Element>
   const prefix = `${viewerId}_`;
   return document.querySelectorAll(`[data-path^="${prefix}"]`);
 }
+

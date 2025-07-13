@@ -1,12 +1,16 @@
 import { 
   convertIdPathToIndexPath, 
+  convertIdPathToViewerPath,
   convertIndexPathToIdPath, 
+  viewerPathToIdBasedPath,
   stripAllPrefixes,
   arePathsEquivalent,
   type PathConversionContext 
 } from './PathConverter';
 import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
 import { createNumericPath, createIdBasedPath, unsafeIdBasedPath, unsafeNumericPath } from './PathTypes';
+import { generateCombinedIdKeys } from './idKeyUtils';
+import type { IdKeyInfo } from './jsonCompare';
 import fs from 'fs';
 import path from 'path';
 
@@ -14,8 +18,8 @@ import path from 'path';
  * Load test data from external JSON files
  */
 function loadTestData(): { sampleData: any, sampleDataRight: any } {
-  const leftPath = path.resolve(__dirname, '../../public/highlighting-test-left-panel.json');
-  const rightPath = path.resolve(__dirname, '../../public/highlighting-test-right-panel.json');
+  const leftPath = path.resolve(__dirname, '../../public/simple1.json');
+  const rightPath = path.resolve(__dirname, '../../public/simple2.json');
   
   const sampleData = JSON.parse(fs.readFileSync(leftPath, 'utf8'));
   const sampleDataRight = JSON.parse(fs.readFileSync(rightPath, 'utf8'));
@@ -25,22 +29,47 @@ function loadTestData(): { sampleData: any, sampleDataRight: any } {
 
 const { sampleData, sampleDataRight } = loadTestData();
 
-const idKeysUsed = [
+// Expected ID keys based on simple1.json and simple2.json structure
+const expectedIdKeys = [
   {
-    arrayPath: "boomerForecastV3Requests[0].parameters.accountParams",
+    arrayPath: "boomerForecastV3Requests[].parameters.accountParams[]",
     idKey: "id",
     isComposite: false,
     arraySize1: 2,
     arraySize2: 2
   },
   {
-    arrayPath: "boomerForecastV3Requests[0].parameters.accountParams[1].contributions",
+    arrayPath: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]",
     idKey: "id",
+    isComposite: false,
+    arraySize1: 3,
+    arraySize2: 3
+  },
+  {
+    arrayPath: "zzCustomDataSets[]",
+    idKey: "name",
+    isComposite: false,
+    arraySize1: 2,
+    arraySize2: 2
+  },
+  {
+    arrayPath: "zzCustomDataSets[].metrics[]",
+    idKey: "metricCode",
+    isComposite: false,
+    arraySize1: 2,
+    arraySize2: 3
+  },
+  {
+    arrayPath: "zzUserProfiles[]",
+    idKey: "lastLogin",
     isComposite: false,
     arraySize1: 2,
     arraySize2: 3
   }
 ];
+
+// Use real ID key detection for tests to ensure consistency with actual application behavior
+const idKeysUsed = generateCombinedIdKeys(sampleData, sampleDataRight);
 
 describe('PathConverter', () => {
   const contextLeft: PathConversionContext = {
@@ -67,9 +96,9 @@ describe('PathConverter', () => {
     });
 
     test('converts nested contribution ID path to index path (right panel)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
     });
 
     test('converts contributionType property path', () => {
@@ -220,189 +249,158 @@ describe('PathConverter', () => {
     });
   });
 
-  describe('Real highlighting scenarios from updated test data', () => {
-    test('Diffs #1-5: pre contribution array element changes (left panel)', () => {
-      for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
-        const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
-      }
-    });
-
-    test('Diffs #1-5: pre contribution array element changes (right panel)', () => {
-      for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[${i}]`);
-        const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[${i}]`);
-      }
-    });
-
-    test('NEW: removed extra contribution (left panel only)', () => {
+  describe('Simple1/Simple2 data tests', () => {
+    test('removed extra contribution (left panel only)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
       expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
-      
-      // This path should be highlighted as "removed" in left panel
-      expect(indexPath).toBeDefined();
     });
 
-    test('NEW: removed extra contribution (right panel - should not exist)', () => {
+    test('removed extra contribution (right panel - should not exist)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextRight);
       expect(indexPath).toBeNull(); // Should not exist in right panel
     });
 
-    test('Diff #6: removed extra contribution (left panel only)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
-      
-      // This path should be highlighted as "removed" in left panel
-      expect(indexPath).toBeDefined();
-    });
-
-    test('Diff #6: removed extra contribution (right panel - should not exist)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBeNull(); // Should not exist in right panel
-    });
-
-    test('Diff #7: contributionType change (left panel)', () => {
+    test('contributionType change (left: CATCH_UP_50_SEPARATE_PRE_TAX)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
       expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
-      
-      // This path should be highlighted as "changed"
-      expect(indexPath).toBeDefined();
     });
 
-    test('Diff #7: contributionType change (right panel)', () => {
+    test('contributionType change (right: CATCH_UP_50_SEPARATE_AFTER_TAX)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributionType');
       const indexPath = convertIdPathToIndexPath(idPath, contextRight);
       expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributionType');
-      
-      // Right panel has different structure - catchup item is at index 1
-      expect(indexPath).toBeDefined();
     });
 
-    test('Diff #8: added object (right panel only)', () => {
+    test('added object (right panel only)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextRight);
       expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
-      
-      // This path should be highlighted as "added" in right panel
     });
 
-    test('Diff #8: added object (left panel - should not exist)', () => {
+    test('added object (left panel - should not exist)', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
       expect(indexPath).toBeNull(); // Should not exist in left panel
     });
 
-    test('NEW: Extra contribution (left panel only - removed in right)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
+    test('zzCustomDataSets array with name ID', () => {
+      const idPath: IdBasedPath = createIdBasedPath('zzCustomDataSets[name=Financial Metrics]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
-      
-      // This path should be highlighted as "removed" in left panel
-      expect(indexPath).toBeDefined();
+      expect(indexPath).toBe('zzCustomDataSets[0]');
     });
 
-    test('NEW: Extra contribution (right panel - should not exist)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBeNull(); // Should not exist in right panel
-    });
-
-    test('NEW: Extra contribution object properties (left panel)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType');
+    test('zzUserProfiles array with lastLogin ID', () => {
+      const idPath: IdBasedPath = createIdBasedPath('zzUserProfiles[lastLogin=2025-01-15]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributionType');
+      expect(indexPath).toBe('zzUserProfiles[0]');
     });
 
-    test('NEW: Extra contribution object properties (right panel - should not exist)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributionType');
-      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      expect(indexPath).toBeNull(); // Should not exist in right panel
-    });
-
-    test('NEW: Extra contribution array elements (left panel)', () => {
-      for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributions[${i}]`);
-        const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[${i}]`);
-      }
-    });
-
-    test('NEW: Extra contribution array elements (right panel - should not exist)', () => {
-      for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-extra_0].contributions[${i}]`);
-        const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-        expect(indexPath).toBeNull(); // Should not exist in right panel
-      }
-    });
-
-    test('Added object contributionType (right panel)', () => {
-      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributionType');
-      const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-      
-      console.log('🔍 ID-to-Index Conversion Test:');
-      console.log('  Input (ID path)  :', idPath);
-      console.log('  Output (Index)   :', indexPath);
-      console.log('  Expected (Index) :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
-      
-      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
-    });
-
-    test('Added object array elements (right panel)', () => {
-      for (let i = 0; i < 5; i++) {
-        const idPath: IdBasedPath = createIdBasedPath(`boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributions[${i}]`);
-        const indexPath = convertIdPathToIndexPath(idPath, contextRight);
-        expect(indexPath).toBe(`boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributions[${i}]`);
-      }
-    });
-
-    test('Bidirectional conversion test (right panel)', () => {
-      // Test both directions to show deterministic behavior
-      const originalIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributionType');
-      const expectedIndexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2].contributionType');
+    test('bidirectional conversion test', () => {
+      const originalIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributionType');
+      const expectedIndexPath: NumericPath = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributionType');
       
       // ID -> Index conversion
-      const convertedIndexPath = convertIdPathToIndexPath(originalIdPath, contextRight);
+      const convertedIndexPath = convertIdPathToIndexPath(originalIdPath, contextLeft);
       
       // Index -> ID conversion  
-      const convertedBackToId = convertIndexPathToIdPath(expectedIndexPath, contextRight);
-      
-      console.log('🔄 Bidirectional Conversion Test:');
-      console.log('  Original ID path     :', originalIdPath);
-      console.log('  Converted to Index   :', convertedIndexPath);
-      console.log('  Expected Index path  :', expectedIndexPath);
-      console.log('  Converted back to ID :', convertedBackToId);
-      console.log('  Expected ID path     :', originalIdPath);
+      const convertedBackToId = convertIndexPathToIdPath(expectedIndexPath, contextLeft);
       
       expect(convertedIndexPath).toBe(expectedIndexPath);
       expect(convertedBackToId).toBe(originalIdPath);
     });
+  });
 
-    test('DEBUG: Updated data structure with new ordering', () => {
-      // Test the new data structure after adding extra entry and randomizing order
-      const catchupIdPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0].contributions[0]');
-      const convertedIndexPath = convertIdPathToIndexPath(catchupIdPath, contextRight);
+  describe('ID Key Detection Verification', () => {
+    test('real ID key detection should match expected static list', () => {
+      // Generate actual ID keys using the shared utility
+      const actualIdKeys = generateCombinedIdKeys(sampleData, sampleDataRight, { enableLogging: true });
+      console.log('✅ Combined actual ID keys:', actualIdKeys);
+      console.log('📝 Expected ID keys:', expectedIdKeys);
       
-      console.log('');
-      console.log('🔄 Updated data structure test');
-      console.log('  Right panel data structure:');
-      console.log('    [0]: id "45626988::2_prtcpnt-pre_0" (existing item, array values changed)');
-      console.log('    [1]: id "45626988::2_prtcpnt-catchup-50-separate_0" (existing item, contributionType changed)');
-      console.log('    [2]: id "45626988::2_prtcpnt-after_0" (added item)');
-      console.log('');
-      console.log('  Converting:', catchupIdPath);
-      console.log('  Result    :', convertedIndexPath);
-      console.log('  Expected  :', 'boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+      // Verify the real detection matches our expected list
+      expect(actualIdKeys.length).toBe(5);
+      expect(actualIdKeys).toEqual(expectedIdKeys);
       
-      // This should resolve to index [1] based on the new data structure
-      expect(convertedIndexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1].contributions[0]');
+      console.log('✅ Real ID key detection matches expected static list');
+    });
+    
+    test('test data matches expected ID keys', () => {
+      // Verify that our test data (idKeysUsed) matches the expected static list
+      expect(idKeysUsed).toEqual(expectedIdKeys);
+      console.log('✅ Test data matches expected ID keys');
+    });
+  });
+
+  describe('convertIdPathToViewerPath', () => {
+    test('converts ID path to left ViewerPath', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'left');
+      expect(viewerPath).toBe('left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
+    });
+
+    test('converts ID path to right ViewerPath', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'right');
+      expect(viewerPath).toBe('right_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]');
+    });
+
+    test('handles missing ID values', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=NONEXISTENT]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'left');
+      expect(viewerPath).toBeNull();
+    });
+
+    test('works with different viewer contexts', () => {
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+      
+      const leftViewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'left');
+      const rightViewerPath = convertIdPathToViewerPath(idPath, contextRight, 'right');
+      
+      // Same ID should resolve to different indices in left vs right contexts
+      expect(leftViewerPath).toBe('left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
+      expect(rightViewerPath).toBe('right_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]');
+    });
+  });
+
+  describe('viewerPathToIdBasedPath', () => {
+    test('converts left ViewerPath to IdBasedPath', () => {
+      const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]';
+      const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
+      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
+    });
+
+    test('converts right ViewerPath to IdBasedPath', () => {
+      const viewerPath = 'right_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]';
+      const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
+      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+    });
+
+    test('handles ViewerPath without arrays', () => {
+      const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters';
+      const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
+      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters');
+    });
+
+    test('handles arrays without ID keys', () => {
+      const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[0]';
+      const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
+      // The inner contributions array doesn't have ID keys, so it stays as index
+      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]');
+    });
+
+    test('bidirectional conversion with ViewerPath', () => {
+      const originalViewerPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]';
+      
+      // ViewerPath -> IdBasedPath
+      const idBasedPath = viewerPathToIdBasedPath(originalViewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
+      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+      
+      // IdBasedPath -> ViewerPath
+      const convertedViewerPath = convertIdPathToViewerPath(createIdBasedPath(idBasedPath!), contextLeft, 'left');
+      expect(convertedViewerPath).toBe(originalViewerPath);
     });
   });
 });

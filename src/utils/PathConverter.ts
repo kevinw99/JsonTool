@@ -1,6 +1,6 @@
 import type { IdKeyInfo } from './jsonCompare';
-import type { NumericPath, IdBasedPath, AnyPath, ArrayPatternPath } from './PathTypes';
-import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath } from './PathTypes';
+import type { NumericPath, IdBasedPath, AnyPath, ArrayPatternPath, ViewerPath, ViewerId } from './PathTypes';
+import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath, createViewerPath } from './PathTypes';
 
 /**
  * Path Converter Utility
@@ -10,7 +10,6 @@ import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath } 
 export interface PathConversionContext {
   jsonData?: any;
   idKeysUsed?: IdKeyInfo[];
-  viewerId?: string;
 }
 
 export interface PathPrefix {
@@ -202,6 +201,39 @@ export function convertIdPathToIndexPath(
 }
 
 /**
+ * Converts an ID-based path to a ViewerPath with proper viewer context
+ * Example: "root.accountParams[id=45626988::2]" -> "left_root.accountParams[1]"
+ */
+export function convertIdPathToViewerPath(
+  idPath: IdBasedPath,
+  context: PathConversionContext,
+  viewerId: ViewerId,
+  options: ConversionOptions = {}
+): ViewerPath | null {
+  // Use the existing function to get the numeric path
+  const numericPath = convertIdPathToIndexPath(idPath, context, options);
+  
+  if (!numericPath) {
+    return null;
+  }
+  
+  // Ensure the path has root prefix for ViewerPath creation
+  let pathWithRoot = numericPath;
+  if (!pathWithRoot.startsWith('root.') && pathWithRoot !== 'root') {
+    pathWithRoot = pathWithRoot ? `root.${pathWithRoot}` : 'root';
+  }
+  
+  // Create ViewerPath with the specified viewer
+  try {
+    const validatedNumericPath = validateAndCreateNumericPath(pathWithRoot, 'convertIdPathToViewerPath');
+    return createViewerPath(viewerId, validatedNumericPath);
+  } catch (error) {
+    console.error('[PathConverter] Failed to create ViewerPath:', error);
+    return null;
+  }
+}
+
+/**
  * Applies conversion options to determine the target prefix
  */
 function applyPrefixOptions(originalPrefix: PathPrefix, options: ConversionOptions): PathPrefix {
@@ -226,6 +258,44 @@ function applyPrefixOptions(originalPrefix: PathPrefix, options: ConversionOptio
   }
   
   return targetPrefix;
+}
+
+/**
+ * Converts ViewerPath to IdBasedPath with proper ID value lookup
+ * Example: "left_root.accounts[0]" -> "root.accounts[id=123]"
+ */
+export function viewerPathToIdBasedPath(
+  viewerPath: string,
+  jsonData: { left: any; right: any },
+  idKeysUsed: IdKeyInfo[]
+): string | null {
+  try {
+    // Extract viewer ID and generic path
+    const viewerId = viewerPath.startsWith('left_') ? 'left' : 'right';
+    const genericPath = viewerPath.replace(/^(left|right)_/, '');
+    
+    // Ensure the path has proper format for NumericPath creation
+    let pathWithRoot = genericPath;
+    if (!pathWithRoot.startsWith('root.') && pathWithRoot !== 'root') {
+      pathWithRoot = pathWithRoot ? `root.${pathWithRoot}` : 'root';
+    }
+    
+    // Create context for the specific viewer
+    const context: PathConversionContext = {
+      jsonData: jsonData[viewerId],
+      idKeysUsed: idKeysUsed
+    };
+    
+    // Use convertIndexPathToIdPath to do the actual conversion
+    const numericPath = validateAndCreateNumericPath(pathWithRoot, 'viewerPathToIdBasedPath');
+    const idBasedPath = convertIndexPathToIdPath(numericPath, context, { preservePrefix: true });
+    
+    return idBasedPath;
+    
+  } catch (error) {
+    console.error('[PathConverter] Failed to convert ViewerPath to IdBasedPath:', error);
+    return null;
+  }
 }
 
 /**
@@ -263,9 +333,12 @@ export function convertIndexPathToIdPath(
         // currentPath includes the current index, but arrayPath should be to the array itself
         const pathToArray = currentPath.substring(0, currentPath.lastIndexOf('['));
         
+        // Convert pathToArray to pattern format for matching
+        // e.g., "boomerForecastV3Requests[0].parameters.accountParams" -> "boomerForecastV3Requests[].parameters.accountParams[]"
+        const pathPattern = pathToArray.replace(/\[\d+\]/g, '[]') + '[]';
+        
         const idKeyInfo = context.idKeysUsed.find(info => 
-          pathToArray === info.arrayPath || 
-          pathToArray.endsWith(info.arrayPath)
+          info.arrayPath === pathPattern
         );
         
         if (idKeyInfo && typeof currentData[index] === 'object') {
@@ -493,7 +566,7 @@ export function convertArrayPatternToNumericPath(
   arrayPattern: ArrayPatternPath,
   context: PathConversionContext
 ): NumericPath {
-  console.log(`[PathConverter] 🔍 Converting ArrayPattern: "${arrayPattern}"`);
+//   console.log(`[PathConverter] 🔍 Converting ArrayPattern: "${arrayPattern}"`);
   
   if (!context.jsonData) {
     throw new Error('JSON data is required for ArrayPattern conversion');
@@ -562,8 +635,8 @@ export function convertArrayPatternToNumericPath(
   // Add root prefix if missing
   const fullPath = resolvedPath.startsWith('root.') ? resolvedPath : `root.${resolvedPath}`;
   
-  console.log(`[PathConverter] 🔍 ArrayPattern "${arrayPattern}" -> navigable path: "${fullPath}"`);
-  console.log(`[PathConverter] 🔍 resolvedPath before root prefix: "${resolvedPath}"`);
+//   console.log(`[PathConverter] 🔍 ArrayPattern "${arrayPattern}" -> navigable path: "${fullPath}"`);
+//   console.log(`[PathConverter] 🔍 resolvedPath before root prefix: "${resolvedPath}"`);
   
   return validateAndCreateNumericPath(fullPath, 'PathConverter.convertArrayPatternToNumericPath');
 }
