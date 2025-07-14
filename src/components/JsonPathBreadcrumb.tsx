@@ -5,6 +5,9 @@
  */
 
 import React, { useMemo } from 'react';
+import { stripAllPrefixes } from '../utils/PathConverter';
+import { createIdBasedPath } from '../utils/PathTypes';
+import type { AnyPath } from '../utils/PathTypes';
 import './JsonPathBreadcrumb.css';
 
 // Utility function to create breadcrumb segments from out-of-view tree nodes
@@ -47,7 +50,7 @@ export interface BreadcrumbSegment {
 interface JsonPathBreadcrumbProps {
   currentPath?: string; // Made optional for dynamic mode
   currentLine?: number;
-  onSegmentClick: (path: string) => void;
+  onSegmentClick: (path: AnyPath) => void;
   mode?: 'tree' | 'text';
   outOfViewPaths?: string[];
   // New dynamic props
@@ -79,11 +82,8 @@ export const JsonPathBreadcrumb: React.FC<JsonPathBreadcrumbProps> = ({
       return [];
     }
 
-    // Remove "root." prefix
-    let normalizedPath = currentPath;
-    if (normalizedPath.startsWith('root.')) {
-      normalizedPath = normalizedPath.substring(5);
-    }
+    // Use centralized prefix removal
+    let normalizedPath = stripAllPrefixes(createIdBasedPath(currentPath));
 
     if (!normalizedPath) {
       return [];
@@ -111,7 +111,7 @@ export const JsonPathBreadcrumb: React.FC<JsonPathBreadcrumbProps> = ({
           <div 
             key={index}
             className="breadcrumb-segment-line"
-            onClick={() => onSegmentClick(segment.path)}
+            onClick={() => onSegmentClick(createIdBasedPath(segment.path))}
             title={`Navigate to ${segment.path}`}
           >
             {/* Line number (like tree view gutter) */}

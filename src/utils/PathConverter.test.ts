@@ -5,6 +5,13 @@ import {
   viewerPathToIdBasedPath,
   stripAllPrefixes,
   arePathsEquivalent,
+  extractViewerPrefix,
+  removeViewerPrefix,
+  addViewerPrefix,
+  matchesWildcardPattern,
+  getExpansionPaths,
+  getParentPath,
+  validateConversionRequirements,
   type PathConversionContext 
 } from './PathConverter';
 import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
@@ -197,12 +204,12 @@ describe('PathConverter', () => {
     });
 
     test('removes viewer prefix', () => {
-      const path: AnyPath = createIdBasedPath('root_viewer1_users[0].name');
+      const path: AnyPath = createIdBasedPath('left_users[0].name');
       expect(stripAllPrefixes(path)).toBe('users[0].name');
     });
 
     test('removes both prefixes', () => {
-      const path: AnyPath = createIdBasedPath('root_viewer2_root.users[0].name');
+      const path: AnyPath = createIdBasedPath('right_root.users[0].name');
       expect(stripAllPrefixes(path)).toBe('users[0].name');
     });
 
@@ -401,6 +408,273 @@ describe('PathConverter', () => {
       // IdBasedPath -> ViewerPath
       const convertedViewerPath = convertIdPathToViewerPath(createIdBasedPath(idBasedPath!), contextLeft, 'left');
       expect(convertedViewerPath).toBe(originalViewerPath);
+    });
+  });
+
+  describe('New Utility Functions', () => {
+    describe('extractViewerPrefix', () => {
+      test('extracts left viewer prefix', () => {
+        const path = createIdBasedPath('left_root.accounts[0].name');
+        expect(extractViewerPrefix(path)).toBe('left');
+      });
+
+      test('extracts right viewer prefix', () => {
+        const path = createIdBasedPath('right_root.accounts[0].name');
+        expect(extractViewerPrefix(path)).toBe('right');
+      });
+
+      test('returns null for path without viewer prefix', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        expect(extractViewerPrefix(path)).toBeNull();
+      });
+
+      test('returns null for invalid viewer prefix', () => {
+        const path = createIdBasedPath('center_root.accounts[0].name');
+        expect(extractViewerPrefix(path)).toBeNull();
+      });
+    });
+
+    describe('removeViewerPrefix', () => {
+      test('removes left viewer prefix', () => {
+        const path = createIdBasedPath('left_root.accounts[0].name');
+        const result = removeViewerPrefix(path);
+        expect(result).toBe('root.accounts[0].name');
+      });
+
+      test('removes right viewer prefix', () => {
+        const path = createIdBasedPath('right_root.accounts[0].name');
+        const result = removeViewerPrefix(path);
+        expect(result).toBe('root.accounts[0].name');
+      });
+
+      test('leaves path unchanged if no viewer prefix', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        const result = removeViewerPrefix(path);
+        expect(result).toBe('root.accounts[0].name');
+      });
+
+      test('handles complex viewer prefixes', () => {
+        const path = createIdBasedPath('left_boomerForecastV3Requests[0].parameters');
+        const result = removeViewerPrefix(path);
+        expect(result).toBe('boomerForecastV3Requests[0].parameters');
+      });
+    });
+
+    describe('addViewerPrefix', () => {
+      test('adds left viewer prefix', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        const result = addViewerPrefix(path, 'left');
+        expect(result).toBe('left_root.accounts[0].name');
+      });
+
+      test('adds right viewer prefix', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        const result = addViewerPrefix(path, 'right');
+        expect(result).toBe('right_root.accounts[0].name');
+      });
+
+      test('replaces existing viewer prefix', () => {
+        const path = createIdBasedPath('left_root.accounts[0].name');
+        const result = addViewerPrefix(path, 'right');
+        expect(result).toBe('right_root.accounts[0].name');
+      });
+
+      test('handles path without root prefix', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        const result = addViewerPrefix(path, 'left');
+        expect(result).toBe('left_accounts[0].name');
+      });
+    });
+
+    describe('matchesWildcardPattern', () => {
+      test('matches exact paths', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        expect(matchesWildcardPattern(path, 'accounts[0].name')).toBe(true);
+      });
+
+      test('matches wildcard array indices', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        expect(matchesWildcardPattern(path, 'accounts[*].name')).toBe(true);
+      });
+
+      test('matches empty array patterns', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        expect(matchesWildcardPattern(path, 'accounts[].name')).toBe(true);
+      });
+
+      test('matches property wildcards', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        expect(matchesWildcardPattern(path, 'accounts[0].*')).toBe(true);
+      });
+
+      test('matches complex patterns', () => {
+        const path = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
+        expect(matchesWildcardPattern(path, 'boomerForecastV3Requests[*].parameters.accountParams[*].contributions[*]')).toBe(true);
+      });
+
+      test('matches ID-based array segments', () => {
+        const path = createIdBasedPath('accounts[id=123].name');
+        expect(matchesWildcardPattern(path, 'accounts[*].name')).toBe(true);
+      });
+
+      test('does not match different patterns', () => {
+        const path = createIdBasedPath('accounts[0].name');
+        expect(matchesWildcardPattern(path, 'users[0].name')).toBe(false);
+      });
+
+      test('ignores viewer prefixes in matching', () => {
+        const path = createIdBasedPath('left_root.accounts[0].name');
+        // First check what stripAllPrefixes returns
+        const stripped = stripAllPrefixes(path);
+        console.log('Stripped path:', stripped);
+        expect(matchesWildcardPattern(path, 'accounts[*].name')).toBe(true);
+      });
+    });
+
+    describe('getExpansionPaths', () => {
+      test('generates expansion paths for simple path', () => {
+        const path = createNumericPath('root.accounts[0].name');
+        const result = getExpansionPaths(path);
+        expect(result).toEqual([
+          'root.accounts',
+          'root.accounts[0]',
+          'root.accounts[0].name'
+        ]);
+      });
+
+      test('generates expansion paths with viewer prefix', () => {
+        const path = createNumericPath('root.accounts[0].name');
+        const result = getExpansionPaths(path, 'left');
+        expect(result).toEqual([
+          'left_root.accounts',
+          'left_root.accounts[0]',
+          'left_root.accounts[0].name'
+        ]);
+      });
+
+      test('handles complex nested paths', () => {
+        const path = createNumericPath('root.boomerForecastV3Requests[0].parameters.accountParams[1]');
+        const result = getExpansionPaths(path);
+        expect(result).toEqual([
+          'root.boomerForecastV3Requests',
+          'root.boomerForecastV3Requests[0]',
+          'root.boomerForecastV3Requests[0].parameters',
+          'root.boomerForecastV3Requests[0].parameters.accountParams',
+          'root.boomerForecastV3Requests[0].parameters.accountParams[1]'
+        ]);
+      });
+
+      test('handles path without root prefix', () => {
+        const path = createNumericPath('accounts[0].name');
+        const result = getExpansionPaths(path);
+        expect(result).toEqual([
+          'root.accounts',
+          'root.accounts[0]',
+          'root.accounts[0].name'
+        ]);
+      });
+
+      test('returns empty array for root-only path', () => {
+        const path = createNumericPath('root');
+        const result = getExpansionPaths(path);
+        expect(result).toEqual([]);
+      });
+
+      test('handles multiple array indices', () => {
+        const path = createNumericPath('root.data[0].items[1].value');
+        const result = getExpansionPaths(path);
+        expect(result).toEqual([
+          'root.data',
+          'root.data[0]',
+          'root.data[0].items',
+          'root.data[0].items[1]',
+          'root.data[0].items[1].value'
+        ]);
+      });
+    });
+
+    describe('getParentPath', () => {
+      test('extracts parent from property path', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        const result = getParentPath(path);
+        expect(result).toBe('root.accounts[0]');
+      });
+
+      test('extracts parent from array element path', () => {
+        const path = createIdBasedPath('root.accounts[0]');
+        const result = getParentPath(path);
+        expect(result).toBe('root.accounts');
+      });
+
+      test('extracts parent from nested array path', () => {
+        const path = createIdBasedPath('root.data[0].items[1]');
+        const result = getParentPath(path);
+        expect(result).toBe('root.data[0].items');
+      });
+
+      test('extracts parent from ID-based array path', () => {
+        const path = createIdBasedPath('root.accounts[id=123].name');
+        const result = getParentPath(path);
+        expect(result).toBe('root.accounts[id=123]');
+      });
+
+      test('returns null for root path', () => {
+        const path = createIdBasedPath('root');
+        const result = getParentPath(path);
+        expect(result).toBeNull();
+      });
+
+      test('returns null for single property', () => {
+        const path = createIdBasedPath('accounts');
+        const result = getParentPath(path);
+        expect(result).toBeNull();
+      });
+
+      test('handles viewer prefix paths', () => {
+        const path = createIdBasedPath('left_root.accounts[0].name');
+        const result = getParentPath(path);
+        expect(result).toBe('left_root.accounts[0]');
+      });
+
+      test('handles complex nested paths', () => {
+        const path = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=123].contributions[id=456].value');
+        const result = getParentPath(path);
+        expect(result).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=123].contributions[id=456]');
+      });
+    });
+
+    describe('validateConversionRequirements', () => {
+      test('allows numeric path conversion without context', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        expect(validateConversionRequirements(path, 'numeric')).toBe(true);
+      });
+
+      test('requires context for ID-based path conversion', () => {
+        const path = createIdBasedPath('root.accounts[id=123].name');
+        expect(validateConversionRequirements(path, 'numeric')).toBe(false);
+      });
+
+      test('allows ID-based conversion with proper context', () => {
+        const path = createIdBasedPath('root.accounts[id=123].name');
+        const context = { jsonData: { accounts: [{ id: '123', name: 'test' }] } };
+        expect(validateConversionRequirements(path, 'numeric', context)).toBe(true);
+      });
+
+      test('requires context for viewer path conversion of ID paths', () => {
+        const path = createIdBasedPath('root.accounts[id=123].name');
+        expect(validateConversionRequirements(path, 'viewer')).toBe(false);
+      });
+
+      test('allows viewer path conversion with context', () => {
+        const path = createIdBasedPath('root.accounts[id=123].name');
+        const context = { jsonData: { accounts: [{ id: '123', name: 'test' }] } };
+        expect(validateConversionRequirements(path, 'viewer', context)).toBe(true);
+      });
+
+      test('allows viewer conversion for numeric paths without context', () => {
+        const path = createIdBasedPath('root.accounts[0].name');
+        expect(validateConversionRequirements(path, 'viewer')).toBe(true);
+      });
     });
   });
 });

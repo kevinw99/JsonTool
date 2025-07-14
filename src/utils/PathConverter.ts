@@ -1,6 +1,6 @@
 import type { IdKeyInfo } from './jsonCompare';
 import type { NumericPath, IdBasedPath, AnyPath, ArrayPatternPath, ViewerPath, ViewerId } from './PathTypes';
-import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath, createViewerPath } from './PathTypes';
+import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath, createViewerPath, hasIdBasedSegments, createIdBasedPath } from './PathTypes';
 
 /**
  * Path Converter Utility
@@ -197,7 +197,8 @@ export function convertIdPathToIndexPath(
   // Apply prefix options
   const targetPrefix = applyPrefixOptions(originalPrefix, options);
   
-  return buildPathWithPrefix(convertedCorePath, targetPrefix) as NumericPath;
+  const resultPath = buildPathWithPrefix(convertedCorePath, targetPrefix);
+  return resultPath as NumericPath;
 }
 
 /**
@@ -396,7 +397,7 @@ export function stripAllPrefixes(path: AnyPath): AnyPath {
   let stripped: string = path;
   
   // Remove viewer prefix
-  stripped = stripped.replace(/^root_(viewer\d+)_/, '');
+  stripped = stripped.replace(/^(left|right)_/, '');
   
   // Remove root prefix
   if (stripped.startsWith('root.')) {

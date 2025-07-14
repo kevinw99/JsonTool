@@ -4,7 +4,7 @@ import { useJsonViewerSync } from './JsonViewerSyncContext';
 import { createViewerPath, validateAndCreateIdBasedPath, createArrayPatternPath } from '../utils/PathTypes';
 import type { ViewerPath, IdBasedPath, NumericPath, ArrayPatternPath } from '../utils/PathTypes';
 import { convertIdPathToIndexPath, convertArrayPatternToNumericPath, convertIdPathToViewerPath,
-  convertIndexPathToIdPath, type PathConversionContext } from '../utils/PathConverter';
+  convertIndexPathToIdPath, stripAllPrefixes, type PathConversionContext } from '../utils/PathConverter';
 import './IdKeysPanel.css';
 
 interface IdKeysPanelProps {
@@ -35,15 +35,13 @@ export const consolidateIdKeys = (idKeysUsed: IdKeyInfo[]): ConsolidatedIdKey[] 
       return;
     }
     
-    // Remove "root." prefix if present
-    if (originalPath.startsWith('root.')) {
-      originalPath = originalPath.substring(5);
-    }
+    // Use centralized path processing to remove all prefixes and convert to array pattern
+    const strippedPath = stripAllPrefixes(validateAndCreateIdBasedPath(originalPath, 'IdKeysPanel.handleOccurrenceClick'));
     
     // Replace all specific array indices with [] to generalize the path
     // This handles cases like [0], [1], [636106], etc.
     // IMPORTANT: Keep ALL [] markers to show complete array structure
-    let consolidatedPathStr = originalPath.replace(/\[[^\]]*\]/g, '[]');
+    let consolidatedPathStr = (strippedPath as string).replace(/\[[^\]]*\]/g, '[]');
     
     const consolidatedKey = `${consolidatedPathStr}::${idKeyInfo.idKey}`;
 
@@ -121,22 +119,34 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
 //   }
 
     console.log(`[ID Keys] 📁 target index path node : ${numericPath}`);
-    const leftIDNode : IdBasedPath = convertIndexPathToIdPath(numericPath, contextLeft);
+    const leftIDNode = convertIndexPathToIdPath(numericPath, contextLeft);
+    if (!leftIDNode) {
+      console.warn(`[ID Keys] ⚠️ Failed to convert to ID path: ${numericPath}`);
+      return;
+    }
     console.log(`[ID Keys] 📁 leftIDNode : ${leftIDNode}`);
     // Convert to ViewerPath
-    const leftTargetViewerNode : ViewerPath = convertIdPathToViewerPath(
+    const leftTargetViewerNode = convertIdPathToViewerPath(
       leftIDNode,
       contextLeft,
       'left'
     );
+    if (!leftTargetViewerNode) {
+      console.warn(`[ID Keys] ⚠️ Failed to convert to left ViewerPath: ${leftIDNode}`);
+      return;
+    }
     console.log(`[ID Keys] 📁 leftTargetViewerNode : ${leftTargetViewerNode}`);
     // Convert to ViewerPath for right side
 
-    const rightTargetViewerNode : ViewerPath = convertIdPathToViewerPath(
+    const rightTargetViewerNode = convertIdPathToViewerPath(
       leftIDNode,
       contextRight,
       'right'
     );
+    if (!rightTargetViewerNode) {
+      console.warn(`[ID Keys] ⚠️ Failed to convert to right ViewerPath: ${leftIDNode}`);
+      return;
+    }
     console.log(`[ID Keys] 📁 rightTargetViewerNode : ${rightTargetViewerNode}`);
 
 //

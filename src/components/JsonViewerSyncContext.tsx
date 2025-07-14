@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
-import { convertIdPathToIndexPath, type PathConversionContext } from '../utils/PathConverter';
+import { convertIdPathToIndexPath, removeViewerPrefix, getParentPath, matchesWildcardPattern, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerPath, ViewerId, NumericPath } from '../utils/PathTypes';
 import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath,
   getAllElementsForViewer, extractGenericPath, viewerPathToGenericWithoutRoot } from '../utils/PathTypes';
@@ -184,7 +184,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Convert viewer-specific path to generic path
       // "root_left_root.boomerForecastV3Requests" -> "root.boomerForecastV3Requests"
-      const genericPath = path.replace(/^root_(left|right)_/, '');
+      const genericPath = removeViewerPrefix(path) as string;
       console.log(`[JsonViewerSyncContext toggleExpand] Generic path: "${genericPath}"`);
       
       // Check if this is an ID-based array path that needs sync
@@ -315,23 +315,19 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             allPathsToExpand.add(createViewerPath('left', validateAndCreateNumericPath(diff.idBasedPath, 'JsonViewerSyncContext.setExpandAll.diff')));
             allPathsToExpand.add(createViewerPath('right', validateAndCreateNumericPath(diff.idBasedPath, 'JsonViewerSyncContext.setExpandAll.diff')));
             
-            // Add all its ancestors
+            // Add all its ancestors using centralized parent path calculation
             let currentPath = diff.idBasedPath;
-            while (currentPath.includes('.') || currentPath.includes('[')) {
-              const lastDot = currentPath.lastIndexOf('.');
-              const lastBracket = currentPath.lastIndexOf('[');
-              const parentEndIndex = Math.max(lastDot, lastBracket);
-              if (parentEndIndex > -1) {
-                currentPath = currentPath.substring(0, parentEndIndex);
-                if (currentPath && currentPath !== 'root') {
-                    allPathsToExpand.add(createViewerPath('left', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
-                    allPathsToExpand.add(createViewerPath('right', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
-                } else if (currentPath === 'root') {
-                    // Already added root paths above
-                    break;
-                }
-              } else {
-                break; // No more parents
+            while (currentPath && currentPath !== 'root') {
+              const parentPath = getParentPath(currentPath);
+              if (!parentPath) break; // No more parents
+              
+              currentPath = parentPath as string;
+              if (currentPath && currentPath !== 'root') {
+                  allPathsToExpand.add(createViewerPath('left', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
+                  allPathsToExpand.add(createViewerPath('right', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
+              } else if (currentPath === 'root') {
+                  // Already added root paths above
+                  break;
               }
             }
           }
@@ -441,8 +437,11 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       // Extract generic paths from ViewerPaths for highlighting and expansion
       const leftGenericPath = extractGenericPath(leftViewerPath);
       const rightGenericPath = extractGenericPath(rightViewerPath);
+      //log leftGenericPath
+      console.log('[goToDiffWithPaths] 🎯 Left generic path:', leftGenericPath);
+      console.log('[goToDiffWithPaths] 🎯 Right generic path:', rightGenericPath);
 
-      viewerPathToGenericWithoutRoot
+
       // Clear existing highlights before setting new ones
       setHighlightPathState(null);
       setPersistentHighlightPaths(new Set<ViewerPath>());
@@ -602,7 +601,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       console.log('[syncToCounterpart] 🎯 Input:', nodePath, 'from', viewerId);
       
       // Normalize the path to remove viewer-specific prefix
-      let normalizedPath = nodePath.replace(/^root_(left|right)_/, '');
+      let normalizedPath = removeViewerPrefix(nodePath);
       console.log('[syncToCounterpart] 📍 Normalized path:', normalizedPath);
       
       // Check if this is an ID-based path
@@ -636,60 +635,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     // Removed ref update effect as manual expansion no longer triggers sync
 
-    // Wildcard pattern matching function
+    // Use centralized wildcard pattern matching from PathConverter
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {
-      // Convert pattern to regex:
-      // 1. Split pattern by '.' to handle each segment separately
-      // 2. For each segment, convert * to match within that segment
-      // 3. Reassemble with literal dots
-      
-      const patternSegments = pattern.split('.');
-      const pathSegments = path.split('.');
-      
-      // If pattern has different number of segments than path, check if pattern uses wildcards
-      if (patternSegments.length !== pathSegments.length) {
-        // Fall back to full regex matching for complex patterns
-        let regexPattern = pattern
-          .replace(/[.+?^${}()|\\]/g, '\\$&') // Escape regex special chars except * and []
-          .replace(/\[(\d+)\]/g, '\\[$1\\]') // Escape literal array indices like [0]
-          .replace(/\[\*\]/g, '\\[[0-9]+\\]') // Convert [*] to match any array index
-          .replace(/\*/g, '.*'); // Convert * to match any characters (including dots for complex patterns)
-        
-        const regex = new RegExp(`^${regexPattern}$`);
-        const result = regex.test(path);
-        return result;
-      }
-      
-      // Segment-by-segment matching
-      for (let i = 0; i < patternSegments.length; i++) {
-        const patternSegment = patternSegments[i];
-        const pathSegment = pathSegments[i];
-        
-        if (patternSegment === '*') {
-          // * matches any segment
-          continue;
-        }
-        
-        if (patternSegment.includes('*')) {
-          // Segment contains wildcards - convert to regex
-          const segmentRegex = patternSegment
-            .replace(/[.+?^${}()|\\]/g, '\\$&') // Escape regex special chars
-            .replace(/\[\*\]/g, '\\[[0-9]+\\]') // Handle array wildcards
-            .replace(/\*/g, '.*'); // Convert * to match any chars within segment
-          
-          const regex = new RegExp(`^${segmentRegex}$`);
-          if (!regex.test(pathSegment)) {
-            return false;
-          }
-        } else {
-          // Exact match required
-          if (patternSegment !== pathSegment) {
-            return false;
-          }
-        }
-      }
-      
-      return true;
+      return matchesWildcardPattern(createIdBasedPath(path), pattern);
     }, []);
 
     // Check if a path is ignored by any pattern
