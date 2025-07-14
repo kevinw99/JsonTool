@@ -97,6 +97,22 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
       console.log('✅ ID Keys detected:', actualIdKeys);
     });
 
+    test('jsonCompare should NEVER produce root prefix (negative test)', () => {
+      // Verify that ALL diffs from jsonCompare lack "root." prefix
+      actualDiffResults.forEach((diff, index) => {
+        expect(diff.idBasedPath.startsWith('root.')).toBe(false);
+        expect(diff.idBasedPath).not.toContain('root.');
+      });
+      
+      // Verify that ALL idKeys lack "root." prefix in arrayPath
+      actualIdKeys.forEach((idKey, index) => {
+        expect(idKey.arrayPath.startsWith('root.')).toBe(false);
+        expect(idKey.arrayPath).not.toContain('root.');
+      });
+      
+      console.log('✅ Verified all jsonCompare output is free of "root." prefix');
+    });
+
     test('Diff generation should match expected differences', () => {
       expect(actualDiffResults.length).toBeGreaterThanOrEqual(7); // At least the 7 diffs you listed
       

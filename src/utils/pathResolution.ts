@@ -28,8 +28,8 @@ export function resolveIdBasedPathToNumeric(
     idKeysUsed: idKeysUsed
   };
   
-  // Ensure the path has proper format for PathConverter
-  const formattedPath = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+  // Add root prefix for PathConverter (jsonCompare paths no longer have it)
+  const formattedPath = `root.${idBasedPath}`;
   
   try {
     // Convert ID-based path to numeric path for left side
@@ -210,7 +210,7 @@ export function resolveIdBasedPathForSingleSide(
     idKeysUsed: idKeysUsed
   };
   
-  const formattedPath = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+  const formattedPath = `root.${idBasedPath}`;
   
   try {
     const numericPath = convertIdPathToIndexPath(
@@ -252,8 +252,8 @@ export function idBasedPathToViewerPathWithResolution(
     
     // If the path is purely numeric, convert directly
     if (!hasIdSegments) {
-      // Ensure path has root prefix
-      const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+      // Add root prefix
+      const pathWithRoot = `root.${idBasedPath}`;
       return `${viewerId}_${pathWithRoot}`;
     }
     
@@ -263,8 +263,8 @@ export function idBasedPathToViewerPathWithResolution(
       
       const targetPath = viewerId === 'left' ? result.leftPath : result.rightPath;
       if (targetPath) {
-        // Ensure the path has root prefix
-        const pathWithRoot = targetPath.startsWith('root.') ? targetPath : `root.${targetPath}`;
+        // Add root prefix
+        const pathWithRoot = `root.${targetPath}`;
         return `${viewerId}_${pathWithRoot}`;
       }
     }

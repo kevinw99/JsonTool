@@ -200,11 +200,8 @@ function compareRecursively(
     const idKey = findIdKey(arr1, arr2);
     if (idKey) {
       // Store the idKey info with ArrayPatternPath format
-      // Convert path like "root.accounts" to ArrayPatternPath like "accounts[]"
+      // Convert path to ArrayPatternPath format
       let arrayPatternPath = path;
-      if (arrayPatternPath.startsWith('root.')) {
-        arrayPatternPath = arrayPatternPath.substring(5);
-      }
       // Replace all [index] and [id=value] with [] and add final [] to represent this array
       arrayPatternPath = arrayPatternPath.replace(/\[[^\]]+\]/g, '[]') + '[]';
       
@@ -244,7 +241,7 @@ function compareRecursively(
     }
 
     for (const key of allKeys) {
-      const newPath = path === "root" ? key : `${path}.${key}`;
+      const newPath = path === "" ? key : `${path}.${key}`;
 
       if (!(key in obj1)) {
         result.push({
@@ -318,7 +315,7 @@ function compareArraysWithIdKey(
 
     if (!entry1) {
       // Use ID-key format for idBasedPath
-      const idBasedPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
+      const idBasedPath = path === "" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       result.push({
         idBasedPath: idBasedPath,
         type: "added",
@@ -327,7 +324,7 @@ function compareArraysWithIdKey(
       });
     } else if (!entry2) {
       // Use ID-key format for idBasedPath
-      const idBasedPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
+      const idBasedPath = path === "" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       result.push({
         idBasedPath: idBasedPath,
         type: "removed",
@@ -336,7 +333,7 @@ function compareArraysWithIdKey(
       });
     } else {
       // Use ID-key format for idBasedPath
-      const idBasedPath = path === "root" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
+      const idBasedPath = path === "" ? `[${idKey}=${id}]` : `${path}[${idKey}=${id}]`;
       compareRecursively(entry1.item, entry2.item, idBasedPath, result, idKeysUsed);
     }
   }
@@ -352,7 +349,7 @@ function compareArraysByIndex(
   const maxLength = Math.max(arr1.length, arr2.length);
 
   for (let i = 0; i < maxLength; i++) {
-    const newPath = path === "root" ? `[${i}]` : `${path}[${i}]`;
+    const newPath = path === "" ? `[${i}]` : `${path}[${i}]`;
 
     if (i >= arr1.length) {
       result.push({
@@ -383,7 +380,7 @@ export function jsonCompare(json1: any, json2: any, precomputedIdKeys: IdKeyInfo
 export function jsonCompare(json1: any, json2: any, precomputedIdKeys?: IdKeyInfo[]): JsonCompareResult {
   const result: DiffResult[] = [];
   const idKeysUsed: IdKeyInfo[] = precomputedIdKeys || [];
-  compareRecursively(json1, json2, "root", result, idKeysUsed);
+  compareRecursively(json1, json2, "", result, idKeysUsed);
   return {
     diffs: result,
     processedJson1: json1,
@@ -403,9 +400,6 @@ export function detectIdKeysInSingleJson(data: any, basePath: string = ""): IdKe
       if (idKey) {
         // Convert currentPath to ArrayPatternPath format
         let arrayPatternPath = currentPath;
-        if (arrayPatternPath.startsWith('root.')) {
-          arrayPatternPath = arrayPatternPath.substring(5);
-        }
         // Replace all [index] and [id=value] with [] and add final [] to represent this array
         arrayPatternPath = arrayPatternPath.replace(/\[[^\]]+\]/g, '[]') + '[]';
         

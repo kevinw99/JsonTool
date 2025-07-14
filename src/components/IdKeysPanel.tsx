@@ -174,10 +174,8 @@ export const IdKeysPanel: React.FC<IdKeysPanelProps> = ({ idKeysUsed, jsonData }
 
   const handleOccurrenceClick = (originalPath: IdBasedPath) => {
     
-    let targetPath = originalPath as string;
-    if (!targetPath.startsWith('root.')) {
-      targetPath = `root.${targetPath}`;
-    }
+    // Add root prefix for navigation (jsonCompare paths no longer have it)
+    let targetPath = `root.${originalPath}`;
     
     // Use standard PathConverter methods to get ViewerPaths for both sides
     const leftContext: PathConversionContext = {

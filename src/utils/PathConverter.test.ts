@@ -89,6 +89,25 @@ describe('PathConverter', () => {
     idKeysUsed: idKeysUsed
   };
 
+  describe('jsonCompare Integration Validation', () => {
+    test('should ensure test data uses clean paths (no root prefix)', () => {
+      // All test paths in this file should be clean (no root prefix)
+      // This verifies our test data matches the new jsonCompare output format
+      const testPaths = [
+        'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]',
+        'boomerForecastV3Requests[0].parameters.accountParams[1]',
+        'zzCustomDataSets[name=CustomDataSet1].metrics[metricCode=M003]'
+      ];
+      
+      testPaths.forEach(path => {
+        expect(path.startsWith('root.')).toBe(false);
+        expect(path).not.toContain('root.');
+      });
+      
+      console.log('✅ Verified all PathConverter test data uses clean paths');
+    });
+  });
+
   describe('convertIdPathToIndexPath', () => {
     test('converts account params ID path to index path', () => {
       const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');

@@ -424,31 +424,40 @@ describe('PathResolution - GoTo Navigation Logic', () => {
     });
   });
 
-  describe('Path Format Validation', () => {
+  describe('jsonCompare Output Validation', () => {
     
-    it('should handle paths with and without root prefix', () => {
+    it('should ensure jsonCompare NEVER produces root prefix (negative test)', () => {
+      // Verify that ALL diffs from jsonCompare lack "root." prefix
+      compareResult.diffs.forEach((diff, index) => {
+        expect(diff.idBasedPath.startsWith('root.')).toBe(false);
+        expect(diff.idBasedPath).not.toContain('root.');
+      });
+      
+      // Verify that ALL idKeys lack "root." prefix in arrayPath
+      combinedIdKeys.forEach((idKey, index) => {
+        expect(idKey.arrayPath.startsWith('root.')).toBe(false);
+        expect(idKey.arrayPath).not.toContain('root.');
+      });
+      
+      console.log('✅ Verified all jsonCompare output is free of "root." prefix');
+    });
+    
+    it('should handle clean paths from jsonCompare correctly', () => {
       const diff1 = compareResult.diffs.find(diff => 
         diff.idBasedPath.includes('contributionType') &&
         diff.type === 'changed'
       );
       
-      // Test with root prefix
-      const resultWithRoot = resolveIdBasedPathToNumeric(
-        `root.${diff1!.idBasedPath}`,
-        { left: leftData, right: rightData },
-        combinedIdKeys
-      );
-      
-      // Test without root prefix
-      const resultWithoutRoot = resolveIdBasedPathToNumeric(
+      // Test that pathResolution handles clean paths (no root prefix) correctly
+      const result = resolveIdBasedPathToNumeric(
         diff1!.idBasedPath,
         { left: leftData, right: rightData },
         combinedIdKeys
       );
       
-      // Results should be the same regardless of root prefix
-      expect(resultWithRoot.leftPath).toEqual(resultWithoutRoot.leftPath);
-      expect(resultWithRoot.rightPath).toEqual(resultWithoutRoot.rightPath);
+      // Should successfully resolve to numeric paths
+      expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[\d+\]\.contributions\[\d+\]\.contributionType$/);
+      expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[0\]\.parameters\.accountParams\[\d+\]\.contributions\[\d+\]\.contributionType$/);
     });
   });
 });

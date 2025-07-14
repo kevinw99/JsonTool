@@ -171,7 +171,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
 
   // Path normalization for diff checks (highlightPath is already normalized)
   const normalizedPathForDiff = useMemo(() => {
-    // The genericNumericPathForNode includes "root." prefix, but diff idBasedPath doesn't
+    // The genericNumericPathForNode includes "root." prefix, but diff idBasedPath from jsonCompare doesn't
     // So we need to remove "root." for comparison with diff results
     let normalized = genericNumericPathForNode;
     if (normalized.startsWith('root.')) {
@@ -285,7 +285,7 @@ export const JsonNode: React.FC<JsonNodeProps> = ({
     };
 
     // Use the original path (with ID-based brackets) for highlighting
-    // Strip the viewer prefix to match diff path format
+    // Strip the viewer prefix to match diff path format from jsonCompare
     let pathForHighlighting = path.replace(/^root_(left|right)_/, '');
     if (pathForHighlighting.startsWith('root.')) {
       pathForHighlighting = pathForHighlighting.substring(5); // Remove "root."
@@ -820,8 +820,8 @@ export const JsonTreeView: React.FC<JsonTreeViewProps> = ({ data, viewerId, json
 
   const handleBreadcrumbClick = (path: string) => {
     if (goToDiff) {
-      // Ensure path has proper root prefix
-      const fullPath = path.startsWith('root.') ? path : `root.${path}`;
+      // Add root prefix for navigation
+      const fullPath = `root.${path}`;
       goToDiff(createIdBasedPath(fullPath));
     }
   };

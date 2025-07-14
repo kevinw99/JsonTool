@@ -41,8 +41,8 @@ export const DiffList: React.FC<DiffListProps> = ({
       return; // Don't add duplicate
     }
     
-    // Ensure the path has the "root." prefix for persistent highlighting
-    const pathWithRoot = idBasedDiffPath.startsWith('root.') ? idBasedDiffPath : `root.${idBasedDiffPath}`;
+    // Add the "root." prefix for persistent highlighting (paths from jsonCompare no longer have it)
+    const pathWithRoot = `root.${idBasedDiffPath}`;
     
     // Set persistent highlight for the ignored node (border only)
     const highlights = new Set<ViewerPath>([
@@ -84,8 +84,8 @@ export const DiffList: React.FC<DiffListProps> = ({
           if (leftPath && rightPath) {
             // Both paths exist - changed item
             console.log('[DiffList] 🔄 Changed item - navigate to both viewers');
-            const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
-            const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
+            const leftPathWithRoot = `root.${leftPath}`;
+            const rightPathWithRoot = `root.${rightPath}`;
             
             const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.left'));
             const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.right'));
@@ -95,7 +95,7 @@ export const DiffList: React.FC<DiffListProps> = ({
           } else if (leftPath && !rightPath) {
             // Only left path exists - removed item
             console.log('[DiffList] ➖ Removed item - use goToDiffWithPaths with left viewer path');
-            const leftPathWithRoot = leftPath.startsWith('root.') ? leftPath : `root.${leftPath}`;
+            const leftPathWithRoot = `root.${leftPath}`;
             const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.removed'));
             
             // For removed items, pass the left path for both parameters
@@ -105,7 +105,7 @@ export const DiffList: React.FC<DiffListProps> = ({
           } else if (!leftPath && rightPath) {
             // Only right path exists - added item
             console.log('[DiffList] ➕ Added item - use goToDiffWithPaths with right viewer path');
-            const rightPathWithRoot = rightPath.startsWith('root.') ? rightPath : `root.${rightPath}`;
+            const rightPathWithRoot = `root.${rightPath}`;
             const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.added'));
             
             // For added items, pass the right path for both parameters  
@@ -115,19 +115,19 @@ export const DiffList: React.FC<DiffListProps> = ({
           
         } else {
           console.log('[DiffList] ❌ PathConverter could not resolve paths - falling back to ID-based path');
-          const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+          const pathWithRoot = `root.${idBasedPath}`;
           goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback1'));
         }
       } catch (error) {
         console.error('[DiffList] 🚨 Error during PathConverter-based correlation:', error);
         console.log('[DiffList] 🔄 Falling back to ID-based path due to error');
-        const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+        const pathWithRoot = `root.${idBasedPath}`;
         goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback2'));
       }
     } else {
       console.log('[DiffList] 📍 Using simple ID-based path approach');
       // Use ID-based path (viewer-agnostic)
-      const pathWithRoot = idBasedPath.startsWith('root.') ? idBasedPath : `root.${idBasedPath}`;
+      const pathWithRoot = `root.${idBasedPath}`;
       goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.simple'));
     }
   };
@@ -190,9 +190,9 @@ export const DiffList: React.FC<DiffListProps> = ({
                   <code 
                     className="diff-path-inline clickable"
                     onClick={() => handleGoToDiff(diff)}
-                    title={diff.idBasedPath.startsWith('root.') ? diff.idBasedPath.substring(5) : diff.idBasedPath}
+                    title={diff.idBasedPath}
                   >
-                    {diff.idBasedPath.startsWith('root.') ? diff.idBasedPath.substring(5) : diff.idBasedPath}
+                    {diff.idBasedPath}
                   </code>
                   <span 
                     className="diff-summary-inline"
