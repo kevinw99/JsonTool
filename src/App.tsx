@@ -349,7 +349,7 @@ function App() {
             setIdKeysUsed(comparisonResult.idKeysUsed);
             
             // Don't re-save the same filenames we just loaded
-            console.log('ℹ️ Skipping filename save during initial restore');
+//             console.log('ℹ️ Skipping filename save during initial restore');
           } catch (e) {
             console.error('❌ Error comparing restored files:', e);
             setError('Error comparing restored files');
@@ -885,7 +885,7 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {(() => {
-                          console.log(`🎨 [Render-file1] viewMode: ${viewMode}, isTextMode: ${file1.isTextMode}, fileName: ${file1.fileName}`);
+//                           console.log(`🎨 [Render-file1] viewMode: ${viewMode}, isTextMode: ${file1.isTextMode}, fileName: ${file1.fileName}`);
                           return viewMode === 'text';
                         })() ? (
                           <JsonTextEditor 
@@ -939,7 +939,7 @@ function App() {
                       </div>
                       <div style={{flex: 1, height: '100%', display: 'flex', flexDirection: 'column'}}>
                         {(() => {
-                          console.log(`🎨 [Render-file2] viewMode: ${viewMode}, isTextMode: ${file2.isTextMode}, fileName: ${file2.fileName}`);
+//                           console.log(`🎨 [Render-file2] viewMode: ${viewMode}, isTextMode: ${file2.isTextMode}, fileName: ${file2.fileName}`);
                           return viewMode === 'text';
                         })() ? (
                           <JsonTextEditor 
