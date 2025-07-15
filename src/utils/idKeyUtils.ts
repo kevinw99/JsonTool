@@ -38,10 +38,5 @@ export function generateCombinedIdKeys(
   return compareResult.idKeysUsed;
 }
 
-/**
- * Legacy function for backward compatibility
- * This matches the exact logic used in NewHighlightingProcessor.test.ts
- */
-export function generateIdKeys(leftData: any, rightData: any): IdKeyInfo[] {
-  return generateCombinedIdKeys(leftData, rightData, { enableLogging: true });
-}
+// Note: Removed legacy generateIdKeys function
+// Only generateCombinedIdKeys is needed - it's more flexible and explicit.

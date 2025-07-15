@@ -15,7 +15,7 @@ import {
   type PathConversionContext 
 } from './PathConverter';
 import type { NumericPath, IdBasedPath, AnyPath } from './PathTypes';
-import { createNumericPath, createIdBasedPath, unsafeIdBasedPath, unsafeNumericPath } from './PathTypes';
+import { createNumericPath, createIdBasedPath } from './PathTypes';
 import { generateCombinedIdKeys } from './idKeyUtils';
 import type { IdKeyInfo } from './jsonCompare';
 import fs from 'fs';

@@ -14,32 +14,10 @@ import {
   isValidArrayPattern,
   isViewerPath,
   
-  // Type conversions
-  toNumericPath,
-  toIdBasedPath,
-  toArrayPatternPath,
-  numericToIdBased,
-  anyPathToIdBased,
-  anyPathToNumeric,
-  
-  // Array pattern conversions
-  numericToArrayPattern,
-  idBasedToArrayPattern,
-  anyPathToArrayPattern,
-  
-  // Validation functions
+  // Validation functions (keeping only what we still use)
   validateAndCreateNumericPath,
   validateAndCreateIdBasedPath,
   validateAndCreateArrayPatternPath,
-  
-  // Array pattern utilities
-  getArrayDepth,
-  getTargetArrayProperty,
-  getParentArrayPattern,
-  arePatternsSimilar,
-  
-  // Smart conversion
-  smartPathConversion,
   
   // Viewer path functions
   extractViewerId,
@@ -138,89 +116,9 @@ describe('PathTypes', () => {
     });
   });
 
-  describe('Type Conversions', () => {
-    describe('toNumericPath', () => {
-      it('should convert valid numeric strings', () => {
-        const result = toNumericPath('array[0].property');
-        expect(result).toBe('array[0].property');
-      });
+  // Note: Removed tests for eliminated conversion functions
 
-      it('should throw for non-numeric paths', () => {
-        expect(() => toNumericPath('array[id=123].property')).toThrow();
-      });
-    });
-
-    describe('numericToIdBased', () => {
-      it('should safely convert numeric to ID-based', () => {
-        const numeric = createNumericPath('array[0].property');
-        const idBased = numericToIdBased(numeric);
-        expect(idBased).toBe('array[0].property');
-      });
-    });
-
-    describe('anyPathToNumeric', () => {
-      it('should convert valid numeric paths', () => {
-        const numeric = createNumericPath('array[0].property');
-        const result = anyPathToNumeric(numeric);
-        expect(result).toBe('array[0].property');
-      });
-
-      it('should throw for ID-based paths', () => {
-        const idBased = createIdBasedPath('array[id=123].property');
-        expect(() => anyPathToNumeric(idBased)).toThrow();
-      });
-    });
-  });
-
-  describe('Array Pattern Conversions', () => {
-    describe('numericToArrayPattern', () => {
-      it('should convert numeric paths to patterns', () => {
-        const numeric = createNumericPath('boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
-        const pattern = numericToArrayPattern(numeric);
-        expect(pattern).toBe('boomerForecastV3Requests[].parameters.accountParams[].contributions[]');
-      });
-
-      it('should handle paths without root prefix', () => {
-        const numeric = createNumericPath('array[0].nested[1]');
-        const pattern = numericToArrayPattern(numeric);
-        expect(pattern).toBe('array[].nested[]');
-      });
-
-      it('should handle simple properties', () => {
-        const numeric = createNumericPath('simple.property');
-        const pattern = numericToArrayPattern(numeric);
-        expect(pattern).toBe('simple.property');
-      });
-    });
-
-    describe('idBasedToArrayPattern', () => {
-      it('should convert ID-based paths to patterns', () => {
-        const idBased = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=value]');
-        const pattern = idBasedToArrayPattern(idBased);
-        expect(pattern).toBe('boomerForecastV3Requests[].parameters.accountParams[].contributions[]');
-      });
-
-      it('should handle mixed numeric and ID-based segments', () => {
-        const idBased = createIdBasedPath('array[0].nested[id=123].property[456]');
-        const pattern = idBasedToArrayPattern(idBased);
-        expect(pattern).toBe('array[].nested[].property[]');
-      });
-    });
-
-    describe('anyPathToArrayPattern', () => {
-      it('should detect and convert ID-based paths', () => {
-        const idBased = createIdBasedPath('root.array[id=123].property');
-        const pattern = anyPathToArrayPattern(idBased);
-        expect(pattern).toBe('array[].property');
-      });
-
-      it('should detect and convert numeric paths', () => {
-        const numeric = createNumericPath('array[0].property');
-        const pattern = anyPathToArrayPattern(numeric);
-        expect(pattern).toBe('array[].property');
-      });
-    });
-  });
+  // Note: Removed tests for eliminated array pattern conversion functions
 
   describe('Validation Functions', () => {
     describe('validateAndCreateNumericPath', () => {
@@ -274,81 +172,7 @@ describe('PathTypes', () => {
     });
   });
 
-  describe('Array Pattern Utilities', () => {
-    describe('getArrayDepth', () => {
-      it('should count array levels', () => {
-        expect(getArrayDepth(createArrayPatternPath('array[]'))).toBe(1);
-        expect(getArrayDepth(createArrayPatternPath('nested[].array[]'))).toBe(2);
-        expect(getArrayDepth(createArrayPatternPath('a[].b[].c[]'))).toBe(3);
-        expect(getArrayDepth(createArrayPatternPath('simple.property'))).toBe(0);
-      });
-    });
-
-    describe('getTargetArrayProperty', () => {
-      it('should extract target array property', () => {
-        // getTargetArrayProperty looks for pattern like ".property[]" at the end
-        expect(getTargetArrayProperty(createArrayPatternPath('nested.array[]'))).toBe('array');
-        expect(getTargetArrayProperty(createArrayPatternPath('a[].b[].contributions[]'))).toBe('contributions');
-        expect(getTargetArrayProperty(createArrayPatternPath('array[]'))).toBe(null); // no dot before array
-        expect(getTargetArrayProperty(createArrayPatternPath('simple.property'))).toBe(null);
-      });
-    });
-
-    describe('getParentArrayPattern', () => {
-      it('should get parent array pattern', () => {
-        const input = createArrayPatternPath('a[].b[].c[]');
-        const result = getParentArrayPattern(input);
-        // The actual implementation seems to have a bug, but let's test the actual behavior
-        expect(result).toBe('a[].b[][]'); // TODO: This looks like a bug in getParentArrayPattern
-      });
-
-      it('should return null for single-level patterns', () => {
-        const result = getParentArrayPattern(createArrayPatternPath('array[]'));
-        expect(result).toBe(null);
-      });
-
-      it('should return null for non-array patterns', () => {
-        const result = getParentArrayPattern(createArrayPatternPath('simple.property'));
-        expect(result).toBe(null);
-      });
-    });
-
-    describe('arePatternsSimilar', () => {
-      it('should compare patterns for equality', () => {
-        const pattern1 = createArrayPatternPath('array[].property[]');
-        const pattern2 = createArrayPatternPath('array[].property[]');
-        const pattern3 = createArrayPatternPath('array[].different[]');
-        
-        expect(arePatternsSimilar(pattern1, pattern2)).toBe(true);
-        expect(arePatternsSimilar(pattern1, pattern3)).toBe(false);
-      });
-    });
-  });
-
-  describe('Smart Path Conversion', () => {
-    describe('smartPathConversion', () => {
-      it('should detect ID-based paths', () => {
-        const result = smartPathConversion('array[id=123].property');
-        expect(hasIdBasedSegments(result as IdBasedPath)).toBe(true);
-      });
-
-      it('should detect numeric paths', () => {
-        const result = smartPathConversion('array[0].property');
-        expect(isPureNumeric(result as IdBasedPath)).toBe(true);
-      });
-
-      it('should default to ID-based for ambiguous paths', () => {
-        const result = smartPathConversion('simple.property');
-        // Should return IdBasedPath as the superset
-        expect(typeof result).toBe('string');
-      });
-
-      it('should throw for invalid inputs', () => {
-        expect(() => smartPathConversion('')).toThrow();
-        expect(() => smartPathConversion(null as any)).toThrow();
-      });
-    });
-  });
+  // Note: Removed tests for eliminated array pattern utility functions and smart conversion
 
   describe('Viewer Path Functions', () => {
     describe('extractViewerId', () => {
@@ -515,10 +339,6 @@ describe('PathTypes', () => {
       // Should be recognized as numeric
       expect(isNumericPath(complexPath)).toBe(true);
       
-      // Should convert to array pattern
-      const pattern = numericToArrayPattern(createNumericPath(complexPath));
-      expect(pattern).toBe('boomerForecastV3Requests[].aggregateData.responses[].responseData.boomerForecast.status');
-      
       // Should create viewer path
       const viewerPath = createViewerPath('left', createNumericPath(complexPath));
       expect(viewerPath).toBe('left_root.boomerForecastV3Requests[0].aggregateData.responses[0].responseData.boomerForecast.status');
@@ -527,23 +347,6 @@ describe('PathTypes', () => {
       expect(viewerPathToGenericWithoutRoot(viewerPath)).toBe('boomerForecastV3Requests[0].aggregateData.responses[0].responseData.boomerForecast.status');
     });
 
-    it('should handle ID-based paths from DiffList', () => {
-      const idBasedPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-after_0].contributions';
-      
-      // Should be recognized as having ID-based segments
-      expect(hasIdBasedSegments(createIdBasedPath(idBasedPath))).toBe(true);
-      expect(isPureNumeric(createIdBasedPath(idBasedPath))).toBe(false);
-      
-      // Should convert to array pattern
-      const pattern = idBasedToArrayPattern(createIdBasedPath(idBasedPath));
-      expect(pattern).toBe('boomerForecastV3Requests[].parameters.accountParams[].contributions[].contributions');
-      
-      // Should have correct array depth  
-      expect(getArrayDepth(pattern)).toBe(3); // boomerForecastV3Requests[], accountParams[], contributions[]
-      
-      // Should extract target array property (last array ending with [])
-      // The pattern ends with ".contributions" not "[]", so getTargetArrayProperty returns null
-      expect(getTargetArrayProperty(pattern)).toBe(null); // Pattern doesn't end with [], so no target array property
-    });
+    // Note: Removed test that used eliminated array pattern functions
   });
 });

@@ -4,8 +4,8 @@ import {
   type PathConversionContext 
 } from './PathConverter';
 import type { DiffResult } from './jsonCompare';
-import type { AnyPath, ViewerId } from './PathTypes';
-import { unsafeIdBasedPath, hasIdBasedSegments, createIdBasedPath } from './PathTypes';
+import type { AnyPath, ViewerId, IdBasedPath } from './PathTypes';
+import { hasIdBasedSegments, createIdBasedPath } from './PathTypes';
 
 /**
  * CSS class constants for highlighting
@@ -59,7 +59,7 @@ export class NewHighlightingProcessor {
         // PRIORITIZE idBasedPath over numericPath for accuracy in viewer-specific contexts
         // Check idBasedPath first if it exists (for ID-based correlation)
         if (diff.idBasedPath) {
-          const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
+          const idBasedVariations = normalizePathForComparison(diff.idBasedPath as IdBasedPath, context);
           if (idBasedVariations.includes(variation)) {
             return true;
           }
@@ -71,9 +71,9 @@ export class NewHighlightingProcessor {
         
         if (!shouldSkipNumericFallback) {
           // Convert idBasedPath to numeric path for the current viewer context
-          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          const numericPath = convertIdPathToIndexPath(diff.idBasedPath as IdBasedPath, context);
           if (numericPath) {
-            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            const numericVariations = normalizePathForComparison(numericPath as IdBasedPath, context);
             if (numericVariations.includes(variation)) {
               return true;
             }
@@ -98,7 +98,7 @@ export class NewHighlightingProcessor {
         // PRIORITIZE idBasedPath over numericPath for parent relationships
         // Check idBasedPath first if it exists
         if (diff.idBasedPath) {
-          const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
+          const idBasedVariations = normalizePathForComparison(diff.idBasedPath as IdBasedPath, context);
           const isChildOfDisplay = idBasedVariations.some(diffVar => 
             variation.startsWith(diffVar + '.') || 
             variation.startsWith(diffVar + '[')
@@ -113,9 +113,9 @@ export class NewHighlightingProcessor {
         
         if (!shouldSkipNumericFallback) {
           // Convert idBasedPath to numeric path for the current viewer context
-          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          const numericPath = convertIdPathToIndexPath(diff.idBasedPath as IdBasedPath, context);
           if (numericPath) {
-            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            const numericVariations = normalizePathForComparison(numericPath as IdBasedPath, context);
             const isChildOfNumeric = numericVariations.some(diffVar => 
               variation.startsWith(diffVar + '.') || 
               variation.startsWith(diffVar + '[')
@@ -145,7 +145,7 @@ export class NewHighlightingProcessor {
         // PRIORITIZE idBasedPath over numericPath for child relationships
         // Check idBasedPath first if it exists
         if (diff.idBasedPath) {
-          const idBasedVariations = normalizePathForComparison(unsafeIdBasedPath(diff.idBasedPath), context);
+          const idBasedVariations = normalizePathForComparison(diff.idBasedPath as IdBasedPath, context);
           const hasDisplayChild = idBasedVariations.some(diffVar => 
             this.isTrueParentChild(variation, diffVar)
           );
@@ -159,9 +159,9 @@ export class NewHighlightingProcessor {
         
         if (!shouldSkipNumericFallback) {
           // Convert idBasedPath to numeric path for the current viewer context
-          const numericPath = convertIdPathToIndexPath(unsafeIdBasedPath(diff.idBasedPath), context);
+          const numericPath = convertIdPathToIndexPath(diff.idBasedPath as IdBasedPath, context);
           if (numericPath) {
-            const numericVariations = normalizePathForComparison(unsafeIdBasedPath(numericPath), context);
+            const numericVariations = normalizePathForComparison(numericPath as IdBasedPath, context);
             const hasNumericChild = numericVariations.some(diffVar => 
               this.isTrueParentChild(variation, diffVar)
             );

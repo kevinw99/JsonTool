@@ -1,6 +1,6 @@
 import type { IdKeyInfo } from './jsonCompare';
 import type { NumericPath, IdBasedPath, AnyPath, ArrayPatternPath, ViewerPath, ViewerId } from './PathTypes';
-import { unsafeAnyToIdBased, unsafeAnyToNumeric, validateAndCreateNumericPath, createViewerPath, hasIdBasedSegments, createIdBasedPath } from './PathTypes';
+import { validateAndCreateNumericPath, createViewerPath, hasIdBasedSegments, createIdBasedPath } from './PathTypes';
 
 /**
  * Path Converter Utility
@@ -425,24 +425,24 @@ export function arePathsEquivalent(
     // Try converting path1 to match path2's format
     if (normalized1.includes('=') && normalized2.match(/\[\d+\]/)) {
       // path1 is ID-based, path2 is index-based
-      const converted1 = convertIdPathToIndexPath(unsafeAnyToIdBased(normalized1), context);
+      const converted1 = convertIdPathToIndexPath(normalized1 as IdBasedPath, context);
       if (converted1 === normalized2) return true;
     }
     
     if (normalized2.includes('=') && normalized1.match(/\[\d+\]/)) {
       // path2 is ID-based, path1 is index-based  
-      const converted2 = convertIdPathToIndexPath(unsafeAnyToIdBased(normalized2), context);
+      const converted2 = convertIdPathToIndexPath(normalized2 as IdBasedPath, context);
       if (converted2 === normalized1) return true;
     }
     
     // Try converting index paths to ID paths
     if (normalized1.match(/\[\d+\]/) && !normalized2.includes('=')) {
-      const converted1 = convertIndexPathToIdPath(unsafeAnyToNumeric(normalized1), context);
+      const converted1 = convertIndexPathToIdPath(normalized1 as NumericPath, context);
       if (converted1 === normalized2) return true;
     }
     
     if (normalized2.match(/\[\d+\]/) && !normalized1.includes('=')) {
-      const converted2 = convertIndexPathToIdPath(unsafeAnyToNumeric(normalized2), context);
+      const converted2 = convertIndexPathToIdPath(normalized2 as NumericPath, context);
       if (converted2 === normalized1) return true;
     }
   }
@@ -454,55 +454,9 @@ export function arePathsEquivalent(
 // SCENARIO-SPECIFIC UTILITY FUNCTIONS
 // ============================================================================
 
-/**
- * For highlighting: Convert paths and try all variations for matching
- * Use case: Finding diffs that match a node's path regardless of format
- * This is an alias for normalizePathForComparison for backward compatibility
- */
-export function getPathVariationsForHighlighting(
-  path: AnyPath,
-  context?: PathConversionContext
-): AnyPath[] {
-  return normalizePathForComparison(path, context) as AnyPath[];
-}
-
-/**
- * For navigation within same viewer: Preserve all prefixes
- * Use case: Navigating within the same JSON tree view
- */
-export function convertPathForSameViewer(
-  path: AnyPath,
-  context: PathConversionContext,
-  targetFormat: 'id' | 'index'
-): AnyPath | null {
-  if (targetFormat === 'id') {
-    return convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { preservePrefix: true });
-  } else {
-    return convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { preservePrefix: true });
-  }
-}
-
-/**
- * For cross-viewer sync: Change viewer prefix while converting
- * Use case: Syncing from left viewer to right viewer
- */
-export function convertPathForCrossViewerSync(
-  path: AnyPath,
-  context: PathConversionContext,
-  _fromViewer: string,
-  toViewer: string,
-  targetFormat: 'id' | 'index'
-): AnyPath | null {
-  if (targetFormat === 'id') {
-    return convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { 
-      targetViewer: toViewer 
-    });
-  } else {
-    return convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { 
-      targetViewer: toViewer 
-    });
-  }
-}
+// Note: Removed unused path conversion functions that depended on removed utilities
+// (getPathVariationsForHighlighting, convertPathForSameViewer, convertPathForCrossViewerSync)
+// These functions were never imported and used unsafe conversion functions we removed.
 
 /**
  * For diff comparison: Remove all prefixes for clean comparison
@@ -522,12 +476,12 @@ export function normalizePathForComparison(
     const { corePath } = extractPrefix(path);
     
     if (corePath.includes('=')) {
-      const indexPath = convertIdPathToIndexPath(unsafeAnyToIdBased(path), context, { removeAllPrefixes: true });
+      const indexPath = convertIdPathToIndexPath(path as IdBasedPath, context, { removeAllPrefixes: true });
       if (indexPath) variations.add(indexPath);
     }
     
     if (corePath.match(/\[\d+\]/)) {
-      const idPath = convertIndexPathToIdPath(unsafeAnyToNumeric(path), context, { removeAllPrefixes: true });
+      const idPath = convertIndexPathToIdPath(path as NumericPath, context, { removeAllPrefixes: true });
       if (idPath) variations.add(idPath);
     }
   }

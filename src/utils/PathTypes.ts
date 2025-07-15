@@ -69,116 +69,12 @@ export function isValidArrayPattern(path: string): boolean {
          !/\[[^=\]]+=[^\]]+\]/.test(path);
 }
 
-// Convert between types (these functions validate the conversion)
-export function toNumericPath(path: string): NumericPath {
-  if (!isNumericPath(path)) {
-    throw new Error(`Path "${path}" is not a valid NumericPath (contains non-numeric segments)`);
-  }
-  return path as NumericPath;
-}
+// Note: Removed unused conversion functions (toNumericPath, toIdBasedPath, toArrayPatternPath, etc.)
+// These were only used in tests and added unnecessary complexity.
 
-export function toIdBasedPath(path: string): IdBasedPath {
-  return path as IdBasedPath;
-}
-
-export function toArrayPatternPath(path: string): ArrayPatternPath {
-  if (!isArrayPatternPath(path)) {
-    throw new Error(`Path "${path}" is not a valid ArrayPatternPath (must contain [] and not have specific indices)`);
-  }
-  return path as ArrayPatternPath;
-}
-
-// Safe conversions between the branded types
-export function numericToIdBased(path: NumericPath): IdBasedPath {
-  // NumericPath is a subset of IdBasedPath, so this is always safe
-  return path as unknown as IdBasedPath;
-}
-
-export function anyPathToIdBased(path: AnyPath): IdBasedPath {
-  // Convert any path to IdBasedPath (safe because NumericPath ⊆ IdBasedPath)
-  return path as unknown as IdBasedPath;
-}
-
-export function anyPathToNumeric(path: AnyPath): NumericPath {
-  // This is only safe if the path is actually numeric
-  if (typeof path === 'string' && isNumericPath(path)) {
-    return path as unknown as NumericPath;
-  }
-  throw new Error(`Cannot convert path "${path}" to NumericPath - contains non-numeric segments`);
-}
-
-// Unsafe conversions (use with caution)
-export function unsafeNumericPath(path: string): NumericPath {
-  return path as NumericPath;
-}
-
-export function unsafeIdBasedPath(path: string): IdBasedPath {
-  return path as IdBasedPath;
-}
-
-export function unsafeAnyToNumeric(path: AnyPath): NumericPath {
-  return path as unknown as NumericPath;
-}
-
-export function unsafeAnyToIdBased(path: AnyPath): IdBasedPath {
-  return path as unknown as IdBasedPath;
-}
-
-// ============================================================================
-// ARRAY PATTERN PATH CONVERSIONS
-// ============================================================================
-
-/**
- * Convert a NumericPath to ArrayPatternPath by replacing indices with []
- * Example: "root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]"
- *       -> "boomerForecastV3Requests[].parameters.accountParams[].contributions[]"
- */
-export function numericToArrayPattern(path: NumericPath): ArrayPatternPath {
-  let patternPath = path as string;
-  
-  // Remove "root." prefix if present
-  if (patternPath.startsWith('root.')) {
-    patternPath = patternPath.substring(5);
-  }
-  
-  // Replace all numeric indices [0], [1], [123] with []
-  patternPath = patternPath.replace(/\[\d+\]/g, '[]');
-  
-  return createArrayPatternPath(patternPath);
-}
-
-/**
- * Convert an IdBasedPath to ArrayPatternPath by replacing indices and IDs with []
- * Example: "root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]"
- *       -> "boomerForecastV3Requests[].parameters.accountParams[].contributions[]"
- */
-export function idBasedToArrayPattern(path: IdBasedPath): ArrayPatternPath {
-  let patternPath = path as string;
-  
-  // Remove "root." prefix if present
-  if (patternPath.startsWith('root.')) {
-    patternPath = patternPath.substring(5);
-  }
-  
-  // Replace all indices (both numeric [0] and ID-based [id=value]) with []
-  patternPath = patternPath.replace(/\[[^\]]+\]/g, '[]');
-  
-  return createArrayPatternPath(patternPath);
-}
-
-/**
- * Convert any path type to ArrayPatternPath
- */
-export function anyPathToArrayPattern(path: AnyPath): ArrayPatternPath {
-  // Convert to string and check the format
-  const pathStr = path as string;
-  
-  if (hasIdBasedSegments(createIdBasedPath(pathStr))) {
-    return idBasedToArrayPattern(createIdBasedPath(pathStr));
-  } else {
-    return numericToArrayPattern(createNumericPath(pathStr));
-  }
-}
+// Note: Removed unused array pattern conversion functions
+// (numericToArrayPattern, idBasedToArrayPattern, anyPathToArrayPattern)
+// These were only used in tests and provided no value in the actual application.
 
 // ============================================================================
 // RUNTIME VALIDATION FUNCTIONS
@@ -229,76 +125,9 @@ export function validateAndCreateArrayPatternPath(path: string, source: string =
   return createArrayPatternPath(path);
 }
 
-// ============================================================================
-// ARRAY PATTERN PATH UTILITIES
-// ============================================================================
-
-/**
- * Count the number of array levels in a pattern
- * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" -> 3
- */
-export function getArrayDepth(pattern: ArrayPatternPath): number {
-  const matches = (pattern as string).match(/\[\]/g);
-  return matches ? matches.length : 0;
-}
-
-/**
- * Get the target array property name (the final property before the last [])
- * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" -> "contributions"
- */
-export function getTargetArrayProperty(pattern: ArrayPatternPath): string | null {
-  const match = (pattern as string).match(/\.([^.\[\]]+)\[\]$/);
-  return match ? match[1] : null;
-}
-
-/**
- * Get the full path to the parent container of the target array
- * Example: "boomerForecastV3Requests[].parameters.accountParams[].contributions[]" 
- *       -> "boomerForecastV3Requests[].parameters.accountParams[]"
- */
-export function getParentArrayPattern(pattern: ArrayPatternPath): ArrayPatternPath | null {
-  const patternStr = pattern as string;
-  const lastArrayIndex = patternStr.lastIndexOf('[]');
-  if (lastArrayIndex === -1) return null;
-  
-  const beforeLastArray = patternStr.substring(0, lastArrayIndex);
-  const lastDotIndex = beforeLastArray.lastIndexOf('.');
-  if (lastDotIndex === -1) return null;
-  
-  const parentPattern = beforeLastArray.substring(0, lastDotIndex) + '[]';
-  return isValidArrayPattern(parentPattern) ? createArrayPatternPath(parentPattern) : null;
-}
-
-/**
- * Check if two array patterns represent the same structural hierarchy
- * This is useful for grouping DiffResults that share the same comparison logic
- */
-export function arePatternsSimilar(pattern1: ArrayPatternPath, pattern2: ArrayPatternPath): boolean {
-  return pattern1 === pattern2;
-}
-
-/**
- * Safe conversion from unknown string data to the appropriate path type
- * Attempts to detect the path format and create the right type
- */
-export function smartPathConversion(path: string, source: string = 'unknown'): AnyPath {
-  if (!path || typeof path !== 'string') {
-    throw new Error(`Invalid path from ${source}: expected non-empty string, got ${typeof path}`);
-  }
-  
-  // If it contains ID-based segments, treat as IdBasedPath
-  if (hasIdBasedSegments(createIdBasedPath(path))) {
-    return createIdBasedPath(path);
-  }
-  
-  // If it's purely numeric, treat as NumericPath
-  if (isNumericPath(path)) {
-    return createNumericPath(path);
-  }
-  
-  // Default to IdBasedPath (superset)
-  return createIdBasedPath(path);
-}
+// Note: Removed unused array pattern utility functions
+// (getArrayDepth, getTargetArrayProperty, getParentArrayPattern, arePatternsSimilar, smartPathConversion)
+// These were only used in tests and added unnecessary complexity.
 
 // ============================================================================
 // VIEWER-SPECIFIC PATH TYPES

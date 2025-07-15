@@ -43,8 +43,8 @@ function findJsonPathAtPosition(text: string, position: number, jsonData: any): 
   // Tokenize the JSON up to the cursor position
   const tokens = tokenizeJson(beforeCursor);
   
-  // Build the path from tokens
-  const pathComponents: string[] = ['root'];
+  // Build the path from tokens - start with empty array for clean paths
+  const pathComponents: string[] = [];
   let currentType: 'key' | 'value' | 'punctuation' | 'unknown' = 'unknown';
   let currentKey: string | undefined;
   let currentValue: any;
@@ -83,7 +83,7 @@ function findJsonPathAtPosition(text: string, position: number, jsonData: any): 
         
       case 'right_brace':
         contextStack.pop();
-        if (pathComponents.length > 1) {
+        if (pathComponents.length > 0) {
           pathComponents.pop();
         }
         break;
@@ -94,7 +94,7 @@ function findJsonPathAtPosition(text: string, position: number, jsonData: any): 
         
       case 'right_bracket':
         contextStack.pop();
-        if (pathComponents.length > 1 && pathComponents[pathComponents.length - 1].startsWith('[')) {
+        if (pathComponents.length > 0 && pathComponents[pathComponents.length - 1].startsWith('[')) {
           pathComponents.pop();
         }
         break;
@@ -109,7 +109,7 @@ function findJsonPathAtPosition(text: string, position: number, jsonData: any): 
           } else {
             pathComponents.push('[0]');
           }
-        } else if (context.type === 'object' && pathComponents.length > 1) {
+        } else if (context.type === 'object' && pathComponents.length > 0) {
           // Remove the last key in object context
           pathComponents.pop();
         }
@@ -139,7 +139,8 @@ function findJsonPathAtPosition(text: string, position: number, jsonData: any): 
     }
   }
   
-  const fullPath = pathComponents.join('.');
+  // Create clean path - if empty, return root
+  const fullPath = pathComponents.length === 0 ? 'root' : pathComponents.join('.');
   
   return {
     path: fullPath,
@@ -248,10 +249,17 @@ function tokenizeJson(text: string): JsonToken[] {
 
 /**
  * Get the value at a specific JSON path
+ * Supports both clean paths (e.g., "accounts[0].name") and root paths (e.g., "root" or "root.accounts[0].name")
  */
 export function getValueAtPath(jsonData: any, path: string): any {
   try {
-    const pathComponents = path.split('.').slice(1); // Remove 'root'
+    // Handle root path
+    if (path === 'root') {
+      return jsonData;
+    }
+    
+    // Split path and handle both clean and root-prefixed paths
+    const pathComponents = path.startsWith('root.') ? path.split('.').slice(1) : path.split('.');
     let current = jsonData;
     
     for (const component of pathComponents) {

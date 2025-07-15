@@ -3,7 +3,7 @@ import {
   type PathConversionContext 
 } from './PathConverter';
 import { jsonCompare } from './jsonCompare';
-import { generateIdKeys } from './idKeyUtils';
+import { generateCombinedIdKeys } from './idKeyUtils';
 import type { DiffResult, JsonCompareResult, IdKeyInfo } from './jsonCompare';
 import { NewHighlightingProcessor as HighlightingProcessor } from './NewHighlightingProcessor';
 import type { IdBasedPath, AnyPath } from './PathTypes';
@@ -68,7 +68,7 @@ describe('NewHighlightingProcessor with Real Data Generation', () => {
   
   beforeAll(() => {
     // Generate real ID keys and diff results
-    actualIdKeys = generateIdKeys(sampleDataLeft, sampleDataRight);
+    actualIdKeys = generateCombinedIdKeys(sampleDataLeft, sampleDataRight);
     actualDiffResults = generateDiffResults(sampleDataLeft, sampleDataRight, actualIdKeys);
     
     processor = new HighlightingProcessor(actualDiffResults);
