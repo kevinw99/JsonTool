@@ -1,3 +1,8 @@
+
+can you check unversioned code files , whether they are actaully being used?
+
+ npx playwright test
+
 Text mode: view only, no editing
 
   1 show line #
@@ -7,6 +12,7 @@ Text mode: view only, no editing
 5 general json viewer feature
 find/select/copy
 
+click on a note and get jsonpath to the node.
 
 
 
@@ -107,3 +113,68 @@ Can you add UI test cases to test synctocounterpart?, this can be add-on from th
  you expand a node, you can click on the synctocounterpart button to see if the right side is expand and scrolled
  to
   the viewport. You can also click on the synctocounterpart button on the right side to see if the left side is.
+
+I see you implmented the text highlighting feature, but shouldn't it be directly done by codeMirror? can you check
+if codeMirror has this feature like json mode, and if so, use it instead of implementing it yourself?
+
+Panels to be consistent:
+IDKey panel
+  a. in line editing
+
+  Let's review consolidated entry in IDKey panel: 1. what make entries consolidated and group under "Show all
+  occruences"?  2. when clicking on a consolidated entry,
+  what does it do currently?
+
+  b. click on the consolidated entry
+
+
+Diff Panel
+  a. entry clickable just like list inIDKey panel
+
+be able to collapse diff just like IDKey panel entries,
+
+
+Test with some other test files with strange array structures, idkey is not in the first level, but in a second level
+  array, such as:
+  {
+    "a": [
+      {
+        "b": [
+          {
+            "c": "value"
+          }
+        ]
+      }
+    ]
+  }
+  The idkey should be the path to the second level array, not the first level array.
+
+
+let's add test cases for the id sorting bug we fixed. please add to existing test suite on ikdey panel, thet new
+test cases should assert the sorting of array of objects with idkey entries
+
+
+in test"
+  test('should verify arrays with ID keys are properly sorted', async ({ page }) => {
+    // Load the app and wait for sample data
+"
+ Does it test order of the children of contributions node, and zzsomething node?
+
+
+
+ I think we don't need ,convertIdPathToIndexPath, but we need IdBasedPathToViewerPath, which then have the output
+ of "left_root.boomerForecastV3Requests[0].parameters.accountParams[1]", if the context is left,
+
+1.lets also review utils functions in src/utils, are there any that are no longer menaningful or can be simplified
+since we remove 'root.'
+2.lets' review tests under src/utils, are there tests redundant or no longer meaningful that we can remove?
+
+now lets examine UI codes. 1. it should not have one-line simple logic, if it
+needs more than that, it should
+be util function or conversion function that is implemented and tested in utils.
+2. in term of logging when handling any UI events, it should always log on every step the path is
+changed/convereted or looked up, e.g., when the event is triggered, it should log the initial path, node, etc. then
+ each step of the conversion, it should log the intermediate path, node, etc. and finally the final path and node.
+ do keep in concise and not repeat, especailly for repeated excutions of functions, it should only log once.
+
+

@@ -155,7 +155,18 @@ export function convertIdPathToIndexPath(
       // This is an ID-based array reference - find the actual index
       const index = currentData.findIndex(item => {
         if (typeof item === 'object' && item !== null) {
-          return item[idKeyValue.key] === idKeyValue.value;
+          // Handle different value types - string, number, etc.
+          const itemValue = item[idKeyValue.key];
+          let targetValue = idKeyValue.value;
+          
+          // Try to match the types for comparison
+          if (typeof itemValue === 'number') {
+            const numericValue = Number(targetValue);
+            return !isNaN(numericValue) && itemValue === numericValue;
+          }
+          
+          // Default string comparison
+          return itemValue === targetValue;
         }
         return false;
       });
