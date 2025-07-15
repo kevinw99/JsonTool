@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { resolveArrayPatternToMatchingElements, idBasedPathToViewerPathWithResolution } from './pathResolution';
+import { resolveArrayPatternToMatchingElements } from './pathResolution';
 import { detectIdKeysInSingleJson } from './jsonCompare';
 import type { IdKeyInfo } from './jsonCompare';
 import fs from 'fs';
 import path from 'path';
 
-describe('PathResolution - Remaining Functions', () => {
+describe('PathResolution - Simplified Functions', () => {
   
   /**
    * Load test data from external JSON files
@@ -28,7 +28,7 @@ describe('PathResolution - Remaining Functions', () => {
   const combinedIdKeys: IdKeyInfo[] = [...leftIdKeys, ...rightIdKeys];
 
   describe('resolveArrayPatternToMatchingElements', () => {
-    it('should resolve array pattern to matching elements', () => {
+    it('should resolve array pattern using PathConverter utilities', () => {
       const arrayPattern = 'boomerForecastV3Requests[].parameters.accountParams[]';
       const jsonData = { left: leftData, right: rightData };
       
@@ -41,6 +41,14 @@ describe('PathResolution - Remaining Functions', () => {
       expect(result).toBeDefined();
       expect(typeof result.leftPath === 'string' || result.leftPath === null).toBe(true);
       expect(typeof result.rightPath === 'string' || result.rightPath === null).toBe(true);
+      
+      // Should return valid paths for this array pattern
+      if (result.leftPath) {
+        expect(result.leftPath).toMatch(/^boomerForecastV3Requests\[\d+\]\.parameters\.accountParams$/);
+      }
+      if (result.rightPath) {
+        expect(result.rightPath).toMatch(/^boomerForecastV3Requests\[\d+\]\.parameters\.accountParams$/);
+      }
     });
 
     it('should handle invalid array patterns gracefully', () => {
@@ -56,48 +64,26 @@ describe('PathResolution - Remaining Functions', () => {
       expect(result.leftPath).toBe(null);
       expect(result.rightPath).toBe(null);
     });
-  });
 
-  describe('idBasedPathToViewerPathWithResolution', () => {
-    it('should convert ID-based path to ViewerPath', () => {
-      const idBasedPath = 'boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]';
+    it('should use convertArrayPatternToNumericPath internally', () => {
+      const arrayPattern = 'boomerForecastV3Requests[].parameters.accountParams[].contributions[]';
       const jsonData = { left: leftData, right: rightData };
       
-      const leftResult = idBasedPathToViewerPathWithResolution(
-        idBasedPath,
-        'left',
+      const result = resolveArrayPatternToMatchingElements(
+        arrayPattern,
         jsonData,
         combinedIdKeys
       );
       
-      const rightResult = idBasedPathToViewerPathWithResolution(
-        idBasedPath,
-        'right',
-        jsonData,
-        combinedIdKeys
-      );
-      
-      // Should return ViewerPath format or null
-      if (leftResult) {
-        expect(leftResult).toMatch(/^left_/);
+      // The function should leverage existing PathConverter utilities
+      expect(result).toBeDefined();
+      // Should return clean numeric paths without 'root.' prefix
+      if (result.leftPath) {
+        expect(result.leftPath).not.toMatch(/^root\./);
       }
-      if (rightResult) {
-        expect(rightResult).toMatch(/^right_/);
+      if (result.rightPath) {
+        expect(result.rightPath).not.toMatch(/^root\./);
       }
-    });
-
-    it('should handle numeric paths without ID segments', () => {
-      const numericPath = 'boomerForecastV3Requests[0].parameters';
-      const jsonData = { left: leftData, right: rightData };
-      
-      const result = idBasedPathToViewerPathWithResolution(
-        numericPath,
-        'left',
-        jsonData,
-        combinedIdKeys
-      );
-      
-      expect(result).toBe('left_boomerForecastV3Requests[0].parameters');
     });
   });
 });
