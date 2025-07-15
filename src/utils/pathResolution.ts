@@ -1,62 +1,7 @@
-import { convertIdPathToIndexPath, type PathConversionContext } from './PathConverter';
+import { convertIdPathToIndexPath, convertIdPathToViewerPath, type PathConversionContext } from './PathConverter';
 import { createIdBasedPath } from './PathTypes';
 import type { IdKeyInfo } from './jsonCompare';
 
-/**
- * Resolves an ID-based path to numeric paths for both left and right JSON data.
- * Uses the PathConverter utility for consistent path conversion logic.
- * 
- * @param idBasedPath - The ID-based path to resolve (e.g., "accountParams[id=123].contributions[id=456]")
- * @param jsonData - Object containing left and right JSON data
- * @param idKeysUsed - Array of ID key information for path conversion
- * @returns Object with leftPath and rightPath as numeric paths, or null if conversion fails
- */
-export function resolveIdBasedPathToNumeric(
-  idBasedPath: string,
-  jsonData: { left: any; right: any },
-  idKeysUsed: IdKeyInfo[]
-): { leftPath: string | null; rightPath: string | null } {
-  
-  // Create path conversion contexts for each side
-  const leftContext: PathConversionContext = {
-    jsonData: jsonData.left,
-    idKeysUsed: idKeysUsed
-  };
-  
-  const rightContext: PathConversionContext = {
-    jsonData: jsonData.right,
-    idKeysUsed: idKeysUsed
-  };
-  
-  // Add root prefix for PathConverter (jsonCompare paths no longer have it)
-  const formattedPath = `root.${idBasedPath}`;
-  
-  try {
-    // Convert ID-based path to numeric path for left side
-    const leftPath = convertIdPathToIndexPath(
-      createIdBasedPath(formattedPath),
-      leftContext,
-      { 
-        removeAllPrefixes: true  // Return clean numeric path without prefixes
-      }
-    );
-    
-    // Convert ID-based path to numeric path for right side
-    const rightPath = convertIdPathToIndexPath(
-      createIdBasedPath(formattedPath),
-      rightContext,
-      {
-        removeAllPrefixes: true  // Return clean numeric path without prefixes
-      }
-    );
-    
-    return { leftPath, rightPath };
-    
-  } catch (error) {
-    console.error('[pathResolution] ❌ Error during path conversion:', error);
-    return { leftPath: null, rightPath: null };
-  }
-}
 
 /**
  * Enhanced correlation function that finds matching ID values between left and right sides.
@@ -80,8 +25,8 @@ export function resolveArrayPatternToMatchingElements(
     
     if (!arrayIdKey) {
       console.log('[pathResolution] ⚠️ No ID key found for array pattern:', arrayPatternPath);
-      // Fall back to basic resolution
-      return resolveIdBasedPathToNumeric(arrayPatternPath, jsonData, idKeysUsed);
+      // Fall back to basic resolution - return simple fallback paths
+      return { leftPath: null, rightPath: null };
     }
     
     console.log('[pathResolution] 🔍 Found ID key for correlation:', arrayIdKey);
@@ -196,37 +141,6 @@ function getArrayFromPattern(arrayPatternPath: string, jsonData: any): any[] | n
   }
 }
 
-/**
- * Helper function to resolve a single ID-based path for one side.
- * Useful for cases where you only need one side's conversion.
- */
-export function resolveIdBasedPathForSingleSide(
-  idBasedPath: string,
-  jsonData: any,
-  idKeysUsed: IdKeyInfo[]
-): string | null {
-  const context: PathConversionContext = {
-    jsonData: jsonData,
-    idKeysUsed: idKeysUsed
-  };
-  
-  const formattedPath = `root.${idBasedPath}`;
-  
-  try {
-    const numericPath = convertIdPathToIndexPath(
-      createIdBasedPath(formattedPath),
-      context,
-      {
-        removeAllPrefixes: true
-      }
-    );
-    
-    return numericPath;
-  } catch (error) {
-    console.error('[pathResolution] ❌ Single side conversion error:', error);
-    return null;
-  }
-}
 
 
 /**
@@ -252,20 +166,24 @@ export function idBasedPathToViewerPathWithResolution(
     
     // If the path is purely numeric, convert directly
     if (!hasIdSegments) {
-      // Add root prefix
-      const pathWithRoot = `root.${idBasedPath}`;
-      return `${viewerId}_${pathWithRoot}`;
+      return `${viewerId}_${idBasedPath}`;
     }
     
-    // If the path has ID-based segments, resolve to numeric first
+    // If the path has ID-based segments, resolve using convertIdPathToViewerPath
     if (hasIdSegments) {
-      const result = resolveIdBasedPathToNumeric(idBasedPath, jsonData, idKeysUsed);
+      const context: PathConversionContext = {
+        jsonData: jsonData[viewerId],
+        idKeysUsed: idKeysUsed
+      };
       
-      const targetPath = viewerId === 'left' ? result.leftPath : result.rightPath;
-      if (targetPath) {
-        // Add root prefix
-        const pathWithRoot = `root.${targetPath}`;
-        return `${viewerId}_${pathWithRoot}`;
+      const viewerPath = convertIdPathToViewerPath(
+        createIdBasedPath(idBasedPath),
+        context,
+        viewerId
+      );
+      
+      if (viewerPath) {
+        return viewerPath;
       }
     }
     

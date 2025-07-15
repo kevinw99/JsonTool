@@ -2,11 +2,10 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import type { ReactNode } from 'react';
 import type { DiffResult, IdKeyInfo } from '../utils/jsonCompare';
 import { NewHighlightingProcessor } from '../utils/NewHighlightingProcessor';
-import { convertIdPathToIndexPath, removeViewerPrefix, getParentPath, matchesWildcardPattern, type PathConversionContext } from '../utils/PathConverter';
+import { convertIdPathToIndexPath, convertIdPathToViewerPath, removeViewerPrefix, getParentPath, matchesWildcardPattern, type PathConversionContext } from '../utils/PathConverter';
 import type { IdBasedPath, ViewerPath, ViewerId, NumericPath } from '../utils/PathTypes';
 import { hasIdBasedSegments, createIdBasedPath, createViewerPath, validateAndCreateNumericPath,
   getAllElementsForViewer, extractGenericPath, viewerPathToGenericWithoutRoot } from '../utils/PathTypes';
-import { resolveIdBasedPathToNumeric } from '../utils/pathResolution';
 import { ScrollService } from '../services/ScrollService';
 import { ScrollError } from '../services/ScrollError'; 
 
@@ -89,7 +88,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     });
     const [showDiffsOnly, setShowDiffsOnlyState] = useState<boolean>(initialShowDiffsOnly);
     const [showColoredDiff, _setShowColoredDiff] = useState<boolean>(true); 
-    // Initialize with a Set including the viewer-specific root paths
+    // Initialize with a Set including the viewer-specific root paths (use root identifier without prefix)
     const [expandedPaths, setExpandedPathsState] = useState<Set<ViewerPath>>(
       new Set([
         createViewerPath('left', validateAndCreateNumericPath('root', 'JsonViewerSyncContext.init')),
@@ -184,7 +183,7 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       // Convert viewer-specific path to generic path
       // "root_left_root.boomerForecastV3Requests" -> "root.boomerForecastV3Requests"
-      const genericPath = removeViewerPrefix(path) as string;
+      const genericPath = removeViewerPrefix(path as any) as string;
       console.log(`[JsonViewerSyncContext toggleExpand] Generic path: "${genericPath}"`);
       
       // Check if this is an ID-based array path that needs sync
@@ -318,10 +317,10 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
             // Add all its ancestors using centralized parent path calculation
             let currentPath = diff.idBasedPath;
             while (currentPath && currentPath !== 'root') {
-              const parentPath = getParentPath(currentPath);
+              const parentPath = getParentPath(currentPath as any);
               if (!parentPath) break; // No more parents
               
-              currentPath = parentPath as string;
+              currentPath = parentPath as any;
               if (currentPath && currentPath !== 'root') {
                   allPathsToExpand.add(createViewerPath('left', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
                   allPathsToExpand.add(createViewerPath('right', validateAndCreateNumericPath(currentPath, 'JsonViewerSyncContext.setExpandAll.parent')));
@@ -541,34 +540,46 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
     }, [setHighlightPathState, setPersistentHighlightPaths, setExpandedPathsState]);
 
     const goToDiff = useCallback((pathToExpand: string) => {
+      console.log(`[goToDiff] 🎯 Input path: "${pathToExpand}"`);
       // Check if this is an ID-based path using PathTypes utility
       const isIdPath = hasIdBasedSegments(createIdBasedPath(pathToExpand));
       
       if (isIdPath && jsonData && idKeysUsed) {
-        // Convert ID-based path to numeric paths for both viewers
-        const result = resolveIdBasedPathToNumeric(
-          pathToExpand,
-          jsonData,
-          idKeysUsed
+        // Create conversion contexts for both viewers
+        const leftContext: PathConversionContext = { 
+          jsonData: jsonData.left, 
+          idKeysUsed 
+        };
+        const rightContext: PathConversionContext = { 
+          jsonData: jsonData.right, 
+          idKeysUsed 
+        };
+        
+        // Convert ID-based path to ViewerPaths directly
+        const leftViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(pathToExpand), 
+          leftContext, 
+          'left'
+        );
+        const rightViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(pathToExpand), 
+          rightContext, 
+          'right'
         );
         
-        if (result.leftPath && result.rightPath) {
+        if (leftViewerPath && rightViewerPath) {
           // Path exists in both viewers - highlight both
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftPath'));
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightPath'));
           goToDiffWithPaths(leftViewerPath, rightViewerPath, true, true);
           return;
-        } else if (result.leftPath) {
+        } else if (leftViewerPath) {
           // Only exists in left viewer - highlight only left
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftOnly'));
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.leftPath, 'goToDiff.leftOnly')); // Use same path for right viewer but don't highlight it
-          goToDiffWithPaths(leftViewerPath, rightViewerPath, true, false);
+          // Use same path for right viewer but don't highlight it
+          goToDiffWithPaths(leftViewerPath, leftViewerPath, true, false);
           return;
-        } else if (result.rightPath) {
+        } else if (rightViewerPath) {
           // Only exists in right viewer - highlight only right
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightOnly')); // Use same path for left viewer but don't highlight it
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'goToDiff.rightOnly'));
-          goToDiffWithPaths(leftViewerPath, rightViewerPath, false, true);
+          // Use same path for left viewer but don't highlight it
+          goToDiffWithPaths(rightViewerPath, rightViewerPath, false, true);
           return;
         }
       }
@@ -609,18 +620,32 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
       
       if (isIdPath && jsonData && idKeysUsed) {
         console.log('[syncToCounterpart] 🔍 ID-based path detected - using path resolution');
-        // Convert ID-based path to numeric paths for both viewers
-        const result = resolveIdBasedPathToNumeric(
-          normalizedPath,
-          jsonData,
-          idKeysUsed
+        
+        // Create conversion contexts for both viewers
+        const leftContext: PathConversionContext = { 
+          jsonData: jsonData.left, 
+          idKeysUsed 
+        };
+        const rightContext: PathConversionContext = { 
+          jsonData: jsonData.right, 
+          idKeysUsed 
+        };
+        
+        // Convert ID-based path to ViewerPaths directly
+        const leftViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(normalizedPath), 
+          leftContext, 
+          'left'
+        );
+        const rightViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(normalizedPath), 
+          rightContext, 
+          'right'
         );
         
-        if (result.leftPath && result.rightPath) {
-          console.log('[syncToCounterpart] ✅ Resolved paths - LEFT:', result.leftPath, 'RIGHT:', result.rightPath);
+        if (leftViewerPath && rightViewerPath) {
+          console.log('[syncToCounterpart] ✅ Resolved ViewerPaths - LEFT:', leftViewerPath, 'RIGHT:', rightViewerPath);
           // Use dual path highlighting - both source and counterpart should be highlighted
-          const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(result.leftPath, 'syncToCounterpart.left'));
-          const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(result.rightPath, 'syncToCounterpart.right'));
           goToDiffWithPaths(leftViewerPath, rightViewerPath);
         } else {
           console.log('[syncToCounterpart] ⚠️ Could not resolve ID paths, using simple sync');

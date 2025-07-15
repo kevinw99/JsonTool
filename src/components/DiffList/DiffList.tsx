@@ -2,9 +2,9 @@ import React from 'react';
 import { useJsonViewerSync } from '../JsonViewerSyncContext';
 // Ensure DiffResult is imported from the correct location
 import type { DiffResult } from '../../utils/jsonCompare';
-import { resolveIdBasedPathToNumeric } from '../../utils/pathResolution';
 import type { IdBasedPath, ViewerPath } from '../../utils/PathTypes';
 import { createViewerPath, validateAndCreateIdBasedPath, validateAndCreateNumericPath, hasIdBasedSegments, createIdBasedPath } from '../../utils/PathTypes';
+import { convertIdPathToViewerPath, type PathConversionContext } from '../../utils/PathConverter';
 import './DiffList.css';
 
 interface DiffListProps {
@@ -41,13 +41,10 @@ export const DiffList: React.FC<DiffListProps> = ({
       return; // Don't add duplicate
     }
     
-    // Add the "root." prefix for persistent highlighting (paths from jsonCompare no longer have it)
-    const pathWithRoot = `root.${idBasedDiffPath}`;
-    
     // Set persistent highlight for the ignored node (border only)
     const highlights = new Set<ViewerPath>([
-      createViewerPath('left', validateAndCreateNumericPath(pathWithRoot, 'DiffList.handleIgnore')),
-      createViewerPath('right', validateAndCreateNumericPath(pathWithRoot, 'DiffList.handleIgnore'))
+      createViewerPath('left', validateAndCreateNumericPath(idBasedDiffPath, 'DiffList.handleIgnore')),
+      createViewerPath('right', validateAndCreateNumericPath(idBasedDiffPath, 'DiffList.handleIgnore'))
     ]);
     setPersistentHighlightPaths(highlights);
     
@@ -67,47 +64,50 @@ export const DiffList: React.FC<DiffListProps> = ({
       console.log('[DiffList] 🔍 Found ID-based arrays - using PathConverter-based correlation');
       
       try {
-        // NEW: Use PathConverter-based path resolution
-        const { leftPath, rightPath } = resolveIdBasedPathToNumeric(
-          idBasedPath,
-          jsonData,
-          idKeysUsed
+        // Create conversion contexts for both viewers
+        const leftContext: PathConversionContext = { 
+          jsonData: jsonData.left, 
+          idKeysUsed 
+        };
+        const rightContext: PathConversionContext = { 
+          jsonData: jsonData.right, 
+          idKeysUsed 
+        };
+        
+        // Convert ID-based path to ViewerPaths directly
+        const leftViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(idBasedPath), 
+          leftContext, 
+          'left'
+        );
+        const rightViewerPath = convertIdPathToViewerPath(
+          createIdBasedPath(idBasedPath), 
+          rightContext, 
+          'right'
         );
         
-        console.log('[DiffList] 🎯 PathConverter results - LEFT:', leftPath, 'RIGHT:', rightPath);
+        console.log('[DiffList] 🎯 PathConverter results - LEFT:', leftViewerPath, 'RIGHT:', rightViewerPath);
         
-        if (leftPath || rightPath) {
-          console.log('[DiffList] ✅ Found path(s) - diff type:', diff.type);
-          console.log('[DiffList] 🎯 LEFT path:', leftPath || 'null');
-          console.log('[DiffList] 🎯 RIGHT path:', rightPath || 'null');
+        if (leftViewerPath || rightViewerPath) {
+          console.log('[DiffList] ✅ Found ViewerPath(s) - diff type:', diff.type);
+          console.log('[DiffList] 🎯 LEFT ViewerPath:', leftViewerPath || 'null');
+          console.log('[DiffList] 🎯 RIGHT ViewerPath:', rightViewerPath || 'null');
           
-          if (leftPath && rightPath) {
+          if (leftViewerPath && rightViewerPath) {
             // Both paths exist - changed item
             console.log('[DiffList] 🔄 Changed item - navigate to both viewers');
-            const leftPathWithRoot = `root.${leftPath}`;
-            const rightPathWithRoot = `root.${rightPath}`;
-            
-            const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.left'));
-            const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.right'));
-            
             goToDiffWithPaths(leftViewerPath, rightViewerPath, true, true);
             
-          } else if (leftPath && !rightPath) {
+          } else if (leftViewerPath && !rightViewerPath) {
             // Only left path exists - removed item
             console.log('[DiffList] ➖ Removed item - use goToDiffWithPaths with left viewer path');
-            const leftPathWithRoot = `root.${leftPath}`;
-            const leftViewerPath = createViewerPath('left', validateAndCreateNumericPath(leftPathWithRoot, 'DiffList.handleGoToDiff.removed'));
-            
             // For removed items, pass the left path for both parameters
             // goToDiffWithPaths will detect that only the left element exists and navigate accordingly
             goToDiffWithPaths(leftViewerPath, leftViewerPath, true, false);
             
-          } else if (!leftPath && rightPath) {
+          } else if (!leftViewerPath && rightViewerPath) {
             // Only right path exists - added item
             console.log('[DiffList] ➕ Added item - use goToDiffWithPaths with right viewer path');
-            const rightPathWithRoot = `root.${rightPath}`;
-            const rightViewerPath = createViewerPath('right', validateAndCreateNumericPath(rightPathWithRoot, 'DiffList.handleGoToDiff.added'));
-            
             // For added items, pass the right path for both parameters  
             // goToDiffWithPaths will detect that only the right element exists and navigate accordingly
             goToDiffWithPaths(rightViewerPath, rightViewerPath, false, true);
@@ -115,20 +115,17 @@ export const DiffList: React.FC<DiffListProps> = ({
           
         } else {
           console.log('[DiffList] ❌ PathConverter could not resolve paths - falling back to ID-based path');
-          const pathWithRoot = `root.${idBasedPath}`;
-          goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback1'));
+          goToDiff(validateAndCreateIdBasedPath(idBasedPath, 'DiffList.handleGoToDiff.fallback1'));
         }
       } catch (error) {
         console.error('[DiffList] 🚨 Error during PathConverter-based correlation:', error);
         console.log('[DiffList] 🔄 Falling back to ID-based path due to error');
-        const pathWithRoot = `root.${idBasedPath}`;
-        goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.fallback2'));
+        goToDiff(validateAndCreateIdBasedPath(idBasedPath, 'DiffList.handleGoToDiff.fallback2'));
       }
     } else {
       console.log('[DiffList] 📍 Using simple ID-based path approach');
-      // Use ID-based path (viewer-agnostic)
-      const pathWithRoot = `root.${idBasedPath}`;
-      goToDiff(validateAndCreateIdBasedPath(pathWithRoot, 'DiffList.handleGoToDiff.simple'));
+      // Use ID-based path (viewer-agnostic) - add root prefix only when needed for navigation
+      goToDiff(validateAndCreateIdBasedPath(idBasedPath, 'DiffList.handleGoToDiff.simple'));
     }
   };
 
