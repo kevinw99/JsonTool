@@ -329,9 +329,21 @@ export function extractViewerId(viewerPath: string): ViewerId | null {
 
 /**
  * Extract the generic path part (without viewer prefix)
+ * Returns clean path without 'root.' prefix
  */
 export function extractGenericPath(viewerPath: string): string {
-  return viewerPath.replace(/^(left|right)_/, '');
+  // Handle standard ViewerPath format: ${viewerId}_root.${path}
+  if (viewerPath.match(/^(left|right)_root\./)) {
+    return viewerPath.replace(/^(left|right)_root\./, '');
+  }
+  
+  // Handle legacy or non-standard formats: ${viewerId}_${path}
+  if (viewerPath.match(/^(left|right)_/)) {
+    return viewerPath.replace(/^(left|right)_/, '');
+  }
+  
+  // No viewer prefix found, return as-is
+  return viewerPath;
 }
 
 /**
@@ -349,7 +361,9 @@ export function createViewerPath(viewerId: ViewerId, genericPath: string): Viewe
   if (!isNumericPath(genericPath)) {
     throw new Error(`createViewerPath: Cannot create viewer path for non-numeric path "${genericPath}". ID-based paths should remain viewer-agnostic.`);
   }
-  const viewerPath = `${viewerId}_${genericPath}`;
+  // Remove any legacy 'root.' prefix from the generic path before creating ViewerPath
+  const cleanPath = genericPath.startsWith('root.') ? genericPath.substring(5) : genericPath;
+  const viewerPath = `${viewerId}_root.${cleanPath}`;
   return viewerPath as ViewerPath;
 }
 
@@ -368,8 +382,8 @@ export function viewerPathToGeneric(viewerPath: ViewerPath): NumericPath {
  * Example: "left_root.boomerForecastV3Requests[0]..." → "boomerForecastV3Requests[0]..."
  */
 export function viewerPathToGenericWithoutRoot(viewerPath: ViewerPath): string {
-  const withRoot = extractGenericPath(viewerPath); // "root.boomerForecastV3Requests[0]..."
-  return withRoot.startsWith('root.') ? withRoot.substring(5) : withRoot;
+  // Since extractGenericPath now returns clean paths, we can return it directly
+  return extractGenericPath(viewerPath);
 }
 
 /**
@@ -424,8 +438,8 @@ export function queryElementByViewerPath(viewerPath: ViewerPath): Element | null
  * Get numeric path from ViewerPath for cross-viewer operations
  */
 export function getNumericPathFromViewerPath(viewerPath: ViewerPath): NumericPath {
-  const withoutPrefix = viewerPath.replace(/^(left|right)_/, '');
-  return validateAndCreateNumericPath(withoutPrefix);
+  const cleanPath = extractGenericPath(viewerPath);
+  return validateAndCreateNumericPath(cleanPath);
 }
 
 /**
