@@ -399,26 +399,26 @@ describe('PathConverter', () => {
     test('converts left ViewerPath to IdBasedPath', () => {
       const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0]';
       const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
-      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
+      expect(idBasedPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0]');
     });
 
     test('converts right ViewerPath to IdBasedPath', () => {
       const viewerPath = 'right_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[1]';
       const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
-      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+      expect(idBasedPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
     });
 
     test('handles ViewerPath without arrays', () => {
       const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters';
       const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
-      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters');
+      expect(idBasedPath).toBe('boomerForecastV3Requests[0].parameters');
     });
 
     test('handles arrays without ID keys', () => {
       const viewerPath = 'left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[0].contributions[0]';
       const idBasedPath = viewerPathToIdBasedPath(viewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
       // The inner contributions array doesn't have ID keys, so it stays as index
-      expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]');
+      expect(idBasedPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-pre_0].contributions[0]');
     });
 
     test('bidirectional conversion with ViewerPath', () => {
@@ -426,12 +426,12 @@ describe('PathConverter', () => {
       
         // ViewerPath -> IdBasedPath
         const idBasedPath = viewerPathToIdBasedPath(originalViewerPath, { left: sampleData, right: sampleDataRight }, idKeysUsed);
-        expect(idBasedPath).toBe('root.boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
+        expect(idBasedPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2].contributions[id=45626988::2_prtcpnt-catchup-50-separate_0]');
 
       // IdBasedPath -> ViewerPath
       const convertedViewerPath = convertIdPathToViewerPath(createIdBasedPath(idBasedPath!), contextLeft, 'left');
-      // Note: The conversion process may add an extra root prefix
-      expect(convertedViewerPath).toBe('left_root.root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
+      // Round-trip conversion should work correctly without extra root prefix
+      expect(convertedViewerPath).toBe('left_root.boomerForecastV3Requests[0].parameters.accountParams[1].contributions[2]');
     });
   });
 

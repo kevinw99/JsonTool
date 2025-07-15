@@ -218,11 +218,8 @@ export function convertIdPathToViewerPath(
     return null;
   }
   
-  // Ensure the path has root prefix for ViewerPath creation
+  // Use path directly without adding root prefix
   let pathWithRoot = numericPath;
-  if (!pathWithRoot.startsWith('root.') && pathWithRoot !== 'root') {
-    pathWithRoot = pathWithRoot ? `root.${pathWithRoot}` : 'root';
-  }
   
   // Create ViewerPath with the specified viewer
   try {
@@ -275,11 +272,8 @@ export function viewerPathToIdBasedPath(
     const viewerId = viewerPath.startsWith('left_') ? 'left' : 'right';
     const genericPath = viewerPath.replace(/^(left|right)_/, '');
     
-    // Ensure the path has proper format for NumericPath creation
+    // Use path directly without adding root prefix
     let pathWithRoot = genericPath;
-    if (!pathWithRoot.startsWith('root.') && pathWithRoot !== 'root') {
-      pathWithRoot = pathWithRoot ? `root.${pathWithRoot}` : 'root';
-    }
     
     // Create context for the specific viewer
     const context: PathConversionContext = {
@@ -289,7 +283,7 @@ export function viewerPathToIdBasedPath(
     
     // Use convertIndexPathToIdPath to do the actual conversion
     const numericPath = validateAndCreateNumericPath(pathWithRoot, 'viewerPathToIdBasedPath');
-    const idBasedPath = convertIndexPathToIdPath(numericPath, context, { preservePrefix: true });
+    const idBasedPath = convertIndexPathToIdPath(numericPath, context, { removeAllPrefixes: true });
     
     return idBasedPath;
     
@@ -633,8 +627,8 @@ export function convertArrayPatternToNumericPath(
     resolvedPath = resolvedPath.replace(/\[\d+\]$/, '');
   }
   
-  // Add root prefix if missing
-  const fullPath = resolvedPath.startsWith('root.') ? resolvedPath : `root.${resolvedPath}`;
+  // Use path directly without adding root prefix
+  const fullPath = resolvedPath;
   
 //   console.log(`[PathConverter] 🔍 ArrayPattern "${arrayPattern}" -> navigable path: "${fullPath}"`);
 //   console.log(`[PathConverter] 🔍 resolvedPath before root prefix: "${resolvedPath}"`);
@@ -753,13 +747,13 @@ export function getExpansionPaths(path: NumericPath, viewerPrefix?: ViewerId): V
   
   const segments = pathWithoutRoot.split(/(?=\[)|\./).filter(Boolean);
   const expansionPaths: ViewerPath[] = [];
-  let currentPath = 'root';
+  let currentPath = '';
   
   for (const segment of segments) {
     if (segment.startsWith('[')) {
       currentPath += segment;
     } else {
-      currentPath = currentPath === 'root' ? `root.${segment}` : `${currentPath}.${segment}`;
+      currentPath = currentPath === '' ? segment : `${currentPath}.${segment}`;
     }
     
     const finalPath = viewerPrefix ? `${viewerPrefix}_${currentPath}` : currentPath;
