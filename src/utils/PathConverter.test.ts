@@ -146,17 +146,15 @@ describe('PathConverter', () => {
     });
 
     test('preserves viewer prefix during conversion', () => {
-      const idPath: IdBasedPath = createIdBasedPath('left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      // This function may not support viewer prefixes in the current implementation
-      expect(indexPath).toBe('left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'left');
+      expect(viewerPath).toBe('left_root.boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('preserves complex prefix during conversion', () => {
-      const idPath: IdBasedPath = createIdBasedPath('right_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextLeft);
-      // This function may not support viewer prefixes in the current implementation
-      expect(indexPath).toBe('right_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'right');
+      expect(viewerPath).toBe('right_root.boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('no prefix in, no prefix out', () => {
@@ -166,17 +164,15 @@ describe('PathConverter', () => {
     });
 
     test('changes viewer prefix when targetViewer specified', () => {
-      const idPath: IdBasedPath = createIdBasedPath('left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
-      const indexPath = convertIdPathToIndexPath(idPath, contextLeft, { targetViewer: 'right' });
-      // Current implementation appears to handle complex prefix transformations
-      expect(indexPath).toBe('root_right_left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const viewerPath = convertIdPathToViewerPath(idPath, contextLeft, 'right');
+      expect(viewerPath).toBe('right_root.boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('removes all prefixes when specified', () => {
-      const idPath: IdBasedPath = createIdBasedPath('left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      const idPath: IdBasedPath = createIdBasedPath('boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
       const indexPath = convertIdPathToIndexPath(idPath, contextLeft, { removeAllPrefixes: true });
-      // This function may not support removeAllPrefixes in the current implementation
-      expect(indexPath).toBe('left_boomerForecastV3Requests[0].parameters.accountParams[id=45626988::2]');
+      expect(indexPath).toBe('boomerForecastV3Requests[0].parameters.accountParams[1]');
     });
 
     test('converts ID path with clean format (no legacy prefixes)', () => {
