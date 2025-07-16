@@ -186,6 +186,18 @@
   word-break: break-all;
 }
 
+.pattern-text.editable {
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.pattern-text.editable:hover {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
 .pattern-actions {
   display: flex;
   gap: 6px;

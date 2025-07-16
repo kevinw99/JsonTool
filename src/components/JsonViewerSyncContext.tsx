@@ -660,9 +660,9 @@ export const JsonViewerSyncProvider: React.FC<JsonViewerSyncProviderProps> = ({
 
     // Removed ref update effect as manual expansion no longer triggers sync
 
-    // Use centralized wildcard pattern matching from PathConverter
+    // Simple case-insensitive substring matching for ignore patterns
     const matchesPattern = useCallback((path: string, pattern: string): boolean => {
-      return matchesWildcardPattern(createIdBasedPath(path), pattern);
+      return path.toLowerCase().includes(pattern.toLowerCase());
     }, []);
 
     // Check if a path is ignored by any pattern

@@ -39,7 +39,7 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
   };
 
   const handleSaveEdit = () => {
-    if (editingId && editingValue.trim()) {
+    if (editingId && editingValue.trim() && editingValue.trim() !== '') {
       updateIgnoredPattern(editingId, editingValue.trim());
     }
     setEditingId(null);
@@ -67,6 +67,7 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
         handleAddNew();
       }
     } else if (e.key === 'Escape' && action === 'save') {
+      e.preventDefault();
       handleCancelEdit();
     }
   };
@@ -116,47 +117,37 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
                           value={editingValue}
                           onChange={(e) => setEditingValue(e.target.value)}
                           onKeyDown={(e) => handleKeyPress(e, 'save')}
+                          onBlur={handleSaveEdit}
                           className="edit-pattern-input"
-                        autoFocus
-                      />
-                      <div className="edit-pattern-actions">
-                        <button 
-                          onClick={handleSaveEdit}
-                          className="save-button"
-                          disabled={!editingValue.trim()}
-                        >
-                          Save
-                        </button>
-                        <button 
-                          onClick={handleCancelEdit}
-                          className="cancel-button"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="pattern-text">{pattern}</span>
-                      <div className="pattern-actions">
-                        <button 
-                          onClick={() => handleStartEdit(id, pattern)}
-                          className="edit-button"
-                          title="Edit this pattern"
-                        >
-                          Edit
-                        </button>
+                          autoFocus
+                        />
                         <button 
                           onClick={() => removeIgnoredPattern(id)}
                           className="unignore-button"
                           title="Stop ignoring this pattern"
                         >
-                          Do not ignore
+                          ✕
                         </button>
                       </div>
-                    </>
-                  )}
-                </div>
+                    ) : (
+                      <>
+                        <span 
+                          className="pattern-text editable"
+                          onClick={() => handleStartEdit(id, pattern)}
+                          title="Click to edit this pattern"
+                        >
+                          {pattern}
+                        </span>
+                        <button 
+                          onClick={() => removeIgnoredPattern(id)}
+                          className="unignore-button"
+                          title="Stop ignoring this pattern"
+                        >
+                          ✕
+                        </button>
+                      </>
+                    )}
+                  </div>
               </li>
             ))}
           </ul>
@@ -167,7 +158,7 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
           <div className="add-pattern-input-group">
             <input
               type="text"
-              placeholder="Add ignore pattern (e.g., *.elapsedTime, *.metadata.*, boomerForecastV3Requests[0].metadata.*)"
+              placeholder="Add ignore pattern (e.g., elapsedTime, metadata, externalId)"
               value={newPattern}
               onChange={(e) => setNewPattern(e.target.value)}
               onKeyDown={(e) => handleKeyPress(e, 'add')}
@@ -184,14 +175,15 @@ export const IgnoredPanel: React.FC<IgnoredPanelProps> = ({
         </div>
 
         <div className="pattern-help">
-          <strong>Pattern Examples:</strong>
+          <strong>Pattern Examples (case-insensitive substring matching):</strong>
           <ul>
-            <li><code>*.elapsedTime</code> - Ignores any field named exactly "elapsedTime"</li>
-            <li><code>*elapsedTime*</code> - Ignores any field containing "elapsedTime" (e.g., "elapsedTimeAfterGetting...")</li>
-            <li><code>*.metadata.*</code> - Ignores all fields under any "metadata" object</li>
-            <li><code>boomerForecastV3Requests[0].metadata.externalRequestUID</code> - Ignores specific field</li>
-            <li><code>searchPerIterationDebugOutputs[*].elapsedTime</code> - Ignores "elapsedTime" in any array item</li>
+            <li><code>elapsedTime</code> - Ignores any field containing "elapsedTime"</li>
+            <li><code>metadata</code> - Ignores any field containing "metadata"</li>
+            <li><code>externalId</code> - Ignores any field containing "externalId"</li>
+            <li><code>uid</code> - Ignores any field containing "uid" (matches "UID", "guid", etc.)</li>
+            <li><code>debug</code> - Ignores any field containing "debug" (matches "debugOutput", etc.)</li>
           </ul>
+          <p><em>Note: Patterns match any part of the field path and are case-insensitive.</em></p>
         </div>
       </div>
     </div>
