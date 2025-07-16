@@ -91,7 +91,7 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
     expect(result.idKeysUsed[0].arrayPath).toBe('users[]')
   })
 
-  it('should not generate IDKeys for arrays that exist on only one side', () => {
+  it('should not generate IDKeys for single-element arrays or arrays that exist on only one side', () => {
     const json1 = {
       boomerForecastV3Requests: [
         {
@@ -133,33 +133,33 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
     
     expect(result.idKeysUsed).toBeDefined()
     
-    // Should have IDKeys for arrays that exist on both sides
+    // Should NOT have IDKeys for single-element arrays (even if they exist on both sides)
     const validPaths = result.idKeysUsed.map(idKey => idKey.arrayPath)
-    expect(validPaths).toContain('boomerForecastV3Requests[]')
-    expect(validPaths).toContain('boomerForecastV3Requests[].parameters.accountParams[]')
-    expect(validPaths).toContain('boomerForecastV3Requests[].parameters.accountParams[].contributions[]')
+    expect(validPaths).not.toContain('boomerForecastV3Requests[]') // Single element on both sides
+    expect(validPaths).not.toContain('boomerForecastV3Requests[].parameters.accountParams[]') // Single element
+    expect(validPaths).not.toContain('boomerForecastV3Requests[].parameters.accountParams[].contributions[]') // Single element
     
     // Should NOT have IDKeys for arrays that only exist on one side
     expect(validPaths).not.toContain('contributionsSearchOutputs[]')
     expect(validPaths).not.toContain('contributionsSearchOutputs[].contributionsAdvice.contributionsPerAccount[]')
     expect(validPaths).not.toContain('contributionsSearchOutputs[].contributionsAdvice.contributionsPerAccount[].employeeContributionBreakdown[]')
     
-    // Verify exact count - should only have the 3 valid arrays that exist on both sides
-    expect(result.idKeysUsed).toHaveLength(3)
+    // Verify no ID keys are generated since all arrays are single-element
+    expect(result.idKeysUsed).toHaveLength(0)
   })
 
   it('should generate correct ArrayPatternPath format with all bracket types', () => {
     const json1 = {
       accounts: [
-        { accountType: 'savings', transactions: [{ id: 1, amount: 100 }] },
-        { accountType: 'checking', transactions: [{ id: 2, amount: 200 }] }
+        { accountType: 'savings', transactions: [{ id: 1, amount: 100 }, { id: 2, amount: 200 }] },
+        { accountType: 'checking', transactions: [{ id: 3, amount: 300 }, { id: 4, amount: 400 }] }
       ]
     }
 
     const json2 = {
       accounts: [
-        { accountType: 'savings', transactions: [{ id: 1, amount: 150 }] },
-        { accountType: 'investment', transactions: [{ id: 3, amount: 300 }] }
+        { accountType: 'savings', transactions: [{ id: 1, amount: 150 }, { id: 5, amount: 250 }] },
+        { accountType: 'investment', transactions: [{ id: 6, amount: 350 }, { id: 7, amount: 450 }] }
       ]
     }
 
@@ -175,7 +175,7 @@ describe('ID Keys Navigation Feature - Unit Tests', () => {
       expect(idKey.arrayPath).not.toMatch(/\[0\]|\[1\]|\[accountType=|\[id=/, `ArrayPatternPath should not contain specific indices or ID values: ${idKey.arrayPath}`)
     })
     
-    // Expected paths
+    // Expected paths - both arrays now have multiple elements so should generate ID keys
     const expectedPaths = ['accounts[]', 'accounts[].transactions[]']
     const actualPaths = result.idKeysUsed.map(idKey => idKey.arrayPath)
     expectedPaths.forEach(expectedPath => {

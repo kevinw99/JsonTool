@@ -24,6 +24,9 @@ interface FileData {
   content: JsonValue | string;
   isTextMode: boolean;
   fileName?: string;
+  hasUnsavedChanges?: boolean;
+  lastValidJson?: JsonValue;
+  validationError?: string;
 }
 
 function App() {
@@ -892,10 +895,28 @@ function App() {
                             key="file1-text-editor"
                             value={typeof file1.content === 'string' ? file1.content : JSON.stringify(file1.content, null, 2)} 
                             onChange={(newContent) => {
-                              // For read-only mode, we don't update the content
-                              console.log('Text editor is in read-only mode');
+                              if (file1) {
+                                // Update file1 state with new content
+                                const updatedFile1 = {
+                                  ...file1,
+                                  content: newContent,
+                                  isTextMode: true,
+                                  hasUnsavedChanges: true
+                                };
+                                
+                                // Try to parse JSON to store lastValidJson
+                                try {
+                                  const parsedJson = JSON.parse(newContent);
+                                  updatedFile1.lastValidJson = parsedJson;
+                                  updatedFile1.validationError = undefined;
+                                } catch (error) {
+                                  updatedFile1.validationError = (error as Error).message;
+                                }
+                                
+                                setFile1(updatedFile1);
+                              }
                             }}
-                            readOnly={true}
+                            readOnly={false}
                             height="100%"
                             theme="light"
                           />
@@ -946,10 +967,28 @@ function App() {
                             key="file2-text-editor"
                             value={typeof file2.content === 'string' ? file2.content : JSON.stringify(file2.content, null, 2)} 
                             onChange={(newContent) => {
-                              // For read-only mode, we don't update the content
-                              console.log('Text editor is in read-only mode');
+                              if (file2) {
+                                // Update file2 state with new content
+                                const updatedFile2 = {
+                                  ...file2,
+                                  content: newContent,
+                                  isTextMode: true,
+                                  hasUnsavedChanges: true
+                                };
+                                
+                                // Try to parse JSON to store lastValidJson
+                                try {
+                                  const parsedJson = JSON.parse(newContent);
+                                  updatedFile2.lastValidJson = parsedJson;
+                                  updatedFile2.validationError = undefined;
+                                } catch (error) {
+                                  updatedFile2.validationError = (error as Error).message;
+                                }
+                                
+                                setFile2(updatedFile2);
+                              }
                             }}
-                            readOnly={true}
+                            readOnly={false}
                             height="100%"
                             theme="light"
                           />

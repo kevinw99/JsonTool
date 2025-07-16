@@ -22,11 +22,9 @@ export interface JsonCompareResult {
 }
 
 function findIdKey(arr1: any[], arr2: any[]): string | null {
-  // Skip idKey detection for arrays with very few total elements or when either array is empty
-  if (arr1.length + arr2.length <= 1) return null;
-  
-  // Also skip if either array is empty (arrays need elements on both sides for meaningful comparison)
-  if (!arr1.length || !arr2.length) return null;
+  // Skip idKey detection if either array has only one element or is empty
+  // No need to differentiate elements when there's only one element per side
+  if (arr1.length <= 1 || arr2.length <= 1) return null;
 
   const getObjectItems = (arr: any[]) =>
     arr.filter((item) => typeof item === "object" && item !== null);
