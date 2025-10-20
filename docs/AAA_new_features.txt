@@ -150,3 +150,9 @@ changed/convereted or looked up, e.g., when the event is triggered, it should lo
  do keep in concise and not repeat, especailly for repeated excutions of functions, it should only log once.
 
 
+About IDkey, it should not be generated if  the target array on either side has only one element, because there is
+no need to
+  differentiate the element, and it is not useful to have an IDKey for a single element.
+
+  can you also make Idkey entries editable, so that user can edit the idkey value, and it will be reflected in the
+  tree view and text view, and also in the diff panel.

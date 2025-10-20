@@ -60,53 +60,6 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onToggleViewMode, on
             💾 Save Files
           </button>
         )}
-        {ignoredCount > 0 && (
-          <div className="ignored-diffs-section">
-            <span className="ignored-diffs-count">
-              🚫 {ignoredCount} ignored diff{ignoredCount === 1 ? '' : 's'}
-            </span>
-            <button 
-              className="clear-ignored-button"
-              onClick={() => {
-                // Clear all right-click ignored patterns
-                Array.from(ignoredPatterns.keys())
-                  .filter(id => id.startsWith('rightclick_'))
-                  .forEach(id => {
-                    const path = id.replace('rightclick_', '');
-                    removeIgnoredPatternByPath(validateAndCreateIdBasedPath(path, 'ViewControls.clearRightClick'));
-                  });
-              }}
-              title="Clear all ignored diffs"
-            >
-              Clear All
-            </button>
-            <details className="ignored-diffs-details">
-              <summary>Show ignored paths</summary>
-              <div className="ignored-diffs-list">
-                {Array.from(ignoredPatterns.entries())
-                  .filter(([id]) => id.startsWith('rightclick_'))
-                  .map(([id, pattern]) => {
-                    // Extract path from ID
-                    const path = id.replace('rightclick_', '');
-                    return (
-                      <div key={id} className="ignored-diff-item">
-                        <span className="ignored-path" title={pattern}>
-                          {pattern.length > 30 ? `...${pattern.slice(-30)}` : pattern}
-                        </span>
-                        <button 
-                          className="unignore-button"
-                          onClick={() => removeIgnoredPatternByPath(validateAndCreateIdBasedPath(path, 'ViewControls.unignoreButton'))}
-                          title={`Unignore: ${pattern}`}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })}
-              </div>
-            </details>
-          </div>
-        )}
       </div>
     </div>
   );
